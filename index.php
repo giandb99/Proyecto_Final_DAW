@@ -1,1 +1,1 @@
-<?php header('Location: vistas/user/catalogo.php');
+<?php header('Location: views/user/catalog.php');

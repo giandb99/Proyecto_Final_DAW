@@ -1,5 +1,5 @@
- drop database if exists tienda_online;
- create database if not exists tienda_online;
+drop database if exists tienda_online;
+create database if not exists tienda_online;
 
 use tienda_online;
 
@@ -247,4 +247,4 @@ select * from usuario;
 select * from votos;
 
 INSERT INTO producto (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, descuento, stock, plataforma_id, creado_por) VALUES
-('The Witcher 3', 'witcher3.jpg', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 15, 50, 1, 1);
+('The Witcher 3', '../images/TheWitcher3_WH.jpg', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 15, 50, 1, 1);
