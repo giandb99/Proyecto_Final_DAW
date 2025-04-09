@@ -1,0 +1,102 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212;
+    color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: center;
+}
+
+.login-form {
+    background-color: #1f2937;
+    width: 350px;
+    margin: 5rem auto;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 20px rgba(0, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.login-title {
+    font-size: 1.75rem;
+    color: #00ffff;
+    margin-bottom: 1.5rem;
+}
+
+.login {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.login-input {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: #374151;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: background 0.3s ease;
+}
+
+.login-input::placeholder {
+    color: #9ca3af;
+}
+
+.login-input:focus {
+    background-color: #4b5563;
+    box-shadow: 0 0 0 2px #00ffff88;
+}
+
+.admin {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: start;
+    font-size: .9rem;
+    color: #9ca3af;
+}
+
+.checkbox {
+    accent-color: #9333ea;
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+.login-button {
+    background: linear-gradient(45deg, #00ffff, #00a2ff);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.login-button:hover {
+    background: linear-gradient(45deg, #00a2ff, #00ffff);
+    transform: scale(1.05);
+}
+
+.register-link {
+    font-size: 0.9rem;
+    color: #00ffff;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.register-link:hover {
+    color: #38fdfd;
+    text-decoration: underline;
+}

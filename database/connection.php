@@ -43,4 +43,5 @@ function cerrar_conexion($conn) {
     }
 }
 
-$conn = conexion(); // Establecemos la conexión a la base de datos
+// Llamada a la función para probar la conexión
+$conn = conexion();

@@ -1,0 +1,35 @@
+.navbar {
+    background: linear-gradient(90deg, #0f3460, #16213e);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+}
+
+.navbar-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.navbar-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 1.5rem;
+    transition: background 0.3s ease-in-out, color 0.3s;
+} 
+
+.navbar-button:hover {
+    background: rgba(0, 255, 255, 0.2);
+    color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    transform: scale(1.05);
+}
