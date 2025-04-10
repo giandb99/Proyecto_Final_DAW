@@ -26,7 +26,7 @@ function validarDato($tipo, $dato){
         case 'hora':
             return preg_match('/^\d{2}:\d{2}:\d{2}$/', $dato) === 1;
         case 'password':
-            return preg_match('/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/', $dato) === 1; // Al menos 8 caracteres, al menos una letra y un número
+            return preg_match('/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/', $dato) === 1; // Al menos 8 caracteres, al menos una letra y un número
         case 'direccion':
             return preg_match('/^[a-zA-Z0-9\s,.-]+$/', $dato) === 1;
         default:

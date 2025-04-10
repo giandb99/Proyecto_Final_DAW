@@ -28,6 +28,11 @@ body {
     margin: 0;
 }
 
+.success-msg {
+    color: #00f500;
+    margin-bottom: 10px;
+}
+
 .login-title {
     font-size: 1.75rem;
     color: #00ffff;

@@ -18,7 +18,7 @@
 
         <!-- Contenedor para los campos del formulario -->
         <div class="register">
-            <input class="register-input" type="text" name="username" id="username" placeholder="Nombre de usuario" required>
+            <input class="register-input" type="text" name="username" id="username" placeholder="Nombre de usuario">
             <input class="register-input" type="text" name="email" id="email" placeholder="Correo electrónico">
             <input class="register-input" type="password" name="password" id="password" placeholder="Contraseña" minlength="6">
             <input class="register-input" type="password" name="confirm_password" id="confirm_password"

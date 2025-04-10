@@ -1,0 +1,108 @@
+.barra-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.barra-superior .btn-agregar,
+.barra-superior .btn-desactivar {
+    padding: 10px 16px;
+    background-color: #1f1f1f;
+    color: #f1f1f1;
+    border: 1px solid #333;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-size: 1rem;
+    display: inline-block;
+    text-align: center;
+}
+
+.barra-superior .btn-agregar:hover,
+.barra-superior .btn-desactivar:hover {
+    background-color: #333;
+}
+
+.form-desactivar {
+    margin: 0;
+}
+
+.btn-volver,
+.btn-agregar,
+.btn-desactivar {
+    padding: 10px 16px;
+    background-color: #1f1f1f;
+    color: #f1f1f1;
+    border: 1px solid #333;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-volver:hover,
+.btn-agregar:hover,
+.btn-desactivar:hover {
+    background-color: #333;
+}
+
+.tabla-productos {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.tabla-productos thead {
+    background-color: #292929;
+}
+
+.tabla-productos th,
+.tabla-productos td {
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+.tabla-productos th {
+    color: #ccc;
+}
+
+.tabla-img {
+    width: 50px;
+    height: auto;
+    border-radius: 4px;
+}
+
+.acciones {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-icon {
+    text-decoration: none;
+    font-size: 18px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    transition: 0.3s ease;
+}
+
+.btn-icon.ver {
+    color: #4fc3f7;
+}
+
+.btn-icon.editar {
+    color: #ffee58;
+}
+
+.btn-icon.eliminar {
+    color: #e57373;
+}
+
+.btn-icon:hover {
+    transform: scale(1.1);
+    background-color: #333;
+}

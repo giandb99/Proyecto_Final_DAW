@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'registrar_usuario':
             // Obtener los datos del usuario
             $username = $_POST['username'] ?? null;
+            $name = $_POST['username'] ?? null;
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
             $confirmPassword = $_POST['confirm_password'] ?? null;
@@ -24,14 +25,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $errores[] = "El nombre es inválido.";
             }
 
+            // Validar el nombre
+            if (validarDato('string', $name) !== true) {
+                $errores[] = "El nombre es inválido.";
+            }
+
             // Validar el correo electrónico
             if (validarDato('email', $email) !== true) {
-                $errores[] = "El correo es inválido."; // Agrega el mensaje de error devuelto por la validación
+                $errores[] = "El correo es inválido.";
             }
 
             // Validar la contraseña
             if (validarDato('password', $password) !== true) {
-                $errores[] = "La contraseña es inválida.";
+                $errores[] = "La contraseña debe tener al menos 8 caracteres, una letra y un número.";
             }
 
             //Valido que las contraseñas sean iguales
@@ -47,36 +53,68 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             // Crear el usuario
-            $usuarioCreado = registrarUsuario($username, $email, $password);
+            $usuarioCreado = registrarUsuario($name, $username, $email, $password);
             exit;
 
         case 'iniciar_sesion':
-            // Captura los datos del formulario
+            // Se inicia la sesión para almacenar datos del usuario
+            session_start();
+
+            // Se captura los datos del formulario
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
             $checkbox = isset($_POST['admin']);
 
-            // Validar si el correo existe
             if (!$checkbox) {
-                if (verificarUsuario($email, $password)) {
-                    // Aquí puedes verificar la contraseña o redirigir a otra página
+                $user = obtenerDatosUsuario($email, $password);
+
+                if ($user) {
+                    $_SESSION['usuario'] = [
+                        'id' => $user['id'],
+                        'username' => $user['username'],
+                        'email' => $user['email'],
+                        'rol' => 'user'
+                    ];
+
+                    // Si hay productos en el carrito guardados antes de loguearse
+                    if (isset($_SESSION['carrito_temp'])) {
+                        $_SESSION['carrito'] = $_SESSION['carrito_temp'];
+                        unset($_SESSION['carrito_temp']);
+                    }
+
                     header("Location: ../views/user/catalog.php?Inicio+exitoso");
                     exit();
                 } else {
-                    // Si el usuario no existe
                     header("Location: ../views/user/login.php?error=Credenciales+inválidas");
+                    exit();
                 }
-            } elseif ($checkbox) {
-                if (verificarAdmin($email, $password)) {
-                    // Aquí puedes verificar la contraseña o redirigir a otra página
+            } else {
+                $admin = obtenerDatosAdmin($email, $password);
+
+                if ($admin) {
+                    $_SESSION['usuario'] = [
+                        'id' => $admin['id'],
+                        'username' => $admin['username'],
+                        'email' => $admin['email'],
+                        'rol' => 'admin'
+                    ];
+
                     header("Location: ../views/admin/dashboard.php?Inicio+exitoso");
                     exit();
                 } else {
-                    // Si el usuario no existe
                     header("Location: ../views/user/login.php?error=Credenciales+inválidas");
+                    exit();
                 }
             }
-            exit;
+            break;
+
+        // case 'guardar_preferencias':
+        //     // Obtener las preferencias del usuario
+        //     $idioma = $_POST['idioma'] ?? null;
+        //     $moneda = $_POST['moneda'] ?? null;
+        //     $tema = $_POST['tema'] ?? null;
+
+        //     exit;
 
         default:
             // Si no se reconoce la acción, redirigir a una página de error
@@ -84,7 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
     }
 }
-
 
         // case 'agregar_producto':
         //     // Validar los campos del producto

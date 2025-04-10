@@ -5,20 +5,20 @@ require_once 'connection.php';
 /* ------------- USUARIOS -------------  */
 
 // Función para registrar un nuevo usuario
-function registrarUsuario($username, $email, $pass)
+function registrarUsuario($name, $username, $email, $pass)
 {
     $conn = conexion();
 
     // Si verificar usuario devuelve true, significa que el usuario ya existe
-    if (verificarUsuario($email, $pass)) {
+    if (obtenerDatosUsuario($email, $pass)) {
         header("Location: ../views/user/register.php?error=El+correo+electrónico+ya+está+registrado.");
         cerrar_conexion($conn);
         return false; // El usuario ya existe
     }
 
     // Se inserta el nuevo usuario en la base de datos
-    $query = $conn->prepare("INSERT INTO usuario (username, email, pass) VALUES (?, ?, ?)");
-    $query->bind_param("sss", $username, $email, $pass);
+    $query = $conn->prepare("INSERT INTO usuario (nombre, username, email, pass) VALUES (?, ?, ?, ?)");
+    $query->bind_param("ssss", $name, $username, $email, $pass);
 
     $result = $query->execute();
     $query->close();
@@ -31,105 +31,134 @@ function registrarUsuario($username, $email, $pass)
     }
 }
 
-// Función para verificar si un usuario existe en la base de datos
-function verificarUsuario($email, $pass)
+function obtenerDatosUsuario($email, $pass)
 {
     $conn = conexion();
-
-    // Se prepara la consulta para verificar si el usuario existe
-    $query = $conn->prepare("SELECT id FROM usuario WHERE email = ? AND pass = ? AND rol = 'user'");
+    $query = $conn->prepare("SELECT id, username, email FROM usuario WHERE email = ? AND pass = ? AND rol = 'user'");
     $query->bind_param("ss", $email, $pass);
     $query->execute();
     $result = $query->get_result();
-
-    $exists = $result->num_rows > 0;
-
+    $datos = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
 
-    return $exists;
+    return $datos ?: false;
 }
 
 /* ------------- ADMIN -------------  */
 
-// Función para verificar si un usuario es administrador
-function verificarAdmin($email, $pass)
+// Función para obtener los datos del administrador
+function obtenerDatosAdmin($email, $pass)
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT id FROM usuario WHERE email = ? AND pass = ? AND rol = 'admin'");
+    $query = $conn->prepare("SELECT id, username, email FROM usuario WHERE email = ? AND pass = ? AND rol = 'admin'");
     $query->bind_param("ss", $email, $pass);
     $query->execute();
     $result = $query->get_result();
-
-    $isAdmin = $result->num_rows > 0;
-
+    $datos = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
 
-    return $isAdmin;
+    return $datos ?: false;
 }
 
 /* ------------- PRODUCTOS -------------  */
 
 // Función para crear un nuevo producto
-function crearProducto($nombre, $descripcion, $precio, $descuento, $imagen)
+function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
 {
     $conn = conexion();
 
-    // Se prepara la consulta para insertar el nuevo producto
-    $query = $conn->prepare("INSERT INTO producto (nombre, descripcion, precio, descuento, imagen) VALUES (?, ?, ?, ?, ?)");
-    $query->bind_param("ssdds", $nombre, $descripcion, $precio, $descuento, $imagen);
+    $query = $conn->prepare("
+        INSERT INTO producto 
+        (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, descuento, stock, plataforma_id, creado_por, actualizado_por) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
 
-    // Se ejecuta la consulta y se cierra la conexión
+    $query->bind_param(
+        "ssssiddiisi",
+        $nombre,
+        $imagen,
+        $descripcion,
+        $fecha_lanzamiento,
+        $genero_id,
+        $precio,
+        $descuento,
+        $stock,
+        $plataforma_id,
+        $creado_por,
+        $actualizado_por
+    );
+
     if ($query->execute()) {
-        echo "Producto creado con éxito.";
+        echo "✅ Producto creado con éxito.";
     } else {
-        echo "Error al crear el producto: " . $query->error;
+        echo "❌ Error al crear el producto: " . $query->error;
     }
 
     $query->close();
     cerrar_conexion($conn);
 }
 
-// Función para modificar un producto existente
-function modificarProducto($id, $nombre, $descripcion, $precio, $descuento, $imagen)
-{
-    $conn = conexion();
 
-    // Se prepara la consulta para modificar el producto
-    $query = $conn->prepare("UPDATE producto SET nombre = ?, descripcion = ?, precio = ?, descuento = ?, imagen = ? WHERE id = ?");
-    $query->bind_param("ssddsi", $nombre, $descripcion, $precio, $descuento, $imagen, $id);
+// // Función para modificar un producto existente
+// function modificarProducto($id, $nombre, $descripcion, $precio, $descuento, $imagen)
+// {
+//     $conn = conexion();
 
-    // Se ejecuta la consulta y se cierra la conexión
-    if ($query->execute()) {
-        echo "Producto actualizado con éxito.";
-    } else {
-        echo "Error al modificar el producto: " . $query->error;
-    }
+//     // Se prepara la consulta para modificar el producto
+//     $query = $conn->prepare("UPDATE producto SET nombre = ?, descripcion = ?, precio = ?, descuento = ?, imagen = ? WHERE id = ?");
+//     $query->bind_param("ssddsi", $nombre, $descripcion, $precio, $descuento, $imagen, $id);
 
-    $query->close();
-    cerrar_conexion($conn);
-}
+//     // Se ejecuta la consulta y se cierra la conexión
+//     if ($query->execute()) {
+//         echo "Producto actualizado con éxito.";
+//     } else {
+//         echo "Error al modificar el producto: " . $query->error;
+//     }
 
-// Función para eliminar un producto por su ID
-function eliminarProducto($id)
-{
-    $conn = conexion();
+//     $query->close();
+//     cerrar_conexion($conn);
+// }
 
-    // Se prepara la consulta para eliminar el producto
-    $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
-    $query->bind_param("i", $id);
+// // Función para eliminar un producto por su ID
+// function eliminarProducto($id)
+// {
+//     $conn = conexion();
 
-    // Se ejecuta la consulta y se cierra la conexión
-    if ($query->execute()) {
-        echo "<script class='alert'>Producto eliminado con éxito.</script>";
-    } else {
-        echo "<script class='alert'>Error al eliminar el producto: " . $query->error . "</script>";
-    }
+//     // Se prepara la consulta para eliminar el producto
+//     $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
+//     $query->bind_param("i", $id);
 
-    $query->close();
-    cerrar_conexion($conn);
-}
+//     // Se ejecuta la consulta y se cierra la conexión
+//     if ($query->execute()) {
+//         echo "<script class='alert'>Producto eliminado con éxito.</script>";
+//     } else {
+//         echo "<script class='alert'>Error al eliminar el producto: " . $query->error . "</script>";
+//     }
+
+//     $query->close();
+//     cerrar_conexion($conn);
+// }
+
+// function desactivarProducto($id)
+// {
+//     $conn = conexion();
+
+//     // Se prepara la consulta para desactivar el producto
+//     $query = $conn->prepare("UPDATE producto SET activo = 0 WHERE id = ?");
+//     $query->bind_param("i", $id);
+
+//     // Se ejecuta la consulta y se cierra la conexión
+//     if ($query->execute()) {
+//         echo "<script class='alert'>Producto desactivado con éxito.</script>";
+//     } else {
+//         echo "<script class='alert'>Error al desactivar el producto: " . $query->error . "</script>";
+//     }
+
+//     $query->close();
+//     cerrar_conexion($conn);
+// }
 
 /**
  * Esta función consulta la base de datos para obtener todos los juegos y sus detalles,
@@ -203,7 +232,7 @@ function obtenerProductoPorId($id)
     $conn = conexion();
 
     // Se prepara la consulta
-    $query = $conn->prepare("SELECT * FROM producto WHERE id = ?");
+    $query = $conn->prepare("SELECT * FROM producto WHERE id = ? LIMIT 1");
     $query->bind_param("i", $id); // Se usa "i" para indicar que el parámetro es un entero
     $query->execute();
 
@@ -217,6 +246,45 @@ function obtenerProductoPorId($id)
 
     $query->close();
     cerrar_conexion($conn); // Cierra la conexión
+}
+
+function obtenerTodosLosProductos()
+{
+    $conn = conexion();
+
+    // Se prepara la consulta
+    // Se hace JOIN con genero y plataforma para obtener los nombres
+    $query = $conn->prepare("
+        SELECT 
+            producto.id,
+            producto.nombre,
+            producto.imagen,
+            producto.precio,
+            producto.descuento,
+            producto.stock,
+            genero.nombre AS genero,
+            plataforma.nombre AS plataforma
+        FROM producto
+        JOIN genero ON producto.genero_id = genero.id
+        JOIN plataforma ON producto.plataforma_id = plataforma.id
+        WHERE producto.activo = 1 ORDER BY producto.id ASC
+    ");
+
+    $query->execute();
+
+    $result = $query->get_result();
+    $productos = [];
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $productos[] = $row; // Agrega cada producto al array
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn); // Cierra la conexión
+
+    return $productos; // Retorna el array de productos
 }
 
 /* ------------- CARRITO -------------  */
@@ -341,4 +409,3 @@ function obtenerTotalUsuarios()
 
     return $row['total']; // Retorna el total de usuarios
 }
-

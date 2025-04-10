@@ -56,6 +56,8 @@ create table producto(
     activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (genero_id) REFERENCES genero(id),
     FOREIGN KEY (plataforma_id) REFERENCES plataforma(id)
+    FOREIGN KEY (creado_por) REFERENCES usuario(id),
+    FOREIGN KEY (actualizado_por) REFERENCES usuario(id)
 );
 
 create table stock_producto (
@@ -76,7 +78,8 @@ create table pedido(
     activo BOOLEAN DEFAULT TRUE,
     fecha_envio TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id),
-    FOREIGN KEY (estado_pedido_id) REFERENCES estado_pedido(id)
+    FOREIGN KEY (estado_pedido_id) REFERENCES estado_pedido(id),
+    FOREIGN KEY (creado_por) REFERENCES usuario(id)
 );
 
 create table pedido_item(
@@ -95,6 +98,7 @@ create table carrito(
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE
+    FOREIGN KEY (creado_por) REFERENCES usuario(id)
 );
 
 create table carrito_item(
@@ -113,6 +117,7 @@ create table favorito(
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE
+    FOREIGN KEY (creado_por) REFERENCES usuario(id)
 );
 
 create table favorito_item(
