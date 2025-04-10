@@ -1,3 +1,12 @@
+<?php
+
+session_start();
+
+$exito = $_GET['exito'] ?? null;
+$error = $_GET['error'] ?? null;
+
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -9,10 +18,9 @@
 </head>
 
 <body>
-
     <!-- Formulario de inicio de sesión -->
     <form class="login-form" action="../../verifications/paginaIntermedia.php" method="POST">
-        <h2>Iniciar Sesión</h2>
+        <h2 class="login-title">Iniciar Sesión</h2>
 
         <!-- Campo oculto para la acción del formulario -->
         <input type="hidden" name="accion" value="iniciar_sesion">
@@ -20,6 +28,14 @@
         <div class="login">
             <input class="login-input" type="text" name="email" id="email" placeholder="Correo electrónico">
             <input class="login-input" type="password" name="password" id="password" placeholder="Contraseña">
+
+            <?php if ($error): ?>
+                <p class="error-msg"><?php echo htmlspecialchars($error); ?></p>
+            <?php endif; ?>
+
+            <?php if ($exito): ?>
+                <p class="success-msg"><?php echo htmlspecialchars($exito); ?></p>
+            <?php endif; ?>
 
             <!-- Opción para iniciar sesión como administrador -->
             <div class="admin">
