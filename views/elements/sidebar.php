@@ -7,7 +7,6 @@
             <li><a href="orders.php"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
             <li><a href="users.php"><i class="fas fa-users"></i> Usuarios</a></li>
             <li><a href="finance.php"><i class="fas fa-dollar-sign"></i> Finanzas</a></li>
-            <li><a href="../user/preferences.php"><i class="fas fa-cog"></i> Ajustes</a></li>
             <li><a href="../user/logout.php"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
         </ul>
 </aside>

@@ -209,13 +209,16 @@ function obtenerProductosClientes()
                 echo '<span class="price">$' . number_format($row['precio'], 2) . '</span>';
             }
             echo '</div>
-                        <button class="add-to-cart" onclick="agregarAlCarrito(' . $row['id'] . ')">Add to Cart</button>
+                        <div class="buttons-container">
+                            <button class="add-to-favorites" onclick="agregarAFavoritos(' . $row['id'] . ')"><i class="far fa-heart"></i></button> 
+                            <button class="add-to-cart" onclick="agregarAlCarrito(' . $row['id'] . ')">Add to Cart</button>
+                        </div>
                     </div>
                 </div>
             </div>';
         }
     } else {
-        echo '<p>No hay juegos disponibles.</p>';
+        echo '<p class="no-products">Lo sentimos, no hay productos disponibles.<br>Vuelva más tarde</p>';
     }
 
     $query->close();

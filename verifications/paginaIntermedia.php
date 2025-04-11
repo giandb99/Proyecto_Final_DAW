@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Se inicia la sesión para almacenar datos del usuario
             session_start();
 
-            // Se captura los datos del formulario
+            // Se capturan los datos del formulario
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
             $checkbox = isset($_POST['admin']);

@@ -22,58 +22,65 @@ $productos = obtenerTodosLosProductos();
 
 <body class="dashboard-container">
 
-    <!-- Sidebar o Botón para volver -->
     <?php include '../elements/sidebar.php'; ?>
 
     <main class="main-content">
 
         <div class="barra-superior">
-            <a href="newProduct.php" class="btn-agregar">+ Agregar producto</a>
-            <form action="../../verifications/paginaIntermedia.php" method="POST" class="form-desactivar">
-                <input type="hidden" name="action" value="desactivar_producto">
+            <form action="newProduct.php" method="POST">
+                <input type="hidden" name="accion" value="agregar_producto">
+                <input type="hidden" name="id" value="<?= $producto['id'] ?>">
+                <button type="submit" class="btn-agregar">+ Agregar producto</button>
+            </form>
+            <form action="../../verifications/paginaIntermedia.php" method="POST">
+                <input type="hidden" name="accion" value="desactivar_producto">
                 <button type="submit" class="btn-desactivar">Desactivar seleccionados</button>
             </form>
         </div>
 
-        <form action="../../verifications/paginaIntermedia.php" method="POST">
-            <input type="hidden" name="action" value="desactivar_producto">
-
-            <table class="tabla-productos">
-                <thead>
+        <table class="tabla-productos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Imagen</th>
+                    <th>Precio</th>
+                    <th>Descuento</th>
+                    <th>Stock</th>
+                    <th>Plataforma</th>
+                    <th>Género</th>
+                    <th>Acciones</th>
+                    <th><input type="checkbox" id="checkAll"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($productos as $producto): ?>
                     <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Imagen</th>
-                        <th>Precio</th>
-                        <th>Descuento</th>
-                        <th>Stock</th>
-                        <th>Plataforma</th>
-                        <th>Género</th>
-                        <th>Acciones</th>
-                        <th><input type="checkbox" id="checkAll"></th>
+                        <td><?= $producto['id'] ?></td>
+                        <td><?= htmlspecialchars($producto['nombre']) ?></td>
+                        <td><img src="<?= $producto['imagen'] ?>" alt="Imagen" class="tabla-img"></td>
+                        <td><?= $producto['precio'] ?>€</td>
+                        <td><?= $producto['descuento'] ?? '0' ?>%</td>
+                        <td><?= $producto['stock'] ?></td>
+                        <td><?= htmlspecialchars($producto['plataforma']) ?></td>
+                        <td><?= htmlspecialchars($producto['genero']) ?></td>
+                        <td class="acciones">
+                            <form action="modifyProduct.php" method="POST">
+                                <input type="hidden" name="accion" value="modificar_producto">
+                                <input type="hidden" name="id" value="<?= $producto['id'] ?>">
+                                <button type="submit" class="btn-icon-modificar" title="Modificar"><i class="fas fa-pen"></i></button>
+                            </form>
+                            <form action="../../verifications/paginaIntermedia.php" method="POST">
+                                <input type="hidden" name="accion" value="desactivar_producto">
+                                <input type="hidden" name="id" value="<?= $producto['id'] ?>">
+                                <button type="submit" class="btn-icon-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                        </td>
+                        <td><input type="checkbox" name="productos_seleccionados[]" value=" ?= $producto['id'] ?>"></td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($productos as $producto): ?>
-                        <tr>
-                            <td><?= $producto['id'] ?></td>
-                            <td><?= htmlspecialchars($producto['nombre']) ?></td>
-                            <td><img src="<?= $producto['imagen'] ?>" alt="Imagen" class="tabla-img"></td>
-                            <td><?= $producto['precio'] ?>€</td>
-                            <td><?= $producto['descuento'] ?? '0' ?>%</td>
-                            <td><?= $producto['stock'] ?></td>
-                            <td><?= htmlspecialchars($producto['plataforma']) ?></td>
-                            <td><?= htmlspecialchars($producto['genero']) ?></td>
-                            <td class="acciones">
-                                <a href="newProduct.php?id=<?= $producto['id'] ?>" class="btn-icon ver" title="Ver">&#128065;</a>
-                                <a href="eliminar_producto.php?id=<?= $producto['id'] ?>" class="btn-icon eliminar" title="Eliminar">&#10060;</a>
-                            </td>
-                            <td><input type="checkbox" name="productos_seleccionados[]" value="<?= $producto['id'] ?>"></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </form>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </main>
 
     <script>

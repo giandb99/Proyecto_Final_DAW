@@ -55,7 +55,7 @@ create table producto(
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (genero_id) REFERENCES genero(id),
-    FOREIGN KEY (plataforma_id) REFERENCES plataforma(id)
+    FOREIGN KEY (plataforma_id) REFERENCES plataforma(id),
     FOREIGN KEY (creado_por) REFERENCES usuario(id),
     FOREIGN KEY (actualizado_por) REFERENCES usuario(id)
 );
@@ -97,7 +97,7 @@ create table carrito(
     creado_por INT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE
+    activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (creado_por) REFERENCES usuario(id)
 );
 
@@ -116,7 +116,7 @@ create table favorito(
     creado_por INT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE
+    activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (creado_por) REFERENCES usuario(id)
 );
 
@@ -183,10 +183,10 @@ INSERT INTO plataforma (nombre) VALUES
 ('Nintendo Switch');
 
 -- Insertar productos (videojuegos)
-INSERT INTO producto (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, stock, plataforma_id, creado_por) VALUES
-('The Witcher 3', 'witcher3.jpg', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 50, 1, 1),
-('FIFA 23', 'fifa23.jpg', 'El mejor simulador de fútbol.', '2022-09-30', 4, 59.99, 30, 2, 1),
-('Zelda: Breath of the Wild', 'zelda.jpg', 'Aventura épica en mundo abierto.', '2017-03-03', 2, 49.99, 40, 4, 1);
+INSERT INTO producto (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, descuento, stock, plataforma_id, creado_por) VALUES
+('The Witcher 3', '../images/TheWitcher3_WH.jpg', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 15, 50, 1, 1),
+('FIFA 23', 'fifa23.jpg', 'El mejor simulador de fútbol.', '2022-09-30', 4, 59.99, 0, 30, 2, 1),
+('Zelda: Breath of the Wild', 'zelda.jpg', 'Aventura épica en mundo abierto.', '2017-03-03', 2, 49.99, 10, 40, 4, 1);
 
 -- Insertar stock de productos
 INSERT INTO stock_producto (producto_id, stock_reservado, stock_disponible) VALUES
@@ -250,6 +250,3 @@ select * from producto_plataforma;
 select * from stock_producto;
 select * from usuario;
 select * from votos;
-
-INSERT INTO producto (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, descuento, stock, plataforma_id, creado_por) VALUES
-('The Witcher 3', '../images/TheWitcher3_WH.jpg', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 15, 50, 1, 1);

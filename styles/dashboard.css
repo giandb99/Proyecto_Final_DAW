@@ -1,6 +1,4 @@
-
-html,
-body {
+html, body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -63,22 +61,14 @@ body {
     padding: 2rem;
     overflow-y: auto;
     height: 100vh;
-}
-
-.dashboard-container.sidebar-hidden .main-content {
-    margin-left: 0;
-}
-
-.dashboard-container.sidebar-visible .main-content {
-    margin-left: 250px;
+    background-color: black;
 }
 
 .main-header {
     margin-bottom: 2rem;
     padding: 1rem;
     border-radius: .5rem;
-    border-bottom: 2px solid #e5e7eb;
-    background-color: white;
+    background-color: gray;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -97,9 +87,10 @@ body {
 }
 
 .card {
-    background-color: #ffffff;
+    background-color: gray;
     border-radius: 0.75rem;
     padding: 1.5rem;
+    text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s, box-shadow 0.2s;
 }

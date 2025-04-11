@@ -1,10 +1,14 @@
 .navbar {
     background: linear-gradient(90deg, #0f3460, #16213e);
-    padding: 15px 30px;
+    padding: 1rem 0rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
 }
 
 .navbar-buttons {
@@ -12,6 +16,7 @@
     gap: 1rem;
     justify-content: center;
     align-items: center;
+    margin-right: 2rem;
 }
 
 .navbar-button {
@@ -32,4 +37,8 @@
     color: #00ffff;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
     transform: scale(1.05);
+}
+
+.logo {
+    margin-left: 2rem;
 }

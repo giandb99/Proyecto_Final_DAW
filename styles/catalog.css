@@ -1,15 +1,48 @@
-body {
+html, body {
     font-family: 'Poppins', sans-serif;
     background-color: #121212;
     color: white;
+    display: flex;
+    flex-direction: column;
     text-align: center;
+    height: 100%;
     margin: 0;
     padding: 0;
 }
 
+body {
+    min-height: 100vh;
+}
+
+.main-content{
+    flex: 1;
+    padding-top: 80px;
+    padding-bottom: 100px;
+    overflow-y: auto;
+}
+
+.logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #00ffff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: transform 0.3s;
+}
+
+.logo:hover {
+    transform: scale(1.1);
+}
+
+.no-products {
+    font-size: 1.5rem;
+    color: #9ca3af;
+    margin-top: 10rem;
+}
+
 .container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
     margin: 2rem 3rem;
 }
@@ -153,7 +186,7 @@ body {
     text-decoration: line-through;
 }
 
-.add-to-cart {
+.add-to-cart, .add-to-favorites {
     background: linear-gradient(45deg, #7c3aed, #9333ea);
     color: white;
     padding: 0.5rem 0.75rem;
@@ -165,19 +198,32 @@ body {
     transition: background 0.3s ease;
 }
 
-.add-to-cart:hover {
+.add-to-cart:hover, .add-to-favorites {
     background: linear-gradient(45deg, #9333ea, #7c3aed);
 }
 
-.logo {
-    font-size: 26px;
-    font-weight: bold;
-    color: #00ffff;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    transition: transform 0.3s;
+.search-container{ 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
 }
 
-.logo:hover {
-    transform: scale(1.1);
+::-webkit-scrollbar {
+    width: 12px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #05e5e5;
+    border: 2px solid #1e293b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #11b0b0;
 }
