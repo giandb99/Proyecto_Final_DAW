@@ -59,7 +59,7 @@ $productos = obtenerTodosLosProductos();
                     <tr>
                         <td><?= $producto['id'] ?></td>
                         <td><?= htmlspecialchars($producto['nombre']) ?></td>
-                        <td><img src="<?= $producto['imagen'] ?>" alt="Imagen" class="tabla-img"></td>
+                        <td><img src="../../<?= $producto['imagen'] ?>" alt="Imagen" class="tabla-img"></td>
                         <td><?= $producto['precio'] ?>€</td>
                         <td><?= $producto['descuento'] ?? '0' ?>%</td>
                         <td><?= $producto['stock'] ?></td>

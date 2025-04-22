@@ -67,17 +67,17 @@ function obtenerDatosAdmin($email, $pass)
 // Función para crear un nuevo producto
 function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
 {
-    // Mueve la imagen al directorio deseado en el servidor
-    $rutaImagen = '../images/products///' . basename($imagen['name']);
+    // Ruta relativa (para guardar en la BD)
+    $rutaRelativa = 'images/products/' . basename($imagen['name']);
+    $rutaAbsoluta = '../' . $rutaRelativa;
 
-    // Verifica si el directorio 'imagenes' existe, si no, lo crea
+    // Verifica si el directorio existe
     if (!file_exists('../images/products/')) {
-        mkdir('../images/products/', 0777, true);  // Crea la carpeta 'imagenes' si no existe
+        mkdir('../images/products/', 0777, true);
     }
 
     // Mueve la imagen al servidor
-    if (!move_uploaded_file($imagen['tmp_name'], $rutaImagen)) {
-        // Si no se pudo mover la imagen, redirige con un error
+    if (!move_uploaded_file($imagen['tmp_name'], $rutaAbsoluta)) {
         header("Location: ../views/admin/newProduct.php?error=Hubo+un+problema+al+guardar+la+imagen.");
         exit;
     }
@@ -93,7 +93,7 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     $query->bind_param(
         "ssssiddiisi",
         $nombre,
-        $rutaImagen,
+        $rutaRelativa,
         $descripcion,
         $fecha_lanzamiento,
         $genero_id,
@@ -114,6 +114,7 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     $query->close();
     cerrar_conexion($conn);
 }
+
 
 // // Función para modificar un producto existente
 // function modificarProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $actualizado_por)
@@ -201,7 +202,7 @@ function obtenerProductosClientes()
             echo '
             <div class="product-card" onclick="window.location.href=\'product.php?id=' . $row['id'] . '\'">
                 <div class="relative">
-                    <img src="' . htmlspecialchars($row['imagen'] ?: 'placeholder.svg') . '" alt="' . htmlspecialchars($row['nombre']) . '">
+                    <img src="../../' . htmlspecialchars($row['imagen'] ?: 'placeholder.svg') . '" alt="' . htmlspecialchars($row['nombre']) . '">
                     ' . ($row['descuento'] ? '<div class="discount-tag">' . $row['descuento'] . '% OFF</div>' : '') . '
                 </div>
                 <div class="product-info">
@@ -217,8 +218,8 @@ function obtenerProductosClientes()
                         <div class="price-container">';
             if ($row['descuento']) {
                 echo '
-                                <span class="price">$' . number_format($precioFinal, 2) . '</span>
-                                <span class="old-price">$' . number_format($row['precio'], 2) . '</span>';
+                    <span class="price">$' . number_format($precioFinal, 2) . '</span>
+                    <span class="old-price">$' . number_format($row['precio'], 2) . '</span>';
             } else {
                 echo '<span class="price">$' . number_format($row['precio'], 2) . '</span>';
             }

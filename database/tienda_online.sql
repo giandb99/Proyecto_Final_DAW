@@ -43,7 +43,7 @@ create table plataforma(
 create table producto(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    imagen LONGBLOB NOT NULL,
+    imagen VARCHAR(255) NOT NULL,
     descripcion TEXT NOT NULL,
     fecha_lanzamiento DATE NOT NULL,
     genero_id INT NOT NULL,
