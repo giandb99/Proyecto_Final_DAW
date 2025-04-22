@@ -67,6 +67,21 @@ function obtenerDatosAdmin($email, $pass)
 // Función para crear un nuevo producto
 function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
 {
+    // Mueve la imagen al directorio deseado en el servidor
+    $rutaImagen = '../images/products///' . basename($imagen['name']);
+
+    // Verifica si el directorio 'imagenes' existe, si no, lo crea
+    if (!file_exists('../images/products/')) {
+        mkdir('../images/products/', 0777, true);  // Crea la carpeta 'imagenes' si no existe
+    }
+
+    // Mueve la imagen al servidor
+    if (!move_uploaded_file($imagen['tmp_name'], $rutaImagen)) {
+        // Si no se pudo mover la imagen, redirige con un error
+        header("Location: ../views/admin/newProduct.php?error=Hubo+un+problema+al+guardar+la+imagen.");
+        exit;
+    }
+
     $conn = conexion();
 
     $query = $conn->prepare("
@@ -78,7 +93,7 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     $query->bind_param(
         "ssssiddiisi",
         $nombre,
-        $imagen,
+        $rutaImagen,
         $descripcion,
         $fecha_lanzamiento,
         $genero_id,
@@ -91,24 +106,23 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     );
 
     if ($query->execute()) {
-        echo "✅ Producto creado con éxito.";
+        header("Location: ../views/admin/products.php?exito=Producto+creado+con+éxito.");
     } else {
-        echo "❌ Error al crear el producto: " . $query->error;
+        header("Location: ../views/admin/newProduct.php?error=Error+al+crear+el+producto.");
     }
 
     $query->close();
     cerrar_conexion($conn);
 }
 
-
 // // Función para modificar un producto existente
-// function modificarProducto($id, $nombre, $descripcion, $precio, $descuento, $imagen)
+// function modificarProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $actualizado_por)
 // {
 //     $conn = conexion();
 
 //     // Se prepara la consulta para modificar el producto
-//     $query = $conn->prepare("UPDATE producto SET nombre = ?, descripcion = ?, precio = ?, descuento = ?, imagen = ? WHERE id = ?");
-//     $query->bind_param("ssddsi", $nombre, $descripcion, $precio, $descuento, $imagen, $id);
+//     $query = $conn->prepare("UPDATE producto SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, genero_id = ?, precio = ?, descuento = ?, stock = ?, plataforma_id = ?, WHERE id = ?");
+//     $query->bind_param( "ssssiddii", $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id);
 
 //     // Se ejecuta la consulta y se cierra la conexión
 //     if ($query->execute()) {
@@ -185,7 +199,7 @@ function obtenerProductosClientes()
             $precioFinal = $row['descuento'] ? $row['precio'] - ($row['precio'] * $row['descuento'] / 100) : $row['precio'];
 
             echo '
-            <div class="product-card">
+            <div class="product-card" onclick="window.location.href=\'product.php?id=' . $row['id'] . '\'">
                 <div class="relative">
                     <img src="' . htmlspecialchars($row['imagen'] ?: 'placeholder.svg') . '" alt="' . htmlspecialchars($row['nombre']) . '">
                     ' . ($row['descuento'] ? '<div class="discount-tag">' . $row['descuento'] . '% OFF</div>' : '') . '
@@ -210,8 +224,8 @@ function obtenerProductosClientes()
             }
             echo '</div>
                         <div class="buttons-container">
-                            <button class="add-to-favorites" onclick="agregarAFavoritos(' . $row['id'] . ')"><i class="far fa-heart"></i></button> 
-                            <button class="add-to-cart" onclick="agregarAlCarrito(' . $row['id'] . ')">Add to Cart</button>
+                            <button class="add-to-favorites" onclick="event.stopPropagation(); agregarAFavoritos(' . $row['id'] . ')"><i class="far fa-heart"></i></button> 
+                            <button class="add-to-cart" onclick="event.stopPropagation(); agregarAlCarrito(' . $row['id'] . ')">Add to Cart</button>
                         </div>
                     </div>
                 </div>
@@ -223,32 +237,6 @@ function obtenerProductosClientes()
 
     $query->close();
     cerrar_conexion($conn);
-}
-
-/**
- * Función para obtener un juego por su ID.
- * @param int $id ID del juego a buscar.
- * @return array|null Array con los datos del juego o null si no se encuentra.
- */
-function obtenerProductoPorId($id)
-{
-    $conn = conexion();
-
-    // Se prepara la consulta
-    $query = $conn->prepare("SELECT * FROM producto WHERE id = ? LIMIT 1");
-    $query->bind_param("i", $id); // Se usa "i" para indicar que el parámetro es un entero
-    $query->execute();
-
-    $result = $query->get_result();
-
-    if ($result->num_rows > 0) {
-        return $result->fetch_assoc(); // Retorna el juego encontrado
-    } else {
-        return null; // Retorna null si no se encuentra el juego
-    }
-
-    $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
 }
 
 function obtenerTodosLosProductos()
@@ -288,6 +276,125 @@ function obtenerTodosLosProductos()
     cerrar_conexion($conn); // Cierra la conexión
 
     return $productos; // Retorna el array de productos
+}
+
+/**
+ * Función para obtener un juego por su ID.
+ * @param int $id ID del juego a buscar.
+ * @return array|null Array con los datos del juego o null si no se encuentra.
+ */
+function obtenerProductoPorId($id)
+{
+    $conn = conexion();
+
+    // Se prepara la consulta
+    $query = $conn->prepare("SELECT * FROM producto WHERE id = ? LIMIT 1");
+    $query->bind_param("i", $id); // Se usa "i" para indicar que el parámetro es un entero
+    $query->execute();
+
+    $result = $query->get_result();
+
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc(); // Retorna el juego encontrado
+    } else {
+        return null; // Retorna null si no se encuentra el juego
+    }
+
+    $query->close();
+    cerrar_conexion($conn); // Cierra la conexión
+}
+
+/**
+ * Función para obtener productos por género.
+ * @param int $generoId ID del género a buscar.
+ * @return array Array con los productos encontrados.
+ */
+function obtenerProductoPorGenero($generoId)
+{
+    $conn = conexion();
+
+    // Se prepara la consulta
+    $query = $conn->prepare("SELECT * FROM producto WHERE genero_id = ? AND activo = 1");
+    $query->bind_param("i", $generoId); // Se usa "i" para indicar que el parámetro es un entero
+    $query->execute();
+
+    $result = $query->get_result();
+    $productos = [];
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $productos[] = $row; // Agrega cada producto al array
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn); // Cierra la conexión
+
+    return $productos; // Retorna el array de productos
+}
+
+function obtenerProductosPorPlataforma($plataformaId)
+{
+    $conn = conexion();
+
+    // Se prepara la consulta
+    $query = $conn->prepare("SELECT * FROM producto WHERE plataforma_id = ? AND activo = 1");
+    $query->bind_param("i", $plataformaId); // Se usa "i" para indicar que el parámetro es un entero
+    $query->execute();
+
+    $result = $query->get_result();
+    $productos = [];
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $productos[] = $row; // Agrega cada producto al array
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn); // Cierra la conexión
+
+    return $productos; // Retorna el array de productos
+}
+
+function obtenerGeneros()
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT * FROM genero WHERE activo = 1");
+    $query->execute();
+    $result = $query->get_result();
+    $generos = [];
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $generos[] = $row; // Agrega cada género al array
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn); // Cierra la conexión
+
+    return $generos; // Retorna el array de géneros
+}
+
+function obtenerPlataformas()
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT * FROM plataforma WHERE activo = 1");
+    $query->execute();
+    $result = $query->get_result();
+    $plataformas = [];
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $plataformas[] = $row; // Agrega cada plataforma al array
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn); // Cierra la conexión
+
+    return $plataformas; // Retorna el array de plataformas
 }
 
 /* ------------- CARRITO -------------  */

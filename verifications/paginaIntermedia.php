@@ -108,7 +108,94 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             break;
 
+        case 'agregar_producto':
+            session_start();
+
+            // Obtener los datos del producto
+            $nombre = $_POST['name'] ?? null;
+            $descripcion = $_POST['description'] ?? null;
+            $fecha_lanzamiento = $_POST['release_date'] ?? null;
+            $precio = $_POST['price'] ?? null;
+            $descuento = $_POST['discount'] ?? null;
+            $stock = $_POST['stock'] ?? null;
+            $plataforma = $_POST['plataform'] ?? null;
+            $genero = $_POST['gender'] ?? null;
+            $imagen = $_FILES['image'] ?? null;
+            $errores = [];
+
+            if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+                header("Location: ../views/user/login.php?error=Acceso+denegado");
+                exit;
+            }
+            
+            $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null; // Obtener el ID del administrador de la sesión
+            
+            if (validarDato('string', $nombre) !== true) {
+                $errores[] = "El nombre es inválido.";
+            }
+
+            if (validarDato('string', $descripcion) !== true) {
+                $errores[] = "La descripción es inválida.";
+            }
+
+            if (validarDato('fecha', $fecha_lanzamiento) !== true) {
+                $errores[] = "La fecha de lanzamiento es inválida.";
+            }
+
+            if (validarDato('numero', $precio) !== true) {
+                $errores[] = "El precio es inválido.";
+            }
+
+            if (validarDato('numero', $descuento) !== true) {
+                $errores[] = "El descuento es inválido.";
+            }
+
+            if (validarDato('numero', $stock) !== true) {
+                $errores[] = "El stock es inválido.";
+            }
+
+            if (validarDato('numero', $plataforma) !== true) {
+                $errores[] = "La plataforma es inválida.";
+            }
+
+            if (validarDato('numero', $genero) !== true) {
+                $errores[] = "El género es inválido.";
+            }
+
+            if ($imagen && !validarImagen($imagen)) {
+                $errores[] = "La imagen es inválida o no se subió correctamente.";
+            }
+
+            if (!empty($errores)) {
+                header("Location: ../views/admin/newProduct.php?errores=" . urlencode(implode(", ", $errores)));
+                exit;
+            }
+
+            $productoCreado = crearProducto(
+                $nombre,
+                $imagen,
+                $descripcion,
+                $fecha_lanzamiento,
+                $genero,
+                $precio,
+                $descuento,
+                $stock,
+                $plataforma,
+                $admin_id,
+                $admin_id
+            );
+
+            break;
+
+        case 'modificar_producto':
+            break;
+
+        case 'eliminar_producto':
+            break;
+
+
         // case 'guardar_preferencias':
+
         //     // Obtener las preferencias del usuario
         //     $idioma = $_POST['idioma'] ?? null;
         //     $moneda = $_POST['moneda'] ?? null;

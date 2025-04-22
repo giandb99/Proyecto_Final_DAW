@@ -14,10 +14,10 @@ create table estado_pedido(
 create table usuario(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
-    username VARCHAR(50) UNIQUE,
-    imagen_perfil BLOB,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    imagen_perfil LONGBLOB,
     pass VARCHAR(50),
-    email VARCHAR(100) UNIQUE,
+    email VARCHAR(100) UNIQUE NOT NULL,
     telefono VARCHAR(20),
     direccion VARCHAR(255),
     fecha_nac DATE,
@@ -30,29 +30,31 @@ create table usuario(
 
 create table genero(
 	id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100)
+    nombre VARCHAR(100) NOT NULL,
+    activo BOOLEAN DEFAULT TRUE
 );
 
 create table plataforma(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100)
+    nombre VARCHAR(100) NOT NULL,
+    activo BOOLEAN DEFAULT TRUE
 );
 
 create table producto(
 	id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255),
-    imagen VARCHAR(255),
-    descripcion TEXT,
-    fecha_lanzamiento DATE,
-    genero_id INT,
-    precio DECIMAL(10,2),
+    nombre VARCHAR(255) NOT NULL,
+    imagen LONGBLOB NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha_lanzamiento DATE NOT NULL,
+    genero_id INT NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
     descuento INT DEFAULT NULL,
-    stock INT,
-    plataforma_id INT,
-    creado_por INT,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_por INT,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    stock INT NOT NULL,
+    plataforma_id INT NOT NULL,
+    creado_por INT NOT NULL,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    actualizado_por INT DEFAULT NULL,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (genero_id) REFERENCES genero(id),
     FOREIGN KEY (plataforma_id) REFERENCES plataforma(id),
@@ -184,9 +186,9 @@ INSERT INTO plataforma (nombre) VALUES
 
 -- Insertar productos (videojuegos)
 INSERT INTO producto (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, descuento, stock, plataforma_id, creado_por) VALUES
-('The Witcher 3', '../images/TheWitcher3_WH.jpg', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 15, 50, 1, 1),
-('FIFA 23', 'fifa23.jpg', 'El mejor simulador de fútbol.', '2022-09-30', 4, 59.99, 0, 30, 2, 1),
-('Zelda: Breath of the Wild', 'zelda.jpg', 'Aventura épica en mundo abierto.', '2017-03-03', 2, 49.99, 10, 40, 4, 1);
+('The Witcher 3', 'https://th.bing.com/th/id/OIP.bvD1_Z8LW-AIH4Yjq5Z-zQHaEK?rs=1&pid=ImgDetMain', 'Juego de rol y aventura en mundo abierto.', '2015-05-19', 3, 29.99, 15, 50, 1, 1),
+('FIFA 23', 'https://th.bing.com/th/id/R.3ade1bc703c5e0dc741739777b2d19f6?rik=OIsO4mxnuxzctw&pid=ImgRaw&r=0', 'El mejor simulador de fútbol.', '2022-09-30', 4, 59.99, 0, 30, 2, 1),
+('Zelda: Breath of the Wild', 'https://th.bing.com/th/id/R.cba83cbe522f092fc0b57be7224dbe11?rik=32Pd%2bGVHcoz8LA&pid=ImgRaw&r=0', 'Aventura épica en mundo abierto.', '2017-03-03', 2, 49.99, 10, 40, 4, 1);
 
 -- Insertar stock de productos
 INSERT INTO stock_producto (producto_id, stock_reservado, stock_disponible) VALUES

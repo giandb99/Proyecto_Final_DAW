@@ -40,5 +40,16 @@
 }
 
 .logo {
-    margin-left: 2rem;
+    font-size: 26px;
+    font-weight: bold;
+    color: #00ffff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: transform 0.3s;
+    margin-left: 3rem;
+    text-decoration: none;
+}
+
+.logo:hover {
+    transform: scale(1.1);
 }

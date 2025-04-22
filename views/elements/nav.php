@@ -1,5 +1,5 @@
 <nav class="navbar">
-    <div class="logo">FreeDays_Games</div>
+    <a class="logo" href="../user/catalog.php">FreeDays_Games</a>    
     <div class="navbar-buttons">
         <a href="catalog.php" class="navbar-button"><i class="fas fa-home"></i></a>
         <a href="cart.php" class="navbar-button"><i class="fas fa-shopping-cart"></i></a>

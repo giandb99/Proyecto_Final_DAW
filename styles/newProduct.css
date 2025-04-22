@@ -1,0 +1,183 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    background-color: #0e0e0e;
+    padding-bottom: 100px;
+}
+
+.product-form {
+    display: flex;
+    background-color: #1c1c1e;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    margin: 0 auto;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+}
+
+.product-form h2 {
+    text-align: center;
+    color: #f5f5f5;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.product-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    margin: 2rem;
+}
+
+.product-container input,
+.product-container textarea,
+.product-container select {
+    padding: .6rem .8rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    background-color: #2c2c2e;
+    color: #f0f0f0;
+    transition: background-color .2s ease, border .2s ease;
+}
+
+.product-container input:focus,
+.product-container textarea:focus,
+.product-container select:focus {
+    background-color: #3a3a3c;
+    outline: none;
+    border: 1px solid #5ac8fa;
+}
+
+.product-container textarea {
+    resize: vertical;
+    height: 100px;
+    max-height: 200px;
+    min-height: 50px;
+}
+
+.product-container label {
+    color: #d1d1d6;
+    font-size: .95rem;
+    margin-top: .5rem;
+}
+
+.custom-btn {
+    color: #fff;
+    padding: 10px 25px;
+    font-weight: bold;
+    font-size: .9rem;
+    background: transparent;
+    cursor: pointer;
+    transition: all .3s ease;
+    position: relative;
+    display: inline-block;
+    outline: none;
+    overflow: hidden;
+    border: none;
+}
+
+.btn-agregar-producto {
+    background-color: #f0ecfc;
+    background-image: linear-gradient(to right, #0d4991, #091127);
+    line-height: 42px;
+    padding: 0;
+    border: none;
+}
+
+.btn-agregar-producto span {
+    position: relative;
+    display: block;
+    transition: color .3s ease;
+}
+
+.btn-agregar-producto::before,
+.btn-agregar-producto::after,
+.btn-agregar-producto span::before,
+.btn-agregar-producto span::after {
+    position: absolute;
+    content: "";
+    background: #00ffff;
+    transition: all .3s ease;
+}
+
+.btn-agregar-producto::before {
+    height: 0%;
+    width: 2px;
+    right: 0;
+    bottom: 0;
+}
+
+.btn-agregar-producto::after {
+    width: 0%;
+    height: 2px;
+    right: 0;
+    bottom: 0;
+}
+
+.btn-agregar-producto span::before {
+    height: 0%;
+    width: 2px;
+    left: 0;
+    top: 0;
+}
+
+.btn-agregar-producto span::after {
+    width: 0%;
+    height: 2px;
+    left: 0;
+    top: 0;
+}
+
+.btn-agregar-producto:hover::before {
+    height: 100%;
+}
+
+.btn-agregar-producto:hover::after {
+    width: 100%;
+}
+
+.btn-agregar-producto:hover span::before {
+    height: 100%;
+}
+
+.btn-agregar-producto:hover span::after {
+    width: 100%;
+}
+
+.btn-agregar-producto:hover {
+    background: linear-gradient(to left, #0d4991, #091127);
+}
+
+.btn-agregar-producto:hover span {
+    color: #00ffff;
+}
+
+.error-msg {
+    color: red;
+    margin: 0;
+}
+
+.success-msg {
+    color: #00f500;
+    margin-bottom: 10px;
+}

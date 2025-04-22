@@ -8,7 +8,7 @@
  * @throws Exception Si el tipo de dato no es válido.
  */
 function validarDato($tipo, $dato){
-    
+
     // Validación de los datos según su tipo
     switch ($tipo) {
         case 'telefono':
@@ -18,7 +18,7 @@ function validarDato($tipo, $dato){
         case 'string':
             return is_string($dato) && !empty($dato);
         case 'numero':
-            return is_numeric($dato) && $dato > 0;
+            return is_numeric($dato) && $dato >= 0;
         case 'url':
             return filter_var($dato, FILTER_VALIDATE_URL) !== false;
         case 'fecha':
@@ -36,23 +36,28 @@ function validarDato($tipo, $dato){
 
 /**
  * Función para validar imágenes.
- * @param array $imagen Array que contiene la información de la imagen.
- * @return bool true si la imagen es válida, false en caso contrario.
- * @throws Exception Si el tipo de archivo no es permitido o hay un error al subir la imagen.
+ *
+ * @param array $imagen Información del archivo subido ($_FILES['nombre']).
+ * @param array $formatosPermitidos Lista de extensiones permitidas (opcional).
+ * @param int $tamanioMaximo Tamaño máximo permitido en bytes (opcional).
+ * @return mixed Retorna `true` si la imagen es válida o un mensaje de error en caso contrario.
  */
 function validarImagen($imagen) {
-    // Verifica si la imagen es válida
-    if (isset($imagen['name']) && $imagen['error'] == 0) {
-        $tipoArchivo = pathinfo($imagen['name'], PATHINFO_EXTENSION);
-        $tiposPermitidos = ['jpg', 'jpeg', 'png', 'gif'];
-        
-        // Verifica el tipo de archivo
-        if (in_array($tipoArchivo, $tiposPermitidos)) {
-            return true;
-        } else {
-            throw new Exception("Tipo de archivo no permitido. Solo se permiten imágenes JPG, JPEG, PNG y GIF.");
-        }
-    } else {
-        throw new Exception("Error al subir la imagen.");
+    // Verificar si se ha subido un archivo
+    if ($imagen['error'] !== 0) {
+        return false; // Error en la carga
     }
+
+    // Verificar tipo de archivo
+    $tipoImagen = mime_content_type($imagen['tmp_name']);
+    if (!in_array($tipoImagen, ['image/jpeg', 'image/png', 'image/gif'])) {
+        return false; // Si no es una imagen válida
+    }
+
+    // Verificar tamaño (por ejemplo, no mayor a 2MB)
+    if ($imagen['size'] > 2 * 1024 * 1024) { // 2MB
+        return false; // Imagen demasiado grande
+    }
+
+    return true;
 }
