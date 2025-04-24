@@ -14,7 +14,7 @@ body {
     min-height: 100vh;
 }
 
-.main-content{
+.main-content {
     flex: 1;
     padding-top: 80px;
     padding-bottom: 100px;
@@ -58,7 +58,6 @@ body {
     gap: 2rem;
     justify-items: center;
 }
-
 
 .product-card {
     position: relative;
@@ -116,8 +115,12 @@ body {
 .game-title {
     font-size: 1.125rem;
     font-weight: bold;
-    margin: 0;
     color: white;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    margin: 0;
 }
 
 .rating {
@@ -143,7 +146,6 @@ body {
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
-    line-clamp: 2;
     -webkit-box-orient: vertical;
     margin: 0;
 }
@@ -172,7 +174,8 @@ body {
     text-decoration: line-through;
 }
 
-.add-to-cart, .add-to-favorites {
+.add-to-cart,
+.add-to-favorites {
     background: linear-gradient(45deg, #7c3aed, #9333ea);
     color: white;
     padding: 0.5rem 0.75rem;
@@ -184,11 +187,12 @@ body {
     transition: background 0.3s ease;
 }
 
-.add-to-cart:hover, .add-to-favorites {
+.add-to-cart:hover,
+.add-to-favorites {
     background: linear-gradient(45deg, #9333ea, #7c3aed);
 }
 
-.search-container{ 
+.search-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
