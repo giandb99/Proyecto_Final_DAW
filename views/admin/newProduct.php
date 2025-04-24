@@ -7,7 +7,7 @@ $plataformas = obtenerPlataformas();
 $generos = obtenerGeneros();
 
 $exito = $_GET['exito'] ?? null;
-$error = $_GET['error'] ?? null;
+$errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) : [];
 
 ?>
 
@@ -18,6 +18,8 @@ $error = $_GET['error'] ?? null;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/newProduct.css">
+    <link rel="stylesheet" href="../../styles/alerts.css">
+    <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/scroll.css">
     <link rel="stylesheet" href="../../styles/sidebar.css">
     <link rel="stylesheet" href="../../styles/footer.css">
@@ -64,15 +66,19 @@ $error = $_GET['error'] ?? null;
                 <label for="imagen">Imagen del producto:</label>
                 <input type="file" id="image" name="image" accept="image/*">
 
-                <?php if ($error): ?>
-                    <p class="error-msg"><?php echo htmlspecialchars($error); ?></p>
+                <?php if (!empty($errores)): ?>
+                    <div class="error-msg-container">
+                        <?php foreach ($errores as $error): ?>
+                            <p class="error-msg"><?= htmlspecialchars($error) ?></p>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($exito): ?>
                     <p class="success-msg"><?php echo htmlspecialchars($exito); ?></p>
                 <?php endif; ?>
 
-                <button type="submit" class="custom-btn btn-agregar-producto"><span>Agregar producto</span></button>
+                <button type="submit" class="custom-btn btn"><span>Agregar producto</span></button>
             </div>
         </form>
 

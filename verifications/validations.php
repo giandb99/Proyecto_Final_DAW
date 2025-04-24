@@ -7,32 +7,50 @@
  * @return bool true si el dato es válido, false en caso contrario.
  * @throws Exception Si el tipo de dato no es válido.
  */
-function validarDato($tipo, $dato){
-
-    // Validación de los datos según su tipo
+function validarDato($tipo, $valor, $campoNombre = '') {
+    
+    // Verifica si el tipo de dato es válido
     switch ($tipo) {
-        case 'telefono':
-            return preg_match('/^\d{9,10}$/', $dato) === 1;
-        case 'email':
-            return filter_var($dato, FILTER_VALIDATE_EMAIL) !== false;
         case 'string':
-            return is_string($dato) && !empty($dato);
-        case 'numero':
-            return is_numeric($dato) && $dato >= 0;
-        case 'url':
-            return filter_var($dato, FILTER_VALIDATE_URL) !== false;
+            if (empty($valor)) {
+                return "El {$campoNombre} no puede estar vacío.";
+            }
+            return true;
+
         case 'fecha':
-            return preg_match('/^\d{4}-\d{2}-\d{2}$/', $dato) === 1;
-        case 'hora':
-            return preg_match('/^\d{2}:\d{2}:\d{2}$/', $dato) === 1;
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor)) {
+                return "La fecha debe estar en formato YYYY-MM-DD.";
+            }
+            return true;
+
+        case 'numero':
+            if (!is_numeric($valor) || $valor < 0) {
+                return "El {$campoNombre} debe ser un número válido y mayor a cero.";
+            }
+            return true;
+
+        case 'email':
+            if (empty($valor)) {
+                return "El correo electrónico no puede estar vacío.";
+            } else if (!filter_var($valor, FILTER_VALIDATE_EMAIL)) {
+                return "El correo electrónico no tiene un formato válido.";
+            }
+            return true;
+
         case 'password':
-            return preg_match('/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/', $dato) === 1; // Al menos 8 caracteres, al menos una letra y un número
-        case 'direccion':
-            return preg_match('/^[a-zA-Z0-9\s,.-]+$/', $dato) === 1;
+            if (empty($valor)) {
+                return "La contraseña no puede estar vacía.";
+            } else if (strlen($valor) < 6) {
+                return "La contraseña debe tener al menos 6 caracteres.";
+            } else if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/', $valor)) {
+                return "La contraseña debe contener al menos una letra y un número.";
+            }
+            return true;
         default:
-            return false; // Tipo no válido
+            return "Tipo de validación desconocido.";
     }
 }
+
 
 /**
  * Función para validar imágenes.
@@ -43,20 +61,22 @@ function validarDato($tipo, $dato){
  * @return mixed Retorna `true` si la imagen es válida o un mensaje de error en caso contrario.
  */
 function validarImagen($imagen) {
-    // Verificar si se ha subido un archivo
-    if ($imagen['error'] !== 0) {
-        return false; // Error en la carga
+    // Verifica si se ha subido un archivo correctamente
+    if (!isset($imagen) || $imagen['error'] !== 0) {
+        return "Error al subir la imagen.";
     }
 
-    // Verificar tipo de archivo
+    // Verifica tipo de archivo
     $tipoImagen = mime_content_type($imagen['tmp_name']);
-    if (!in_array($tipoImagen, ['image/jpeg', 'image/png', 'image/gif'])) {
-        return false; // Si no es una imagen válida
+    $tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+
+    if (!in_array($tipoImagen, $tiposPermitidos)) {
+        return "El archivo no es una imagen válida (solo se permiten JPG, PNG o GIF).";
     }
 
-    // Verificar tamaño (por ejemplo, no mayor a 2MB)
-    if ($imagen['size'] > 2 * 1024 * 1024) { // 2MB
-        return false; // Imagen demasiado grande
+    // Verifica tamaño (máx 5MB)
+    if ($imagen['size'] > 5 * 1024 * 1024) {
+        return "La imagen supera el tamaño máximo permitido de 5MB.";
     }
 
     return true;

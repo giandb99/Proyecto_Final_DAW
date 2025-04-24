@@ -15,6 +15,7 @@ $productos = obtenerTodosLosProductos();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/listProductsAdmin.css">
+    <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/sidebar.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -30,12 +31,11 @@ $productos = obtenerTodosLosProductos();
         <div class="barra-superior">
             <form action="newProduct.php" method="POST">
                 <input type="hidden" name="accion" value="agregar_producto">
-                <input type="hidden" name="id" value="<?= $producto['id'] ?>">
-                <button type="submit" class="btn-agregar">+ Agregar producto</button>
+                <button type="submit" class="custom-btn btn"><span>Agregar producto</span></button>
             </form>
             <form action="../../verifications/paginaIntermedia.php" method="POST">
                 <input type="hidden" name="accion" value="desactivar_producto">
-                <button type="submit" class="btn-desactivar">Desactivar seleccionados</button>
+                <button type="submit" class="custom-btn btn"><span>Desactivar seleccionados</span></button>
             </form>
         </div>
 

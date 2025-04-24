@@ -20,34 +20,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $confirmPassword = $_POST['confirm_password'] ?? null;
             $errores = [];
 
-            // Validar el nombre del usuario
-            if (validarDato('string', $username) !== true) {
-                $errores[] = "El nombre es inválido.";
+            $validaciones = [
+                validarDato('string', $username, 'nombre de usuario'),
+                validarDato('email', $email, 'correo electrónico'),
+                validarDato('password', $password, 'contraseña'),
+                validarDato('password', $confirmPassword, 'confirmar contraseña'),
+            ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
             }
 
-            // Validar el nombre
-            if (validarDato('string', $name) !== true) {
-                $errores[] = "El nombre es inválido.";
+            // Verificar que las contraseñas coincidan
+            if ($password !== $confirmPassword) {
+                $errores[] = "Las contraseñas no coinciden.";
             }
 
-            // Validar el correo electrónico
-            if (validarDato('email', $email) !== true) {
-                $errores[] = "El correo es inválido.";
-            }
-
-            // Validar la contraseña
-            if (validarDato('password', $password) !== true) {
-                $errores[] = "La contraseña debe tener al menos 8 caracteres, una letra y un número.";
-            }
-
-            //Valido que las contraseñas sean iguales
-            if ($password != $confirmPassword) {
-                $errores[] = "Las contraseñas no coinciden";
-            }
-
-            // Si hay errores, redirigir de vuelta con los errores
+            // Redirigir si hay errores
             if (!empty($errores)) {
-                // Redirigir a la página de registro con los errores en la URL
                 header("Location: ../views/user/register.php?errores=" . urlencode(implode(", ", $errores)));
                 exit;
             }
@@ -64,6 +56,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
             $checkbox = isset($_POST['admin']);
+            $errores = [];
+
+            $validaciones = [
+                validarDato('email', $email, 'correo electrónico')
+            ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
+            }
+
+            // Si hay errores de validación, redirigir
+            if (!empty($errores)) {
+                header("Location: ../views/user/login.php?errores=" . urlencode(implode(", ", $errores)));
+                exit;
+            }
 
             if (!$checkbox) {
                 $user = obtenerDatosUsuario($email, $password);
@@ -85,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     header("Location: ../views/user/catalog.php?Inicio+exitoso");
                     exit();
                 } else {
-                    header("Location: ../views/user/login.php?error=Credenciales+inválidas");
+                    header("Location: ../views/user/login.php?errores=Credenciales+inválidas");
                     exit();
                 }
             } else {
@@ -102,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     header("Location: ../views/admin/dashboard.php?Inicio+exitoso");
                     exit();
                 } else {
-                    header("Location: ../views/user/login.php?error=Credenciales+inválidas");
+                    header("Location: ../views/user/login.php?errores=Credenciales+inválidas");
                     exit();
                 }
             }
@@ -127,43 +136,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 header("Location: ../views/user/login.php?error=Acceso+denegado");
                 exit;
             }
-            
+
             $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null; // Obtener el ID del administrador de la sesión
-            
-            if (validarDato('string', $nombre) !== true) {
-                $errores[] = "El nombre es inválido.";
+
+            $validaciones = [
+                validarDato('string', $nombre, 'nombre'),
+                validarDato('string', $descripcion, 'descripción'),
+                validarDato('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
+                validarDato('numero', $precio, 'precio'),
+                validarDato('numero', $descuento, 'descuento'),
+                validarDato('numero', $stock, 'stock'),
+                validarDato('numero', $plataforma, 'plataforma'),
+                validarDato('numero', $genero, 'género'),
+            ];
+
+            foreach ($validaciones as $campo => $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
             }
 
-            if (validarDato('string', $descripcion) !== true) {
-                $errores[] = "La descripción es inválida.";
-            }
-
-            if (validarDato('fecha', $fecha_lanzamiento) !== true) {
-                $errores[] = "La fecha de lanzamiento es inválida.";
-            }
-
-            if (validarDato('numero', $precio) !== true) {
-                $errores[] = "El precio es inválido.";
-            }
-
-            if (validarDato('numero', $descuento) !== true) {
-                $errores[] = "El descuento es inválido.";
-            }
-
-            if (validarDato('numero', $stock) !== true) {
-                $errores[] = "El stock es inválido.";
-            }
-
-            if (validarDato('numero', $plataforma) !== true) {
-                $errores[] = "La plataforma es inválida.";
-            }
-
-            if (validarDato('numero', $genero) !== true) {
-                $errores[] = "El género es inválido.";
-            }
-
-            if ($imagen && !validarImagen($imagen)) {
-                $errores[] = "La imagen es inválida o no se subió correctamente.";
+            $resultadoImagen = validarImagen($imagen);
+            if ($resultadoImagen !== true) {
+                $errores[] = $resultadoImagen;
             }
 
             if (!empty($errores)) {

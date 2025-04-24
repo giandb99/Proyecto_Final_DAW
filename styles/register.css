@@ -23,6 +23,13 @@ body {
     text-align: center;
 }
 
+.register-title-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .register-title {
     font-size: 1.75rem;
     color: #00ffff;

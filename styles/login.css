@@ -23,20 +23,16 @@ body {
     text-align: center;
 }
 
-.error-msg {
-    color: red;
-    margin: 0;
-}
-
-.success-msg {
-    color: #00f500;
-    margin-bottom: 10px;
+.login-title-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .login-title {
     font-size: 1.75rem;
     color: #00ffff;
-    margin-bottom: 1.5rem;
 }
 
 .login {
@@ -95,7 +91,7 @@ body {
 }
 
 .login-button:hover {
-    background: linear-gradient(to left,  #00ffff, #00a2ff);
+    background: linear-gradient(to left, #00ffff, #00a2ff);
     transform: scale(1.05);
 }
 

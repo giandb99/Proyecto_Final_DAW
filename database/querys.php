@@ -11,9 +11,14 @@ function registrarUsuario($name, $username, $email, $pass)
 
     // Si verificar usuario devuelve true, significa que el usuario ya existe
     if (obtenerDatosUsuario($email, $pass)) {
-        header("Location: ../views/user/register.php?error=El+correo+electrónico+ya+está+registrado.");
+        $query = http_build_query([
+            'error' => 'El correo electrónico ya está registrado.',
+            'username' => $username,
+            'email' => $email
+        ]);
+        header("Location: ../views/user/register.php?$query");
         cerrar_conexion($conn);
-        return false; // El usuario ya existe
+        return false; // Salir de la función si el usuario ya existe
     }
 
     // Se inserta el nuevo usuario en la base de datos
@@ -27,7 +32,12 @@ function registrarUsuario($name, $username, $email, $pass)
     if ($result) {
         header("Location: ../views/user/login.php?exito=Usuario+registrado+con+éxito."); // Redirigir a la página de inicio de sesión
     } else {
-        header("Location: ../views/user/register.php?error=El+correo+electrónico+ya+está+registrado."); // Redirigir a la página de inicio de sesión
+        $query = http_build_query([
+            'error' => 'Ocurrió un error al registrar el usuario.',
+            'username' => $username,
+            'email' => $email
+        ]);
+        header("Location: ../views/user/register.php?$query");
     }
 }
 
