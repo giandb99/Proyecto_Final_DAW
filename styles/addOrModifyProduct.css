@@ -1,5 +1,4 @@
-html,
-body {
+html, body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -69,9 +68,8 @@ body {
 }
 
 .product-container textarea {
-    resize: vertical;
-    height: 100px;
-    max-height: 200px;
+    resize: none;
+    height: 200px;
     min-height: 50px;
 }
 

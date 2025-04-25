@@ -44,7 +44,9 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
             <?php endif; ?>
 
             <?php if ($exito): ?>
-                <p class="success-msg"><?php echo htmlspecialchars($exito); ?></p>
+                <div class="success-msg-container">
+                    <p class="success-msg"><?php echo htmlspecialchars($exito); ?></p>
+                </div>
             <?php endif; ?>
 
             <!-- Opción para iniciar sesión como administrador -->

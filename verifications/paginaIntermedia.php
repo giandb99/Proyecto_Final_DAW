@@ -23,8 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $validaciones = [
                 validarDato('string', $username, 'nombre de usuario'),
                 validarDato('email', $email, 'correo electrónico'),
-                validarDato('password', $password, 'contraseña'),
-                validarDato('password', $confirmPassword, 'confirmar contraseña'),
+                validarDato('password', $password, 'contraseña')
             ];
 
             foreach ($validaciones as $resultado) {
@@ -144,7 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 validarDato('string', $descripcion, 'descripción'),
                 validarDato('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
                 validarDato('numero', $precio, 'precio'),
-                validarDato('numero', $descuento, 'descuento'),
                 validarDato('numero', $stock, 'stock'),
                 validarDato('numero', $plataforma, 'plataforma'),
                 validarDato('numero', $genero, 'género'),
@@ -183,9 +181,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'modificar_producto':
-            break;
+            session_start();
+
+            $id = $_POST['id'] ?? null;
+            $nombre = $_POST['name'] ?? null;
+            $descripcion = $_POST['description'] ?? null;
+            $fecha_lanzamiento = $_POST['release_date'] ?? null;
+            $precio = $_POST['price'] ?? null;
+            $descuento = $_POST['discount'] ?? null;
+            $stock = $_POST['stock'] ?? null;
+            $genero_id = $_POST['gender'] ?? null;
+            $plataforma_id = $_POST['plataform'] ?? null;
+            $imagenArchivo = $_FILES['image'] ?? null;
+            $errores = [];
+
+            $validaciones = [
+                validarDato('string', $nombre, 'nombre'),
+                validarDato('string', $descripcion, 'descripción'),
+                validarDato('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
+                validarDato('numero', $precio, 'precio'),
+                validarDato('numero', $stock, 'stock'),
+                validarDato('numero', $plataforma_id, 'plataforma'),
+                validarDato('numero', $genero_id, 'género'),
+            ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
+            }
+
+            if ($imagenArchivo && $imagenArchivo['error'] === UPLOAD_ERR_OK) {
+                $resultadoImagen = validarImagen($imagenArchivo);
+                if ($resultadoImagen !== true) {
+                    $errores[] = $resultadoImagen;
+                } else {
+                    $nombreImagen = '_' . basename($imagenArchivo['name']);
+                    $rutaDestino = '../images/products/' . $nombreImagen;
+                    move_uploaded_file($imagenArchivo['tmp_name'], $rutaDestino);
+                    $imagen = 'images/products/' . $nombreImagen;
+                }
+            } else {
+                $productoExistente = obtenerProductoPorId($id);
+                $imagen = $productoExistente['imagen'];
+            }
+
+            if (!empty($errores)) {
+                header("Location: ../views/admin/addOrModifyProduct.php?id=" . $id . "&errores=" . urlencode(implode(", ", $errores)));
+                exit;
+            }
+
+            modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id);
+            exit;
 
         case 'eliminar_producto':
+            
             break;
 
 

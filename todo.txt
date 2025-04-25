@@ -1,0 +1,19 @@
+--- User ---
+# Implementar interfaz perfil usuario
+# Implementar interfaz carrito
+# Implementar interfaz favoritos
+
+--- Admin ---
+# Modificar interfaz dashboard
+# Implementar interfaz modificar producto ✅
+# Implementar logica modificar producto
+# Implementar interfaz ver producto
+# Implementar interfaz finanzas
+# Implementar interfaz pedidos
+# Implementar interfaz usuarios
+# Implementar interfaz
+# Implementar logica eliminar/desactivar producto
+
+--- App ---
+# Implementar cookies (idiomas/temas)
+# Implementar sesiones

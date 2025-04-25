@@ -88,7 +88,7 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
 
     // Mueve la imagen al servidor
     if (!move_uploaded_file($imagen['tmp_name'], $rutaAbsoluta)) {
-        header("Location: ../views/admin/newProduct.php?error=Hubo+un+problema+al+guardar+la+imagen.");
+        header("Location: ../views/admin/addOrModifyProduct.php?error=Hubo+un+problema+al+guardar+la+imagen.");
         exit;
     }
 
@@ -118,7 +118,7 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     if ($query->execute()) {
         header("Location: ../views/admin/products.php?exito=Producto+creado+con+éxito.");
     } else {
-        header("Location: ../views/admin/newProduct.php?error=Error+al+crear+el+producto.");
+        header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+crear+el+producto.");
     }
 
     $query->close();
@@ -126,25 +126,27 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
 }
 
 
-// // Función para modificar un producto existente
-// function modificarProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $actualizado_por)
-// {
-//     $conn = conexion();
+function modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id)
+{
+    $conn = conexion();
 
-//     // Se prepara la consulta para modificar el producto
-//     $query = $conn->prepare("UPDATE producto SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, genero_id = ?, precio = ?, descuento = ?, stock = ?, plataforma_id = ?, WHERE id = ?");
-//     $query->bind_param( "ssssiddii", $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id);
+    $query = $conn->prepare("
+        UPDATE producto 
+        SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, genero_id = ?, precio = ?, descuento = ?, stock = ?, plataforma_id = ?
+        WHERE id = ?
+    ");
 
-//     // Se ejecuta la consulta y se cierra la conexión
-//     if ($query->execute()) {
-//         echo "Producto actualizado con éxito.";
-//     } else {
-//         echo "Error al modificar el producto: " . $query->error;
-//     }
+    $query->bind_param("sssssidiii", $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $id);
 
-//     $query->close();
-//     cerrar_conexion($conn);
-// }
+    if ($query->execute()) {
+        header("Location: ../views/admin/products.php?exito=Producto+modificado+con+éxito.");
+    } else {
+        header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+modificar+el+producto.");
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+}
 
 // // Función para eliminar un producto por su ID
 // function eliminarProducto($id)
@@ -250,6 +252,61 @@ function obtenerProductosClientes()
     cerrar_conexion($conn);
 }
 
+function obtenerProductosAdmin()
+{
+    $conn = conexion();
+
+    $query = $conn->prepare("
+        SELECT 
+            producto.id,
+            producto.nombre,
+            producto.imagen,
+            producto.precio,
+            producto.descuento,
+            producto.stock,
+            genero.nombre AS genero,
+            plataforma.nombre AS plataforma
+        FROM producto
+        JOIN genero ON producto.genero_id = genero.id
+        JOIN plataforma ON producto.plataforma_id = plataforma.id
+        WHERE producto.activo = 1
+        ORDER BY producto.id ASC
+    ");
+
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows > 0) {
+        while ($producto = $result->fetch_assoc()) {
+            echo '
+            <tr>
+                <td>' . $producto['id'] . '</td>
+                <td>' . htmlspecialchars($producto['nombre']) . '</td>
+                <td><img src="../../' . htmlspecialchars($producto['imagen']) . '" alt="Imagen" class="tabla-img"></td>
+                <td>' . number_format($producto['precio'], 2) . '€</td>
+                <td>' . ($producto['descuento'] ?? '0') . '%</td>
+                <td>' . $producto['stock'] . '</td>
+                <td>' . htmlspecialchars($producto['plataforma']) . '</td>
+                <td>' . htmlspecialchars($producto['genero']) . '</td>
+                <td class="acciones">
+                    <button onclick="window.location.href=\'addOrModifyProduct.php?id=' . $producto['id'] . '\'" class="btn-icon-modificar" title="Modificar"><i class="fas fa-pen"></i></button>
+                    <form action="../../verifications/paginaIntermedia.php" method="POST">
+                        <input type="hidden" name="accion" value="desactivar_producto">
+                        <input type="hidden" name="id" value="' . $producto['id'] . '">
+                        <button type="submit" class="btn-icon-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                    </form>
+                </td>
+                <td><input type="checkbox" name="productos_seleccionados[]" value="' . $producto['id'] . '"></td>
+            </tr>';
+        }
+    } else {
+        echo '<tr><td colspan="10">No hay productos disponibles.</td></tr>';
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+}
+
 function obtenerTodosLosProductos()
 {
     $conn = conexion();
@@ -298,21 +355,17 @@ function obtenerProductoPorId($id)
 {
     $conn = conexion();
 
-    // Se prepara la consulta
-    $query = $conn->prepare("SELECT * FROM producto WHERE id = ? LIMIT 1");
-    $query->bind_param("i", $id); // Se usa "i" para indicar que el parámetro es un entero
+    $query = $conn->prepare("SELECT * FROM producto WHERE id = ?");
+    $query->bind_param("i", $id);
     $query->execute();
-
     $result = $query->get_result();
 
-    if ($result->num_rows > 0) {
-        return $result->fetch_assoc(); // Retorna el juego encontrado
-    } else {
-        return null; // Retorna null si no se encuentra el juego
-    }
+    $producto = $result->fetch_assoc();
 
     $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
+    cerrar_conexion($conn);
+
+    return $producto;
 }
 
 /**

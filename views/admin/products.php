@@ -1,10 +1,7 @@
 <?php
 
 require_once '../../database/querys.php';
-
 session_start();
-
-$productos = obtenerTodosLosProductos();
 
 ?>
 
@@ -29,13 +26,13 @@ $productos = obtenerTodosLosProductos();
     <main class="main-content">
 
         <div class="barra-superior">
-            <form action="newProduct.php" method="POST">
+            <form action="addOrModifyProduct.php" method="POST">
                 <input type="hidden" name="accion" value="agregar_producto">
                 <button type="submit" class="custom-btn btn"><span>Agregar producto</span></button>
             </form>
             <form action="../../verifications/paginaIntermedia.php" method="POST">
-                <input type="hidden" name="accion" value="desactivar_producto">
-                <button type="submit" class="custom-btn btn"><span>Desactivar seleccionados</span></button>
+                <input type="hidden" name="accion" value="eliminar_producto">
+                <button type="submit" class="custom-btn btn"><span>Eliminar seleccionados</span></button>
             </form>
         </div>
 
@@ -55,31 +52,7 @@ $productos = obtenerTodosLosProductos();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($productos as $producto): ?>
-                    <tr>
-                        <td><?= $producto['id'] ?></td>
-                        <td><?= htmlspecialchars($producto['nombre']) ?></td>
-                        <td><img src="../../<?= $producto['imagen'] ?>" alt="Imagen" class="tabla-img"></td>
-                        <td><?= $producto['precio'] ?>€</td>
-                        <td><?= $producto['descuento'] ?? '0' ?>%</td>
-                        <td><?= $producto['stock'] ?></td>
-                        <td><?= htmlspecialchars($producto['plataforma']) ?></td>
-                        <td><?= htmlspecialchars($producto['genero']) ?></td>
-                        <td class="acciones">
-                            <form action="modifyProduct.php" method="POST">
-                                <input type="hidden" name="accion" value="modificar_producto">
-                                <input type="hidden" name="id" value="<?= $producto['id'] ?>">
-                                <button type="submit" class="btn-icon-modificar" title="Modificar"><i class="fas fa-pen"></i></button>
-                            </form>
-                            <form action="../../verifications/paginaIntermedia.php" method="POST">
-                                <input type="hidden" name="accion" value="desactivar_producto">
-                                <input type="hidden" name="id" value="<?= $producto['id'] ?>">
-                                <button type="submit" class="btn-icon-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-                            </form>
-                        </td>
-                        <td><input type="checkbox" name="productos_seleccionados[]" value=" ?= $producto['id'] ?>"></td>
-                    </tr>
-                <?php endforeach; ?>
+                <?php obtenerProductosAdmin(); ?>
             </tbody>
         </table>
     </main>
