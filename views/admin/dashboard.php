@@ -27,7 +27,7 @@ $totalUsuarios = obtenerTotalUsuarios();
 </head>
 
 <body>
-    <div class="dashboard-container">
+    <div class="container">
         <?php include '../elements/sidebar.php'; ?>
 
         <main class="main-content">
@@ -35,20 +35,20 @@ $totalUsuarios = obtenerTotalUsuarios();
                 <h1>Panel de Administración</h1>
             </header>
 
-            <section class="dashboard-cards">
-                <div class="card">
+            <section class="cards">
+                <div class="info-card">
                     <h3>Productos Activos</h3>
                     <p><?php echo $totalProductosActivos; ?></p>
                 </div>
-                <div class="card">
+                <div class="info-card">
                     <h3>Pedidos</h3>
                     <p>esta semana</p>
                 </div>
-                <div class="card">
+                <div class="info-card">
                     <h3>Ingresos</h3>
                     <p>€2,345.00</p>
                 </div>
-                <div class="card">
+                <div class="info-card">
                     <h3>Usuarios</h3>
                     <p>registrados</p>
                 </div>

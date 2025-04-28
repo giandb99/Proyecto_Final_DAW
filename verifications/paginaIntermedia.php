@@ -235,9 +235,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'eliminar_producto':
-            
+
+            // Obtener el ID del producto
+            $id = $_POST['id'] ?? null;
+
+            // Verificar si el ID es válido
+            if (!validarDato('numero', $id)) {
+                header("Location: ../views/admin/products.php?error=ID+de+producto+inválido.");
+                exit;
+            }
+
+            // Eliminar el producto usando la función que creamos
+            $productoEliminado = eliminarProducto($id);
+
+            if ($productoEliminado) {
+                // Redirigir al catálogo con un mensaje de éxito
+                header("Location: ../views/admin/products.php?exito=Producto+eliminado+con+éxito.");
+                exit;
+            } else {
+                // Redirigir con mensaje de error si no se pudo eliminar el producto
+                header("Location: ../views/admin/products.php?error=Hubo+un+error+al+eliminar+el+producto.");
+                exit;
+            }
             break;
 
+        case 'eliminar_productos_seleccionados':
+            $ids = $_POST['productos_seleccionados'] ?? [];
+
+            if (empty($ids)) {
+                header("Location: ../views/admin/products.php?error=No+se+seleccionaron+productos.");
+                exit;
+            }
+            
+            foreach ($ids as $id) {
+                if (validarDato('numero', $id)) {
+                    eliminarProducto($id); // ya tenés esta función
+                }
+            }
+
+            header("Location: ../views/admin/products.php?exito=Productos+eliminados+correctamente.");
+            exit;
+            break;
 
         // case 'guardar_preferencias':
 

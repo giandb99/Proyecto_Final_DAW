@@ -17,14 +17,17 @@
     <title>Document</title>
 </head>
 
-<body class="container">
+<body>
 
     <?php include '../elements/sidebar.php'; ?>
+    
+    <div class="container">
 
-    <main class="main-content">
+        <main class="main-content">
 
 
 
-    </main>
+        </main>
+    </div>
 
     <?php include '../elements/footer.php' ?>

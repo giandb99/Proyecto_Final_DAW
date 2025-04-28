@@ -125,7 +125,6 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     cerrar_conexion($conn);
 }
 
-
 function modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id)
 {
     $conn = conexion();
@@ -148,25 +147,26 @@ function modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamien
     cerrar_conexion($conn);
 }
 
-// // Función para eliminar un producto por su ID
-// function eliminarProducto($id)
-// {
-//     $conn = conexion();
+/**
+ * Función para eliminar un producto por su ID.
+ *
+ * Elimina un registro de la tabla `productos` basado en el ID proporcionado.
+ *
+ * @param int $id El ID del producto a eliminar.
+ * @return bool Retorna `true` si la eliminación fue exitosa, `false` en caso contrario.
+ */
+function eliminarProducto($id)
+{
+    $conn = conexion();
 
-//     // Se prepara la consulta para eliminar el producto
-//     $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
-//     $query->bind_param("i", $id);
+    $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
+    $query->bind_param("i", $id);
+    $resultado = $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
 
-//     // Se ejecuta la consulta y se cierra la conexión
-//     if ($query->execute()) {
-//         echo "<script class='alert'>Producto eliminado con éxito.</script>";
-//     } else {
-//         echo "<script class='alert'>Error al eliminar el producto: " . $query->error . "</script>";
-//     }
-
-//     $query->close();
-//     cerrar_conexion($conn);
-// }
+    return $resultado; // Retorna `true` si se eliminó correctamente
+}
 
 // function desactivarProducto($id)
 // {
@@ -291,7 +291,7 @@ function obtenerProductosAdmin()
                 <td class="acciones">
                     <button onclick="window.location.href=\'addOrModifyProduct.php?id=' . $producto['id'] . '\'" class="btn-icon-modificar" title="Modificar"><i class="fas fa-pen"></i></button>
                     <form action="../../verifications/paginaIntermedia.php" method="POST">
-                        <input type="hidden" name="accion" value="desactivar_producto">
+                        <input type="hidden" name="accion" value="eliminar_producto">
                         <input type="hidden" name="id" value="' . $producto['id'] . '">
                         <button type="submit" class="btn-icon-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
                     </form>

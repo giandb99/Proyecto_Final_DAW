@@ -19,46 +19,51 @@ session_start();
     <title>Document</title>
 </head>
 
-<body class="container">
+<body>
+    <div class="container">
+        <?php include '../elements/sidebar.php'; ?>
 
-    <?php include '../elements/sidebar.php'; ?>
+        <main class="main-content">
 
-    <main class="main-content">
+            <div class="barra-superior">
+                <form action="addOrModifyProduct.php" method="POST" style="display: inline-block;">
+                    <input type="hidden" name="accion" value="agregar_producto">
+                    <button type="submit" class="custom-btn btn"><span>Agregar producto</span></button>
+                </form>
+            </div>
 
-        <div class="barra-superior">
-            <form action="addOrModifyProduct.php" method="POST">
-                <input type="hidden" name="accion" value="agregar_producto">
-                <button type="submit" class="custom-btn btn"><span>Agregar producto</span></button>
-            </form>
             <form action="../../verifications/paginaIntermedia.php" method="POST">
-                <input type="hidden" name="accion" value="eliminar_producto">
-                <button type="submit" class="custom-btn btn"><span>Eliminar seleccionados</span></button>
-            </form>
-        </div>
+                <input type="hidden" name="accion" value="eliminar_productos_seleccionados">
 
-        <table class="tabla-productos">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Imagen</th>
-                    <th>Precio</th>
-                    <th>Descuento</th>
-                    <th>Stock</th>
-                    <th>Plataforma</th>
-                    <th>Género</th>
-                    <th>Acciones</th>
-                    <th><input type="checkbox" id="checkAll"></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php obtenerProductosAdmin(); ?>
-            </tbody>
-        </table>
-    </main>
+                <div class="barra-superior">
+                    <button type="submit" class="custom-btn btn"><span>Eliminar seleccionados</span></button>
+                </div>
+
+                <table class="tabla-productos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Imagen</th>
+                            <th>Precio</th>
+                            <th>Descuento</th>
+                            <th>Stock</th>
+                            <th>Plataforma</th>
+                            <th>Género</th>
+                            <th>Acciones</th>
+                            <th><input type="checkbox" id="checkAll"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php obtenerProductosAdmin(); ?>
+                    </tbody>
+                </table>
+            </form>
+        </main>
+    </div>
 
     <script>
-        // Marcar todos los checkboxes
+        // Marcar o desmarcar todos los checkboxes
         document.getElementById("checkAll").addEventListener("change", function() {
             const checkboxes = document.querySelectorAll("input[name='productos_seleccionados[]']");
             checkboxes.forEach(cb => cb.checked = this.checked);

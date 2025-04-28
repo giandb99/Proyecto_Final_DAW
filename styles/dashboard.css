@@ -6,7 +6,7 @@ html, body {
     font-family: 'Segoe UI', sans-serif;
 }
 
-.dashboard-container {
+.container {
     display: flex;
     height: 100vh;
     overflow: hidden;
@@ -16,7 +16,6 @@ html, body {
     flex: 1;
     padding: 2rem;
     overflow-y: auto;
-    height: 100vh;
     background-color: black;
 }
 
@@ -36,13 +35,13 @@ html, body {
     margin: 0;
 }
 
-.dashboard-cards {
+.cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
 }
 
-.card {
+.info-card {
     background-color: gray;
     border-radius: 0.75rem;
     padding: 1.5rem;
@@ -51,19 +50,19 @@ html, body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.card:hover {
+.info-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.card h3 {
+.info-card h3 {
     font-size: 1.25rem;
     font-weight: bold;
     color: #111827;
     margin-bottom: 0.5rem;
 }
 
-.card p {
+.info-card p {
     font-size: 1.1rem;
     color: #00bcd4;
 }

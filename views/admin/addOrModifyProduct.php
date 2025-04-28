@@ -40,77 +40,76 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
     <title>Document</title>
 </head>
 
-<body class="container">
+<body>
+    <div class="container">
+        <?php include '../elements/sidebar.php'; ?>
 
-    <?php include '../elements/sidebar.php'; ?>
+        <main class="main-content">
+            <form class="product-form" action="../../verifications/paginaIntermedia.php" method="post" enctype="multipart/form-data">
+                <div class="product-container">
+                    <h2><?= $modoEdicion ? 'Modificar producto' : 'Agregar nuevo producto' ?></h2>
 
-    <main class="main-content">
+                    <input type="hidden" name="accion" value="<?= $modoEdicion ? 'modificar_producto' : 'agregar_producto' ?>">
+                    <?php if ($modoEdicion): ?>
+                        <input type="hidden" name="id" value="<?= $producto['id'] ?>">
+                    <?php endif; ?>
 
-        <form class="product-form" action="../../verifications/paginaIntermedia.php" method="post" enctype="multipart/form-data">
-            <div class="product-container">
-                <h2><?= $modoEdicion ? 'Modificar producto' : 'Agregar nuevo producto' ?></h2>
+                    <input type="text" id="name" name="name" placeholder="Nombre del producto"
+                        value="<?= $modoEdicion ? htmlspecialchars($producto['nombre']) : '' ?>">
+                    <textarea id="description" name="description" placeholder="Descripción"><?= $modoEdicion ? htmlspecialchars($producto['descripcion']) : '' ?></textarea>
+                    <input type="date" id="release_date" name="release_date" placeholder="Fecha de lanzamiento"
+                        value="<?= $modoEdicion ? $producto['fecha_lanzamiento'] : '' ?>">
+                    <input type="number" id="price" name="price" placeholder="Precio" step="0.01" min="0"
+                        value="<?= $modoEdicion ? $producto['precio'] : '' ?>">
+                    <input type="number" id="discount" name="discount" step="5" min="0" max="100" placeholder="Descuento"
+                        value="<?= $modoEdicion ? $producto['descuento'] : '' ?>">
+                    <input type="number" id="stock" name="stock" placeholder="Stock"
+                        value="<?= $modoEdicion ? $producto['stock'] : '' ?>">
 
-                <input type="hidden" name="accion" value="<?= $modoEdicion ? 'modificar_producto' : 'agregar_producto' ?>">
-                <?php if ($modoEdicion): ?>
-                    <input type="hidden" name="id" value="<?= $producto['id'] ?>">
-                <?php endif; ?>
-
-                <input type="text" id="name" name="name" placeholder="Nombre del producto"
-                    value="<?= $modoEdicion ? htmlspecialchars($producto['nombre']) : '' ?>">
-                <textarea id="description" name="description" placeholder="Descripción"><?= $modoEdicion ? htmlspecialchars($producto['descripcion']) : '' ?></textarea>
-                <input type="date" id="release_date" name="release_date" placeholder="Fecha de lanzamiento"
-                    value="<?= $modoEdicion ? $producto['fecha_lanzamiento'] : '' ?>">
-                <input type="number" id="price" name="price" placeholder="Precio" step="0.01" min="0"
-                    value="<?= $modoEdicion ? $producto['precio'] : '' ?>">
-                <input type="number" id="discount" name="discount" step="5" min="0" max="100" placeholder="Descuento"
-                    value="<?= $modoEdicion ? $producto['descuento'] : '' ?>">
-                <input type="number" id="stock" name="stock" placeholder="Stock"
-                    value="<?= $modoEdicion ? $producto['stock'] : '' ?>">
-
-                <label for="plataforma">Plataforma:</label>
-                <select id="plataform" name="plataform">
-                    <option value="">Seleccione una plataforma</option>
-                    <?php foreach ($plataformas as $plataforma): ?>
-                        <option value="<?= $plataforma['id'] ?>"
-                            <?= $modoEdicion && $plataforma['id'] == $producto['plataforma_id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($plataforma['nombre']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-
-                <label for="genero">Género:</label>
-                <select id="gender" name="gender">
-                    <option value="">Seleccione un género</option>
-                    <?php foreach ($generos as $genero): ?>
-                        <option value="<?= $genero['id'] ?>"
-                            <?= $modoEdicion && $genero['id'] == $producto['genero_id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($genero['nombre']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-
-                <label for="imagen">Imagen del producto:</label>
-                <input type="file" id="image" name="image" accept="image/*">
-                <p style="font-size: 0.9em; border-radius: 6px; width: 70%; padding: .2rem .5rem; background-color:rgb(255, 234, 188); color: black;">Si seleccionas una nueva imagen, reemplazaras la actual.</p>
-
-                <?php if (!empty($errores)): ?>
-                    <div class="error-msg-container">
-                        <?php foreach ($errores as $error): ?>
-                            <p class="error-msg"><?= htmlspecialchars($error) ?></p>
+                    <label for="plataforma">Plataforma:</label>
+                    <select id="plataform" name="plataform">
+                        <option value="">Seleccione una plataforma</option>
+                        <?php foreach ($plataformas as $plataforma): ?>
+                            <option value="<?= $plataforma['id'] ?>"
+                                <?= $modoEdicion && $plataforma['id'] == $producto['plataforma_id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($plataforma['nombre']) ?>
+                            </option>
                         <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+                    </select>
 
-                <?php if ($exito): ?>
-                    <p class="success-msg"><?= htmlspecialchars($exito) ?></p>
-                <?php endif; ?>
+                    <label for="genero">Género:</label>
+                    <select id="gender" name="gender">
+                        <option value="">Seleccione un género</option>
+                        <?php foreach ($generos as $genero): ?>
+                            <option value="<?= $genero['id'] ?>"
+                                <?= $modoEdicion && $genero['id'] == $producto['genero_id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($genero['nombre']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
-                <button type="submit" class="custom-btn btn">
-                    <span><?= $modoEdicion ? 'Confirmar cambios' : 'Agregar producto' ?></span>
-                </button>
-            </div>
-        </form>
+                    <label for="imagen">Imagen del producto:</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                    <p style="font-size: 0.9em; border-radius: 6px; width: 70%; padding: .2rem .5rem; background-color:rgb(255, 234, 188); color: black;">Si seleccionas una nueva imagen, reemplazaras la actual.</p>
 
-    </main>
+                    <?php if (!empty($errores)): ?>
+                        <div class="error-msg-container">
+                            <?php foreach ($errores as $error): ?>
+                                <p class="error-msg"><?= htmlspecialchars($error) ?></p>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($exito): ?>
+                        <p class="success-msg"><?= htmlspecialchars($exito) ?></p>
+                    <?php endif; ?>
+
+                    <button type="submit" class="custom-btn btn">
+                        <span><?= $modoEdicion ? 'Confirmar cambios' : 'Agregar producto' ?></span>
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
 
     <?php include '../elements/footer.php' ?>

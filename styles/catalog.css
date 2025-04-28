@@ -39,7 +39,6 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
-    max-width: 1200px;
     width: 100%;
 }
 
@@ -54,7 +53,7 @@ body {
 
 .catalog-items {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 2rem;
     justify-items: center;
 }
@@ -80,7 +79,7 @@ body {
 
 .product-card img {
     width: 100%;
-    height: 12rem;
+    height: 20rem;
     object-fit: cover;
     display: block;
     color: transparent;
