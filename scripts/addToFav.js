@@ -10,17 +10,20 @@ function addToFavs(productoId) {
             const icon = document.getElementById(`fav-icon-${productoId}`);
             if (!icon) return;
 
-            // Cambiar clase del ícono
+            // Se cambia la clase del ícono
             icon.classList.remove('far', 'fas');
             icon.classList.add(data.favorito ? 'fas' : 'far');
 
-            // Agregar animación
+            // Se agrega la animación
             icon.classList.add('heart-pulse');
 
-            // Quitar animación después de que termine para que pueda repetirse
+            // Se quita la animación después de que termine para que pueda repetirse
             setTimeout(() => icon.classList.remove('heart-pulse'), 300);
         } else {
-            alert("Debes iniciar sesión para agregar productos a favoritos.");
+            console.error("Error al agregar a favoritos:", data.error);
         }
+    })
+    .catch(err => {
+        console.error("Error al agregar a favoritos:", err);
     });
 }

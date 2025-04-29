@@ -18,7 +18,7 @@ $productos = getCatalog();
     <link rel="stylesheet" href="../../styles/scroll.css">
     <link rel="stylesheet" href="../../styles/nav.css">
     <link rel="stylesheet" href="../../styles/footer.css">
-    <link rel="stylesheet" href="../../styles/logout.css">
+    <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>FreeDays_Games - Compra online de videojuegos y mucho más</title>
@@ -82,7 +82,7 @@ $productos = getCatalog();
                                                     </button>
                                                 </form>
                                             <?php else: ?>
-                                                <button type="button" class="add-to-favs" onclick="event.stopPropagation()">
+                                                <button type="button" class="add-to-favs" onclick="event.stopPropagation(); window.location.href='catalog.php?debes_iniciar_sesion=error'">
                                                     <i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i>
                                                 </button>
                                             <?php endif; ?>
@@ -105,4 +105,4 @@ $productos = getCatalog();
     <?php include '../elements/footer.php' ?>
 
     <script src="../../scripts/addToFav.js"></script>
-    <script src="../../scripts/logout.js"></script>
+    <script src="../../scripts/popup.js"></script>
