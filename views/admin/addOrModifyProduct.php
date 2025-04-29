@@ -1,4 +1,5 @@
 <?php
+
 require_once '../../database/querys.php';
 session_start();
 
@@ -7,7 +8,7 @@ $producto = null;
 $modoEdicion = false;
 
 if ($id) {
-    $producto = obtenerProductoPorId($id);
+    $producto = getProductById($id);
     $modoEdicion = true;
 
     if (!$producto) {
@@ -16,11 +17,12 @@ if ($id) {
     }
 }
 
-$plataformas = obtenerPlataformas();
-$generos = obtenerGeneros();
+$generos = getGenres();
+$plataformas = getPlatforms();
 
 $exito = $_GET['exito'] ?? null;
 $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) : [];
+
 ?>
 
 <!DOCTYPE html>

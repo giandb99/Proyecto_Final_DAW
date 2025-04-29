@@ -5,7 +5,6 @@ require_once '../../database/querys.php';
 
 session_start();
 
-
 // Se obtienen los datos para los widgets de la página de administración
 $totalProductosActivos = obtenerTotalProductosActivos();
 $totalUsuarios = obtenerTotalUsuarios();

@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 // Incluir archivos necesarios para consultas, conexiones y validaciones
 require_once '../database/connection.php';
 require_once '../database/querys.php';
@@ -21,9 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errores = [];
 
             $validaciones = [
-                validarDato('string', $username, 'nombre de usuario'),
-                validarDato('email', $email, 'correo electrónico'),
-                validarDato('password', $password, 'contraseña')
+                validateData('string', $username, 'nombre de usuario'),
+                validateData('email', $email, 'correo electrónico'),
+                validateData('password', $password, 'contraseña')
             ];
 
             foreach ($validaciones as $resultado) {
@@ -44,13 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             // Crear el usuario
-            $usuarioCreado = registrarUsuario($name, $username, $email, $password);
+            $usuarioCreado = createUser($name, $username, $email, $password);
             exit;
 
         case 'iniciar_sesion':
-            // Se inicia la sesión para almacenar datos del usuario
-            session_start();
-
             // Se capturan los datos del formulario
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
@@ -58,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errores = [];
 
             $validaciones = [
-                validarDato('email', $email, 'correo electrónico')
+                validateData('email', $email, 'correo electrónico')
             ];
 
             foreach ($validaciones as $resultado) {
@@ -74,16 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if (!$checkbox) {
-                $user = obtenerDatosUsuario($email, $password);
+                $user = getUserData($email, $password);
 
                 if ($user) {
-                    $_SESSION['usuario'] = [
-                        'id' => $user['id'],
-                        'username' => $user['username'],
-                        'email' => $user['email'],
-                        'rol' => 'user'
-                    ];
-
+                    login($user);
                     // Si hay productos en el carrito guardados antes de loguearse
                     if (isset($_SESSION['carrito_temp'])) {
                         $_SESSION['carrito'] = $_SESSION['carrito_temp'];
@@ -97,16 +88,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit();
                 }
             } else {
-                $admin = obtenerDatosAdmin($email, $password);
+                $admin = getAdminData($email, $password);
 
                 if ($admin) {
-                    $_SESSION['usuario'] = [
-                        'id' => $admin['id'],
-                        'username' => $admin['username'],
-                        'email' => $admin['email'],
-                        'rol' => 'admin'
-                    ];
-
+                    login($admin);
                     header("Location: ../views/admin/dashboard.php?Inicio+exitoso");
                     exit();
                 } else {
@@ -117,8 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'agregar_producto':
-            session_start();
-
             // Obtener los datos del producto
             $nombre = $_POST['name'] ?? null;
             $descripcion = $_POST['description'] ?? null;
@@ -139,13 +122,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null; // Obtener el ID del administrador de la sesión
 
             $validaciones = [
-                validarDato('string', $nombre, 'nombre'),
-                validarDato('string', $descripcion, 'descripción'),
-                validarDato('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
-                validarDato('numero', $precio, 'precio'),
-                validarDato('numero', $stock, 'stock'),
-                validarDato('numero', $plataforma, 'plataforma'),
-                validarDato('numero', $genero, 'género'),
+                validateData('string', $nombre, 'nombre'),
+                validateData('string', $descripcion, 'descripción'),
+                validateData('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
+                validateData('numero', $precio, 'precio'),
+                validateData('numero', $stock, 'stock'),
+                validateData('numero', $plataforma, 'plataforma'),
+                validateData('numero', $genero, 'género'),
             ];
 
             foreach ($validaciones as $campo => $resultado) {
@@ -154,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            $resultadoImagen = validarImagen($imagen);
+            $resultadoImagen = validateImage($imagen);
             if ($resultadoImagen !== true) {
                 $errores[] = $resultadoImagen;
             }
@@ -164,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
-            $productoCreado = crearProducto(
+            $productoCreado = createProduct(
                 $nombre,
                 $imagen,
                 $descripcion,
@@ -181,8 +164,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'modificar_producto':
-            session_start();
-
             $id = $_POST['id'] ?? null;
             $nombre = $_POST['name'] ?? null;
             $descripcion = $_POST['description'] ?? null;
@@ -196,13 +177,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errores = [];
 
             $validaciones = [
-                validarDato('string', $nombre, 'nombre'),
-                validarDato('string', $descripcion, 'descripción'),
-                validarDato('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
-                validarDato('numero', $precio, 'precio'),
-                validarDato('numero', $stock, 'stock'),
-                validarDato('numero', $plataforma_id, 'plataforma'),
-                validarDato('numero', $genero_id, 'género'),
+                validateData('string', $nombre, 'nombre'),
+                validateData('string', $descripcion, 'descripción'),
+                validateData('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
+                validateData('numero', $precio, 'precio'),
+                validateData('numero', $stock, 'stock'),
+                validateData('numero', $plataforma_id, 'plataforma'),
+                validateData('numero', $genero_id, 'género'),
             ];
 
             foreach ($validaciones as $resultado) {
@@ -212,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if ($imagenArchivo && $imagenArchivo['error'] === UPLOAD_ERR_OK) {
-                $resultadoImagen = validarImagen($imagenArchivo);
+                $resultadoImagen = validateImage($imagenArchivo);
                 if ($resultadoImagen !== true) {
                     $errores[] = $resultadoImagen;
                 } else {
@@ -222,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $imagen = 'images/products/' . $nombreImagen;
                 }
             } else {
-                $productoExistente = obtenerProductoPorId($id);
+                $productoExistente = getProductById($id);
                 $imagen = $productoExistente['imagen'];
             }
 
@@ -231,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
-            modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id);
+            modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id);
             exit;
 
         case 'eliminar_producto':
@@ -240,13 +221,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'] ?? null;
 
             // Verificar si el ID es válido
-            if (!validarDato('numero', $id)) {
+            if (!validateData('numero', $id)) {
                 header("Location: ../views/admin/products.php?error=ID+de+producto+inválido.");
                 exit;
             }
 
             // Eliminar el producto usando la función que creamos
-            $productoEliminado = eliminarProducto($id);
+            $productoEliminado = deleteProduct($id);
 
             if ($productoEliminado) {
                 // Redirigir al catálogo con un mensaje de éxito
@@ -259,22 +240,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             break;
 
-        case 'eliminar_productos_seleccionados':
-            $ids = $_POST['productos_seleccionados'] ?? [];
-
-            if (empty($ids)) {
-                header("Location: ../views/admin/products.php?error=No+se+seleccionaron+productos.");
+        case 'agregar_favorito':
+            header('Content-Type: application/json');
+            
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['success' => false, 'error' => 'unauthorized']);
                 exit;
             }
-            
-            foreach ($ids as $id) {
-                if (validarDato('numero', $id)) {
-                    eliminarProducto($id); // ya tenés esta función
-                }
+
+            $usuarioId = $_SESSION['usuario']['id'];
+            $productoId = $_POST['producto_id'] ?? null;
+
+            if (!$productoId) {
+                echo json_encode(['success' => false, 'error' => 'missing_product_id']);
+                exit;
             }
 
-            header("Location: ../views/admin/products.php?exito=Productos+eliminados+correctamente.");
-            exit;
+            $esFavorito = addOrRemoveFav($usuarioId, $productoId);
+            echo json_encode(['success' => true, 'favorito' => $esFavorito]);
             break;
 
         // case 'guardar_preferencias':
@@ -292,141 +275,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
     }
 }
-
-        // case 'agregar_producto':
-        //     // Validar los campos del producto
-        //     $nombre = $_POST['product_name'] ?? null;
-        //     $descripcion = $_POST['description'] ?? null;
-        //     $precio = $_POST['price'] ?? null;
-        //     $imagen = $_FILES['image'] ?? null;
-        //     $errores = [];
-
-        //     // Validación del nombre del producto
-        //     if (validarDato('string', $nombre) !== true) {
-        //         $errores[] = "El nombre del producto es inválido.";
-        //     }
-
-        //     // Validación de la descripción
-        //     if (validarDato('string', $descripcion) !== true) {
-        //         $errores[] = "La descripción del producto es inválida.";
-        //     }
-
-        //     // Validación del precio
-        //     if (validarDato('numero', $precio) !== true) {
-        //         $errores[] = "El precio debe ser un número positivo.";
-        //     }
-
-        //     // Validación de la imagen (solo si se ha subido una)
-        //     if ($imagen && !validarImagen($imagen)) {
-        //         $errores[] = "La imagen es inválida o no se subió correctamente.";
-        //     }
-
-        //     // Si hay errores, redirigir de vuelta al formulario con los errores
-        //     if (!empty($errores)) {
-        //         // Redirigir a agregarProducto.php con los errores en la URL
-        //         header("Location: ../Interfaces/agregarProducto.php?errores=" . urlencode(implode(", ", $errores)));
-        //         exit;  // Asegurarse de que el script no continúe
-        //     }
-
-        //     // Crear el producto si no hay errores
-        //     $productoCreado = crearProducto($nombre, $descripcion, $precio, $imagen);
-        //     exit;
-
-        // case 'eliminar_producto':
-
-        //     // Obtener el ID del producto
-        //     $id = $_POST['id'] ?? null;
-
-        //     // Verificar si el ID es válido
-        //     if (!validarDato('numero', $id)) {
-        //         header("Location: ../Interfaces/catalogoAdmin.php?error=ID+de+producto+inválido.");
-        //         exit;
-        //     }
-
-        //     // Eliminar el producto usando la función que creamos
-        //     $productoEliminado = eliminarProducto($id);
-
-        //     if ($productoEliminado) {
-        //         // Redirigir al catálogo con un mensaje de éxito
-        //         header("Location: ../Interfaces/catalogoAdmin.php?exito=Producto+eliminado+con+éxito.");
-        //         exit;
-        //     } else {
-        //         // Redirigir con mensaje de error si no se pudo eliminar el producto
-        //         header("Location: ../Interfaces/catalogoAdmin.php?error=Hubo+un+error+al+eliminar+el+producto.");
-        //         exit;
-        //     }
-
-        // case 'modificar_producto':
-        //     if (isset($_POST['id'])) {
-        //         $id = intval($_POST['id']); // Asegúrate de convertir el ID a entero
-
-        //         // Redirige a la interfaz de modificación con el ID del producto
-        //         header("Location: ../Interfaces/modificarProducto.php?id=$id");
-        //         exit;
-        //     } else {
-        //         header("Location: ../Interfaces/catalogoAdmin.php?error=ID+no+especificado+para+modificación.");
-        //         exit;
-        //     }
-        //     break;
-
-        // case 'confirmar_modificacion':
-        //     if (isset($_POST['id'])) {
-        //         $id = intval($_POST['id']); // Asegúrate de convertir el ID a entero
-        //         $nombre = $_POST['product_name'] ?? null;
-        //         $descripcion = $_POST['description'] ?? null;
-        //         $precio = $_POST['price'] ?? null;
-        //         $imagen = $_FILES['image'] ?? null;
-
-        //         // Obtener la imagen actual si no se envió una nueva
-        //         $imagenActual = $_POST['current_image'] ?? null;
-
-        //         // Validar los datos del producto
-        //         $errores = [];
-
-        //         if (validarDato('string', $nombre) !== true) {
-        //             $errores[] = "El nombre del producto es inválido.";
-        //         }
-
-        //         if (validarDato('string', $descripcion) !== true) {
-        //             $errores[] = "La descripción del producto es inválida.";
-        //         }
-
-        //         if (validarDato('numero', $precio) !== true) {
-        //             $errores[] = "El precio debe ser un número positivo.";
-        //         }
-
-        //         // Validación de la imagen (solo si se ha subido una nueva)
-        //         if ($imagen && !validarImagen($imagen)) {
-        //             $errores[] = "La imagen es inválida o no se subió correctamente.";
-        //         }
-
-        //         // Si hay errores, redirigir de vuelta al formulario con los errores
-        //         if (!empty($errores)) {
-        //             // Redirigir a modificarProducto.php con los errores en la URL
-        //             header("Location: ../Interfaces/modificarProducto.php?id=$id&errores=" . urlencode(implode(", ", $errores)));
-        //             exit;  // Asegurarse de que el script no continúe
-        //         }
-
-        //         // Si no hay errores, procesar la actualización del producto
-        //         if ($imagen && $imagen['error'] == 0) {
-        //             // Se proporciona una nueva imagen
-        //             $productoModificado = modificarProducto($id, $nombre, $descripcion, $precio, $imagen);
-        //         } else {
-        //             // No se proporciona una nueva imagen, se mantiene la actual
-        //             $productoModificado = modificarProducto($id, $nombre, $descripcion, $precio, $imagenActual);
-        //         }
-
-        //         // Verificar si el producto fue modificado exitosamente
-        //         if ($productoModificado) {
-        //             // Redirigir a la página de éxito (catalogoAdmin.php en este caso)
-        //             header("Location: ../Interfaces/catalogoAdmin.php?exito=Producto+modificado+exitosamente.");
-        //         } else {
-        //             // Si algo falló en la modificación, redirigir de vuelta a la página de modificar producto con un mensaje de error
-        //             header("Location: ../Interfaces/modificarProducto.php?id=$id&error=Hubo+un+error+al+modificar+el+producto.");
-        //         }
-        //         exit;  // Asegurarse de que el script no continúe
-        //     } else {
-        //         header("Location: ../Interfaces/catalogoAdmin.php?error=ID+no+especificado+para+modificación.");
-        //         exit;
-        //     }
-        //     break;

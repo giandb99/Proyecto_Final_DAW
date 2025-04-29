@@ -53,7 +53,7 @@ body {
 
 .catalog-items {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
     justify-items: center;
 }
@@ -174,7 +174,7 @@ body {
 }
 
 .add-to-cart,
-.add-to-favorites {
+.add-to-favs {
     background: linear-gradient(45deg, #7c3aed, #9333ea);
     color: white;
     padding: 0.5rem 0.75rem;
@@ -187,7 +187,7 @@ body {
 }
 
 .add-to-cart:hover,
-.add-to-favorites {
+.add-to-favs {
     background: linear-gradient(45deg, #9333ea, #7c3aed);
 }
 
@@ -215,4 +215,20 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #11b0b0;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.heart-pulse {
+    animation: pulse 0.3s ease;
 }

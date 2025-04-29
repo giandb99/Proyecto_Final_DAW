@@ -7,7 +7,7 @@
  * @return bool true si el dato es válido, false en caso contrario.
  * @throws Exception Si el tipo de dato no es válido.
  */
-function validarDato($tipo, $valor, $campoNombre = '') {
+function validateData($tipo, $valor, $campoNombre = '') {
     
     // Verifica si el tipo de dato es válido
     switch ($tipo) {
@@ -60,7 +60,7 @@ function validarDato($tipo, $valor, $campoNombre = '') {
  * @param int $tamanioMaximo Tamaño máximo permitido en bytes (opcional).
  * @return mixed Retorna `true` si la imagen es válida o un mensaje de error en caso contrario.
  */
-function validarImagen($imagen) {
+function validateImage($imagen) {
     // Verifica si se ha subido un archivo correctamente
     if (!isset($imagen) || $imagen['error'] !== 0) {
         return "Error al subir la imagen.";

@@ -5,12 +5,12 @@ require_once 'connection.php';
 /* ------------- USUARIOS -------------  */
 
 // Función para registrar un nuevo usuario
-function registrarUsuario($name, $username, $email, $pass)
+function createUser($name, $username, $email, $pass)
 {
     $conn = conexion();
 
     // Si verificar usuario devuelve true, significa que el usuario ya existe
-    if (obtenerDatosUsuario($email, $pass)) {
+    if (getUserData($email, $pass)) {
         $query = http_build_query([
             'error' => 'El correo electrónico ya está registrado.',
             'username' => $username,
@@ -24,12 +24,11 @@ function registrarUsuario($name, $username, $email, $pass)
     // Se inserta el nuevo usuario en la base de datos
     $query = $conn->prepare("INSERT INTO usuario (nombre, username, email, pass) VALUES (?, ?, ?, ?)");
     $query->bind_param("ssss", $name, $username, $email, $pass);
-
     $result = $query->execute();
-    $query->close();
-    cerrar_conexion($conn);
 
     if ($result) {
+        $usuarioId = $conn->insert_id;
+        createFavList($usuarioId);
         header("Location: ../views/user/login.php?exito=Usuario+registrado+con+éxito."); // Redirigir a la página de inicio de sesión
     } else {
         $query = http_build_query([
@@ -39,12 +38,43 @@ function registrarUsuario($name, $username, $email, $pass)
         ]);
         header("Location: ../views/user/register.php?$query");
     }
+
+    $query->close();
+    cerrar_conexion($conn);
 }
 
-function obtenerDatosUsuario($email, $pass)
+function login($usuario)
+{
+    // Actualizamos el campo ultimo_login con la fecha y hora actual
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE usuario SET ultimo_login = NOW() WHERE id = ?");
+    $query->bind_param("i", $usuario['id']);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+
+    $_SESSION['usuario'] = [
+        'id' => $usuario['id'],
+        'nombre' => $usuario['nombre'],
+        'username' => $usuario['username'],
+        'email' => $usuario['email'],
+        'telefono' => $usuario['telefono'],
+        'direccion' => $usuario['direccion'],
+        'fecha_nac' => $usuario['fecha_nac'],
+        'cp' => $usuario['cp'],
+        'rol' => $usuario['rol'],
+        'fecha_creacion' => $usuario['fecha_creacion'],
+        'ultimo_login' => $usuario['ultimo_login'],
+        'activo' => $usuario['activo'],
+        'imagen_perfil' => !empty($usuario['imagen_perfil']) ? true : false
+    ];
+}
+
+function getUserData($email, $pass)
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT id, username, email FROM usuario WHERE email = ? AND pass = ? AND rol = 'user'");
+
+    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND pass = ? AND rol = 'user'");
     $query->bind_param("ss", $email, $pass);
     $query->execute();
     $result = $query->get_result();
@@ -58,10 +88,11 @@ function obtenerDatosUsuario($email, $pass)
 /* ------------- ADMIN -------------  */
 
 // Función para obtener los datos del administrador
-function obtenerDatosAdmin($email, $pass)
+function getAdminData($email, $pass)
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT id, username, email FROM usuario WHERE email = ? AND pass = ? AND rol = 'admin'");
+
+    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND pass = ? AND rol = 'admin'");
     $query->bind_param("ss", $email, $pass);
     $query->execute();
     $result = $query->get_result();
@@ -75,7 +106,7 @@ function obtenerDatosAdmin($email, $pass)
 /* ------------- PRODUCTOS -------------  */
 
 // Función para crear un nuevo producto
-function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
+function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
 {
     // Ruta relativa (para guardar en la BD)
     $rutaRelativa = 'images/products/' . basename($imagen['name']);
@@ -125,7 +156,7 @@ function crearProducto($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     cerrar_conexion($conn);
 }
 
-function modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id)
+function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id)
 {
     $conn = conexion();
 
@@ -155,7 +186,7 @@ function modificarProducto($id, $nombre, $imagen, $descripcion, $fecha_lanzamien
  * @param int $id El ID del producto a eliminar.
  * @return bool Retorna `true` si la eliminación fue exitosa, `false` en caso contrario.
  */
-function eliminarProducto($id)
+function deleteProduct($id)
 {
     $conn = conexion();
 
@@ -168,32 +199,13 @@ function eliminarProducto($id)
     return $resultado; // Retorna `true` si se eliminó correctamente
 }
 
-// function desactivarProducto($id)
-// {
-//     $conn = conexion();
-
-//     // Se prepara la consulta para desactivar el producto
-//     $query = $conn->prepare("UPDATE producto SET activo = 0 WHERE id = ?");
-//     $query->bind_param("i", $id);
-
-//     // Se ejecuta la consulta y se cierra la conexión
-//     if ($query->execute()) {
-//         echo "<script class='alert'>Producto desactivado con éxito.</script>";
-//     } else {
-//         echo "<script class='alert'>Error al desactivar el producto: " . $query->error . "</script>";
-//     }
-
-//     $query->close();
-//     cerrar_conexion($conn);
-// }
-
 /**
  * Esta función consulta la base de datos para obtener todos los juegos y sus detalles,
  * incluyendo la media de las valoraciones.
  * Luego, genera el HTML para mostrar cada juego en una tarjeta.
  * @return void
  */
-function obtenerProductosClientes()
+function getCatalog()
 {
     $conn = conexion();
 
@@ -201,58 +213,26 @@ function obtenerProductosClientes()
         SELECT p.*, COALESCE(AVG(v.valoracion), 0) AS valoracion_promedio
         FROM producto p
         LEFT JOIN votos v ON p.id = v.producto_id
+        WHERE p.activo = 1
         GROUP BY p.id
     ");
 
     $query->execute();
     $result = $query->get_result();
+    $productos = [];
 
     if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $precioFinal = $row['descuento'] ? $row['precio'] - ($row['precio'] * $row['descuento'] / 100) : $row['precio'];
-
-            echo '
-            <div class="product-card" onclick="window.location.href=\'product.php?id=' . $row['id'] . '\'">
-                <div class="relative">
-                    <img src="../../' . htmlspecialchars($row['imagen'] ?: 'placeholder.svg') . '" alt="' . htmlspecialchars($row['nombre']) . '">
-                    ' . ($row['descuento'] ? '<div class="discount-tag">' . $row['descuento'] . '% OFF</div>' : '') . '
-                </div>
-                <div class="product-info">
-                    <div class="title-container">
-                        <h3 class="game-title">' . htmlspecialchars($row['nombre']) . '</h3>
-                        <div class="rating">
-                            <span class="star">⭐</span>
-                            <span>' . number_format($row['valoracion_promedio'], 1) . '</span>
-                        </div>
-                    </div>
-                    <div class="description-container"><p class="description">' . htmlspecialchars($row['descripcion']) . '</p></div>
-                    <div class="foot-container">
-                        <div class="price-container">';
-            if ($row['descuento']) {
-                echo '
-                    <span class="price">$' . number_format($precioFinal, 2) . '</span>
-                    <span class="old-price">$' . number_format($row['precio'], 2) . '</span>';
-            } else {
-                echo '<span class="price">$' . number_format($row['precio'], 2) . '</span>';
-            }
-            echo '</div>
-                        <div class="buttons-container">
-                            <button class="add-to-favorites" onclick="event.stopPropagation(); agregarAFavoritos(' . $row['id'] . ')"><i class="far fa-heart"></i></button> 
-                            <button class="add-to-cart" onclick="event.stopPropagation(); agregarAlCarrito(' . $row['id'] . ')">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>';
+        while ($producto = $result->fetch_assoc()) {
+            $productos[] = $producto;
         }
-    } else {
-        echo '<p class="no-products">Lo sentimos, no hay productos disponibles.<br>Vuelva más tarde</p>';
     }
 
     $query->close();
     cerrar_conexion($conn);
+    return $productos; // Retorna el array de productos
 }
 
-function obtenerProductosAdmin()
+function getAllProdutcs()
 {
     $conn = conexion();
 
@@ -275,75 +255,17 @@ function obtenerProductosAdmin()
 
     $query->execute();
     $result = $query->get_result();
+    $products = [];
 
     if ($result->num_rows > 0) {
         while ($producto = $result->fetch_assoc()) {
-            echo '
-            <tr>
-                <td>' . $producto['id'] . '</td>
-                <td>' . htmlspecialchars($producto['nombre']) . '</td>
-                <td><img src="../../' . htmlspecialchars($producto['imagen']) . '" alt="Imagen" class="tabla-img"></td>
-                <td>' . number_format($producto['precio'], 2) . '€</td>
-                <td>' . ($producto['descuento'] ?? '0') . '%</td>
-                <td>' . $producto['stock'] . '</td>
-                <td>' . htmlspecialchars($producto['plataforma']) . '</td>
-                <td>' . htmlspecialchars($producto['genero']) . '</td>
-                <td class="acciones">
-                    <button onclick="window.location.href=\'addOrModifyProduct.php?id=' . $producto['id'] . '\'" class="btn-icon-modificar" title="Modificar"><i class="fas fa-pen"></i></button>
-                    <form action="../../verifications/paginaIntermedia.php" method="POST">
-                        <input type="hidden" name="accion" value="eliminar_producto">
-                        <input type="hidden" name="id" value="' . $producto['id'] . '">
-                        <button type="submit" class="btn-icon-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-                    </form>
-                </td>
-                <td><input type="checkbox" name="productos_seleccionados[]" value="' . $producto['id'] . '"></td>
-            </tr>';
-        }
-    } else {
-        echo '<tr><td colspan="10">No hay productos disponibles.</td></tr>';
-    }
-
-    $query->close();
-    cerrar_conexion($conn);
-}
-
-function obtenerTodosLosProductos()
-{
-    $conn = conexion();
-
-    // Se prepara la consulta
-    // Se hace JOIN con genero y plataforma para obtener los nombres
-    $query = $conn->prepare("
-        SELECT 
-            producto.id,
-            producto.nombre,
-            producto.imagen,
-            producto.precio,
-            producto.descuento,
-            producto.stock,
-            genero.nombre AS genero,
-            plataforma.nombre AS plataforma
-        FROM producto
-        JOIN genero ON producto.genero_id = genero.id
-        JOIN plataforma ON producto.plataforma_id = plataforma.id
-        WHERE producto.activo = 1 ORDER BY producto.id ASC
-    ");
-
-    $query->execute();
-
-    $result = $query->get_result();
-    $productos = [];
-
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $productos[] = $row; // Agrega cada producto al array
+            $products[] = $producto; // Agrega cada producto al array
         }
     }
 
     $query->close();
     cerrar_conexion($conn); // Cierra la conexión
-
-    return $productos; // Retorna el array de productos
+    return $products; // Retorna el array de productos
 }
 
 /**
@@ -351,7 +273,7 @@ function obtenerTodosLosProductos()
  * @param int $id ID del juego a buscar.
  * @return array|null Array con los datos del juego o null si no se encuentra.
  */
-function obtenerProductoPorId($id)
+function getProductById($id)
 {
     $conn = conexion();
 
@@ -368,60 +290,7 @@ function obtenerProductoPorId($id)
     return $producto;
 }
 
-/**
- * Función para obtener productos por género.
- * @param int $generoId ID del género a buscar.
- * @return array Array con los productos encontrados.
- */
-function obtenerProductoPorGenero($generoId)
-{
-    $conn = conexion();
-
-    // Se prepara la consulta
-    $query = $conn->prepare("SELECT * FROM producto WHERE genero_id = ? AND activo = 1");
-    $query->bind_param("i", $generoId); // Se usa "i" para indicar que el parámetro es un entero
-    $query->execute();
-
-    $result = $query->get_result();
-    $productos = [];
-
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $productos[] = $row; // Agrega cada producto al array
-        }
-    }
-
-    $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
-
-    return $productos; // Retorna el array de productos
-}
-
-function obtenerProductosPorPlataforma($plataformaId)
-{
-    $conn = conexion();
-
-    // Se prepara la consulta
-    $query = $conn->prepare("SELECT * FROM producto WHERE plataforma_id = ? AND activo = 1");
-    $query->bind_param("i", $plataformaId); // Se usa "i" para indicar que el parámetro es un entero
-    $query->execute();
-
-    $result = $query->get_result();
-    $productos = [];
-
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $productos[] = $row; // Agrega cada producto al array
-        }
-    }
-
-    $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
-
-    return $productos; // Retorna el array de productos
-}
-
-function obtenerGeneros()
+function getGenres()
 {
     $conn = conexion();
     $query = $conn->prepare("SELECT * FROM genero WHERE activo = 1");
@@ -441,7 +310,7 @@ function obtenerGeneros()
     return $generos; // Retorna el array de géneros
 }
 
-function obtenerPlataformas()
+function getPlatforms()
 {
     $conn = conexion();
     $query = $conn->prepare("SELECT * FROM plataforma WHERE activo = 1");
@@ -464,7 +333,7 @@ function obtenerPlataformas()
 /* ------------- CARRITO -------------  */
 
 // agregar producto al carrito
-function agregarProductoAlCarrito($userId, $productId)
+function addToCart($userId, $productId)
 {
     $conn = conexion();
 
@@ -498,37 +367,84 @@ function agregarProductoAlCarrito($userId, $productId)
 
 /* ------------- FAVORITOS -------------  */
 
-// agregar producto a favoritos
-function agregarProductoAFavoritos($userId, $productId)
+// funcion para crear la lista de favoritos
+function createFavList($usuarioId)
 {
     $conn = conexion();
-
-    // Se verifica si la lista de favoritos del usuario ya existe
-    $query = $conn->prepare("SELECT id FROM favorito WHERE creado_por = ? AND activo = 1");
-    $query->bind_param("i", $userId);
+    $query = $conn->prepare("INSERT INTO favorito (creado_por, activo) VALUES (?, 1)");
+    $query->bind_param("i", $usuarioId);
     $query->execute();
-    $result = $query->get_result();
-
-    if ($result->num_rows > 0) {
-        $favorito = $result->fetch_assoc();
-        $favoritoId = $favorito['id'];
-    } else {
-        // Si no existe, se crea una nueva lista de favorito
-        $query = $conn->prepare("INSERT INTO favorito (creado_por) VALUES (?)");
-        $query->bind_param("i", $userId);
-        $query->execute();
-        $favoritoId = $conn->insert_id; // Se obtiene el ID de la nueva lista de favorito
-    }
-
-    // Se agrega el producto a favorito
-    $query = $conn->prepare("INSERT INTO favorito_item (favorito_id, producto_id) VALUES (?, ?)");
-    $query->bind_param("ii", $favoritoId, $productId);
-    $result = $query->execute();
-
     $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
+    cerrar_conexion($conn);
+}
 
-    return $result; // Se retorna el resultado de la operación
+/**
+ * Función para obtener el ID de la lista de favoritos de un usuario.
+ * @param int $usuarioId ID del usuario
+ * @return int|null Retorna el ID de la lista de favoritos o null si no existe.
+ */
+function getActiveFavListId($usuarioId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT id FROM favorito WHERE creado_por = ? AND activo = 1 LIMIT 1");
+    $query->bind_param("i", $usuarioId);
+    $query->execute();
+    $query->bind_result($favoritoId);
+    $query->fetch();
+    $query->close();
+    cerrar_conexion($conn);
+    return $favoritoId;
+}
+
+/**
+ * Funcion que verifica si un producto ya está en la lista de favoritos del usuario
+ * @param int $favoritoId ID de la lista de favoritos
+ * @param int $productoId ID del producto
+ * @return bool Retorna true si el producto ya está en favoritos, false en caso contrario
+ */
+function productIsAlreadyFavorite($favoritoId, $productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT 1 FROM favorito_item WHERE favorito_id = ? AND producto_id = ?");
+    $query->bind_param("ii", $favoritoId, $productoId);
+    $query->execute();
+    $query->store_result();
+    $existe = $query->num_rows > 0;
+    $query->close();
+    cerrar_conexion($conn);
+
+    return $existe;
+}
+
+/**
+ * Función para agregar o eliminar un producto de la lista de favoritos del usuario.
+ * @param int $usuarioId ID del usuario
+ * @param int $productoId ID del producto
+ * @return bool Retorna true si se agregó a favoritos, false si se eliminó.
+ */
+function addOrRemoveFav($usuarioId, $productoId)
+{
+    $favoritoId = getActiveFavListId($usuarioId);
+
+    if (productIsAlreadyFavorite($favoritoId, $productoId)) {
+        // Eliminar de favoritos
+        $conn = conexion();
+        $query = $conn->prepare("DELETE FROM favorito_item WHERE favorito_id = ? AND producto_id = ?");
+        $query->bind_param("ii", $favoritoId, $productoId);
+        $query->execute();
+        $query->close();
+        cerrar_conexion($conn);
+        return false;
+    } else {
+        // Agregar a favoritos
+        $conn = conexion();
+        $query = $conn->prepare("INSERT INTO favorito_item (favorito_id, producto_id) VALUES (?, ?)");
+        $query->bind_param("ii", $favoritoId, $productoId);
+        $query->execute();
+        $query->close();
+        cerrar_conexion($conn);
+        return true;
+    }
 }
 
 /* ------------- DASHBOARD -------------  */

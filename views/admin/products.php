@@ -3,6 +3,8 @@
 require_once '../../database/querys.php';
 session_start();
 
+$productos = getAllProdutcs();
+
 ?>
 
 <!DOCTYPE html>
@@ -26,48 +28,60 @@ session_start();
         <main class="main-content">
 
             <div class="barra-superior">
-                <form action="addOrModifyProduct.php" method="POST" style="display: inline-block;">
-                    <input type="hidden" name="accion" value="agregar_producto">
-                    <button type="submit" class="custom-btn btn"><span>Agregar producto</span></button>
-                </form>
+                <button type="button" class="custom-btn btn" onclick="window.location.href='addOrModifyProduct.php'"><span>Agregar producto</span></button>
             </div>
 
-            <form action="../../verifications/paginaIntermedia.php" method="POST">
-                <input type="hidden" name="accion" value="eliminar_productos_seleccionados">
-
-                <div class="barra-superior">
-                    <button type="submit" class="custom-btn btn"><span>Eliminar seleccionados</span></button>
-                </div>
-
-                <table class="tabla-productos">
-                    <thead>
+            <table class="tabla-productos">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Imagen</th>
+                        <th>Precio</th>
+                        <th>Descuento</th>
+                        <th>Stock</th>
+                        <th>Plataforma</th>
+                        <th>Género</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($productos)): ?>
+                        <?php foreach ($productos as $producto): ?>
+                            <tr>
+                                <td><?= $producto['id'] ?></td>
+                                <td><?= htmlspecialchars($producto['nombre']) ?></td>
+                                <td><img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="Imagen" class="tabla-img"></td>
+                                <td><?= number_format($producto['precio'], 2) ?>€</td>
+                                <td><?= $producto['descuento'] ?? '0' ?>%</td>
+                                <td><?= $producto['stock'] ?></td>
+                                <td><?= htmlspecialchars($producto['plataforma']) ?></td>
+                                <td><?= htmlspecialchars($producto['genero']) ?></td>
+                                <td class="acciones">
+                                    <button onclick="window.location.href='addOrModifyProduct.php?id=<?= $producto['id'] ?>'" class="btn-icon-modificar" title="Modificar">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <form action="../../verifications/paginaIntermedia.php" method="POST">
+                                        <input type="hidden" name="accion" value="eliminar_producto">
+                                        <input type="hidden" name="id" value="<?= $producto['id'] ?>">
+                                        <button type="submit" class="btn-icon-eliminar" title="Eliminar">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Imagen</th>
-                            <th>Precio</th>
-                            <th>Descuento</th>
-                            <th>Stock</th>
-                            <th>Plataforma</th>
-                            <th>Género</th>
-                            <th>Acciones</th>
-                            <th><input type="checkbox" id="checkAll"></th>
+                            <td colspan="10">No hay productos disponibles.</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php obtenerProductosAdmin(); ?>
-                    </tbody>
-                </table>
-            </form>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </main>
     </div>
 
-    <script>
-        // Marcar o desmarcar todos los checkboxes
-        document.getElementById("checkAll").addEventListener("change", function() {
-            const checkboxes = document.querySelectorAll("input[name='productos_seleccionados[]']");
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-    </script>
-
     <?php include '../elements/footer.php' ?>
+</body>
+
+</html>

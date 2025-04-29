@@ -1,9 +1,10 @@
 <?php
 
-// Incluimos el archivo que contiene las funciones de consulta a la base de datos
 require_once '../../database/querys.php';
-
 session_start();
+
+$usuarioLogueado = isset($_SESSION['usuario']['id']);
+$productos = getCatalog();
 
 ?>
 
@@ -24,49 +25,84 @@ session_start();
 </head>
 
 <body>
-    
+
     <?php include '../elements/nav.php' ?>
-    
+
     <main class="main-content">
         <section class="container">
-    
-            <!-- Contenedor para buscar productos. Incluye una barra de busqueda, filtros segun su género y un filtro slider para el precio 
-            <div class="search-container">
-                <h2 class="search-title">Buscar Productos</h2>
-                <div class="search-bar">
-                    <input type="text" placeholder="Buscar...">
-                    <button type="submit"><i class="fas fa-search"></i></button>
-                </div>
-                <div class="filters">
-                    <h2>Filtros</h2>
-                    <div class="filter-genre">
-                        <label for="genre">Género:</label>
-                        <select id="genre" name="genre">
-                            <option value="">Todos</option>
-                            <option value="accion">Acción</option>
-                            <option value="aventura">Aventura</option>
-                            <option value="deportes">Deportes</option>
-                            <option value="estrategia">Estrategia</option>
-                        </select>
-                    </div>
-                    <div class="filter-price">
-                        <label for="price">Precio:</label>
-                        <input type="range" id="price" name="price" min="0" max="200" step="5">
-                        <span id="price-value">$0 - $200</span>
-                    </div>
-                </div>
-            </div> -->
-    
             <div class="catalog-container">
                 <h2 class="catalog-title">Juegos Populares</h2>
                 <div class="catalog-items">
-                    <?php obtenerProductosClientes(); ?>
+                    <?php if (!empty($productos)): ?>
+                        <?php foreach ($productos as $producto): ?>
+                            <?php
+                            $precioFinal = $producto['descuento'] ? $producto['precio'] - ($producto['precio'] * $producto['descuento'] / 100) : $producto['precio'];
+
+                            // Verificamos si el producto ya está en favoritos del usuario
+                            $isFav = false;
+                            if (isset($_SESSION['usuario']['id'])) {
+                                $favoritoId = getActiveFavListId($_SESSION['usuario']['id']);
+                                $isFav = productIsAlreadyFavorite($favoritoId, $producto['id']);
+                            }
+                            ?>
+                            <div class="product-card" onclick="window.location.href='product.php?id=<?= $producto['id'] ?>'">
+                                <div class="relative">
+                                    <img src="../../<?= htmlspecialchars($producto['imagen'] ?: 'placeholder.svg') ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
+                                    <?php if ($producto['descuento']): ?>
+                                        <div class="discount-tag"><?= $producto['descuento'] ?>% OFF</div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="product-info">
+                                    <div class="title-container">
+                                        <h3 class="game-title"><?= htmlspecialchars($producto['nombre']) ?></h3>
+                                        <div class="rating">
+                                            <span class="star">⭐</span>
+                                            <span><?= number_format($producto['valoracion_promedio'], 1) ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="description-container">
+                                        <p class="description"><?= htmlspecialchars($producto['descripcion']) ?></p>
+                                    </div>
+                                    <div class="foot-container">
+                                        <div class="price-container">
+                                            <?php if ($producto['descuento']): ?>
+                                                <span class="price">$<?= number_format($precioFinal, 2) ?></span>
+                                                <span class="old-price">$<?= number_format($producto['precio'], 2) ?></span>
+                                            <?php else: ?>
+                                                <span class="price">$<?= number_format($producto['precio'], 2) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="buttons-container">
+                                            <?php if ($usuarioLogueado): ?>
+                                                <form id="favorito-form-<?= $producto['id'] ?>" method="post">
+                                                    <input type="hidden" name="accion" value="agregar_favorito">
+                                                    <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
+                                                    <button type="button" class="add-to-favs" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFavs(<?= $producto['id'] ?>)">
+                                                        <i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas' : 'far' ?> fa-heart"></i>
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <button type="button" class="add-to-favs" onclick="event.stopPropagation()">
+                                                    <i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                            <button type="button" class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
+                                                Agregar al carrito
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="no-products">Lo sentimos, no hay productos disponibles.<br>Vuelva más tarde</p>
+                    <?php endif; ?>
                 </div>
             </div>
-    
         </section>
     </main>
 
     <?php include '../elements/footer.php' ?>
 
+    <script src="../../scripts/addToFav.js"></script>
     <script src="../../scripts/logout.js"></script>
