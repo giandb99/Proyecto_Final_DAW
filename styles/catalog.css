@@ -53,7 +53,7 @@ body {
 
 .catalog-items {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     justify-items: center;
 }
@@ -171,6 +171,13 @@ body {
     font-size: 0.875rem;
     color: #9ca3af;
     text-decoration: line-through;
+}
+
+.buttons-container {
+    display: flex;
+    gap: .5rem;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .add-to-cart,

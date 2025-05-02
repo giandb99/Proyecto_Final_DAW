@@ -1,4 +1,4 @@
-function addToFavs(productoId) {
+function addToFav(productoId) {
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -20,10 +20,10 @@ function addToFavs(productoId) {
             // Se quita la animación después de que termine para que pueda repetirse
             setTimeout(() => icon.classList.remove('heart-pulse'), 300);
         } else {
-            console.error("Error al agregar a favoritos:", data.error);
+            console.error("Error al agregar el producto a favoritos: ", data.error);
         }
     })
     .catch(err => {
-        console.error("Error al agregar a favoritos:", err);
+        console.error("Error al agregar el producto a favoritos: ", err);
     });
 }

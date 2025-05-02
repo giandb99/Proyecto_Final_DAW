@@ -1,12 +1,11 @@
 --- User ---
 # Implementar interfaz perfil usuario
+# Implementar logica carrito
 # Implementar interfaz carrito
 # Implementar interfaz favoritos
 
 --- Admin ---
 # Modificar interfaz dashboard
-# Implementar interfaz modificar producto ✅
-# Implementar logica modificar producto
 # Implementar interfaz ver producto
 # Implementar interfaz finanzas
 # Implementar interfaz pedidos
@@ -16,4 +15,6 @@
 
 --- App ---
 # Implementar cookies (idiomas/temas)
-# Implementar sesiones
+
+-- BBDD --
+# Eliminar columnas genero_id y plataforma_id de la tabla producto

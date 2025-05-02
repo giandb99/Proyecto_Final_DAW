@@ -1,7 +1,12 @@
 <?php
 
-require_once '../../database/querys.php';
+session_start();
+$usuarioLogueado = isset($_SESSION['usuario']['id']);
 
+if (!$usuarioLogueado) {
+    header('Location: login.php');
+    exit();
+}
 
 ?>
 

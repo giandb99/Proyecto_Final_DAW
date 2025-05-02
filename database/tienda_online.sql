@@ -46,11 +46,11 @@ create table producto(
     imagen VARCHAR(255) NOT NULL,
     descripcion TEXT NOT NULL,
     fecha_lanzamiento DATE NOT NULL,
-    genero_id INT NOT NULL,
+    genero_id INT NOT NULL, --> borrar esta columna y usar la tabla producto_genero para relacionar productos con géneros
     precio DECIMAL(10,2) NOT NULL,
     descuento INT DEFAULT NULL,
     stock INT NOT NULL,
-    plataforma_id INT NOT NULL,
+    plataforma_id INT NOT NULL, --> borrar esta columna y usar la tabla producto_plataforma para relacionar productos con plataformas
     creado_por INT NOT NULL,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     actualizado_por INT DEFAULT NULL,

@@ -4,12 +4,19 @@ require_once 'connection.php';
 
 /* ------------- USUARIOS -------------  */
 
-// Función para registrar un nuevo usuario
+/**
+ * Función para crear un nuevo usuario.
+ * @param string $name Nombre del usuario.
+ * @param string $username Nombre de usuario.
+ * @param string $email Correo electrónico del usuario.
+ * @param string $pass Contraseña del usuario.
+ * @return bool Retorna true si el usuario fue creado exitosamente, false en caso contrario.
+ */
 function createUser($name, $username, $email, $pass)
 {
     $conn = conexion();
 
-    // Si verificar usuario devuelve true, significa que el usuario ya existe
+    // Si devuelve true, significa que el usuario ya existe
     if (getUserData($email, $pass)) {
         $query = http_build_query([
             'error' => 'El correo electrónico ya está registrado.',
@@ -18,7 +25,7 @@ function createUser($name, $username, $email, $pass)
         ]);
         header("Location: ../views/user/register.php?$query");
         cerrar_conexion($conn);
-        return false; // Salir de la función si el usuario ya existe
+        return false; // Sale de la función si el usuario ya existe
     }
 
     // Se inserta el nuevo usuario en la base de datos
@@ -27,9 +34,10 @@ function createUser($name, $username, $email, $pass)
     $result = $query->execute();
 
     if ($result) {
-        $usuarioId = $conn->insert_id;
-        createFavList($usuarioId);
-        header("Location: ../views/user/login.php?exito=Usuario+registrado+con+éxito."); // Redirigir a la página de inicio de sesión
+        $usuarioId = $conn->insert_id; // Se obtiene el ID del nuevo usuario
+        createFavList($usuarioId); // Se crea la lista de favoritos del usuario
+        createCart($usuarioId); // Se crea el carrito del usuario
+        header("Location: ../views/user/login.php?exito=Usuario+registrado+con+éxito."); // Luego de registrar al usuario, se lo redirige a la página de inicio de sesión
     } else {
         $query = http_build_query([
             'error' => 'Ocurrió un error al registrar el usuario.',
@@ -43,9 +51,14 @@ function createUser($name, $username, $email, $pass)
     cerrar_conexion($conn);
 }
 
+/**
+ * Función para iniciar sesión y actualizar el último inicio de sesión del usuario.
+ * @param int $id ID del usuario.
+ * @return bool Retorna true si el usuario está activo, false en caso contrario.
+ */
 function login($usuario)
 {
-    // Actualizamos el campo ultimo_login con la fecha y hora actual
+    // Se actualiza el campo ultimo_login con la fecha y hora actual
     $conn = conexion();
     $query = $conn->prepare("UPDATE usuario SET ultimo_login = NOW() WHERE id = ?");
     $query->bind_param("i", $usuario['id']);
@@ -70,10 +83,15 @@ function login($usuario)
     ];
 }
 
+/**
+ * Función para obtener los datos del usuario por su correo electrónico y contraseña.
+ * @param string $email Correo electrónico del usuario.
+ * @param string $pass Contraseña del usuario.
+ * @return array|bool Retorna un array con los datos del usuario si existe, false en caso contrario.
+ */
 function getUserData($email, $pass)
 {
     $conn = conexion();
-
     $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND pass = ? AND rol = 'user'");
     $query->bind_param("ss", $email, $pass);
     $query->execute();
@@ -81,7 +99,6 @@ function getUserData($email, $pass)
     $datos = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
-
     return $datos ?: false;
 }
 
@@ -105,7 +122,21 @@ function getAdminData($email, $pass)
 
 /* ------------- PRODUCTOS -------------  */
 
-// Función para crear un nuevo producto
+/**
+ * Función para crear un nuevo producto.
+ * @param string $nombre Nombre del producto.
+ * @param array $imagen Imagen del producto.
+ * @param string $descripcion Descripción del producto.
+ * @param string $fecha_lanzamiento Fecha de lanzamiento del producto.
+ * @param int $genero_id ID del género del producto.
+ * @param float $precio Precio del producto.
+ * @param float $descuento Descuento del producto.
+ * @param int $stock Stock del producto.
+ * @param int $plataforma_id ID de la plataforma del producto.
+ * @param int $creado_por ID del usuario que creó el producto.
+ * @param int $actualizado_por ID del usuario que actualizó el producto.
+ * @return void Redirige a la página de productos o muestra un error.
+ */
 function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
 {
     // Ruta relativa (para guardar en la BD)
@@ -156,16 +187,28 @@ function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     cerrar_conexion($conn);
 }
 
+/**
+ * Función para modificar un producto existente.
+ * @param int $id ID del producto a modificar.
+ * @param string $nombre Nombre del producto.
+ * @param array $imagen Imagen del producto.
+ * @param string $descripcion Descripción del producto.
+ * @param string $fecha_lanzamiento Fecha de lanzamiento del producto.
+ * @param int $genero_id ID del género del producto.
+ * @param float $precio Precio del producto.
+ * @param float $descuento Descuento del producto.
+ * @param int $stock Stock del producto.
+ * @param int $plataforma_id ID de la plataforma del producto.
+ * @return void Redirige a la página de productos o muestra un error.
+ */
 function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id)
 {
     $conn = conexion();
-
     $query = $conn->prepare("
         UPDATE producto 
         SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, genero_id = ?, precio = ?, descuento = ?, stock = ?, plataforma_id = ?
         WHERE id = ?
     ");
-
     $query->bind_param("sssssidiii", $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $id);
 
     if ($query->execute()) {
@@ -179,36 +222,28 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
 }
 
 /**
- * Función para eliminar un producto por su ID.
- *
- * Elimina un registro de la tabla `productos` basado en el ID proporcionado.
- *
- * @param int $id El ID del producto a eliminar.
- * @return bool Retorna `true` si la eliminación fue exitosa, `false` en caso contrario.
+ * Función para eliminar un producto de la base de datos.
+ * @param int $id ID del producto a eliminar.
+ * @return bool Retorna true si se eliminó correctamente, false en caso contrario.
  */
 function deleteProduct($id)
 {
     $conn = conexion();
-
     $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
     $query->bind_param("i", $id);
     $resultado = $query->execute();
     $query->close();
     cerrar_conexion($conn);
-
     return $resultado; // Retorna `true` si se eliminó correctamente
 }
 
 /**
- * Esta función consulta la base de datos para obtener todos los juegos y sus detalles,
- * incluyendo la media de las valoraciones.
- * Luego, genera el HTML para mostrar cada juego en una tarjeta.
- * @return void
+ * Función para obtener todos los productos activos de la base de datos.
+ * @return array Array con los productos activos.
  */
 function getCatalog()
 {
     $conn = conexion();
-
     $query = $conn->prepare("
         SELECT p.*, COALESCE(AVG(v.valoracion), 0) AS valoracion_promedio
         FROM producto p
@@ -229,13 +264,16 @@ function getCatalog()
 
     $query->close();
     cerrar_conexion($conn);
-    return $productos; // Retorna el array de productos
+    return $productos; // Se devuelve el array de productos
 }
 
+/**
+ * Función para obtener todos los productos de la base de datos.
+ * @return array Array con todos los productos.
+ */
 function getAllProdutcs()
 {
     $conn = conexion();
-
     $query = $conn->prepare("
         SELECT 
             producto.id,
@@ -259,13 +297,13 @@ function getAllProdutcs()
 
     if ($result->num_rows > 0) {
         while ($producto = $result->fetch_assoc()) {
-            $products[] = $producto; // Agrega cada producto al array
+            $products[] = $producto; 
         }
     }
 
     $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
-    return $products; // Retorna el array de productos
+    cerrar_conexion($conn);
+    return $products;
 }
 
 /**
@@ -332,37 +370,88 @@ function getPlatforms()
 
 /* ------------- CARRITO -------------  */
 
-// agregar producto al carrito
-function addToCart($userId, $productId)
+// funcion para crear el carrito del usuario
+function createCart($usuarioId)
 {
     $conn = conexion();
-
-    // Se verifica si el carrito del usuario ya existe
-    $query = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1");
-    $query->bind_param("i", $userId);
+    $query = $conn->prepare("INSERT INTO carrito (creado_por, activo) VALUES (?, 1)");
+    $query->bind_param("i", $usuarioId);
     $query->execute();
-    $result = $query->get_result();
+    $query->close();
+    cerrar_conexion($conn);
+}
 
-    if ($result->num_rows > 0) {
-        $carrito = $result->fetch_assoc();
-        $carritoId = $carrito['id'];
-    } else {
-        // Si no existe, se crea un nuevo carrito
-        $query = $conn->prepare("INSERT INTO carrito (creado_por) VALUES (?)");
-        $query->bind_param("i", $userId);
-        $query->execute();
-        $carritoId = $conn->insert_id; // Se obtiene el ID del nuevo carrito
+function getActiveCartId($conn, $usuarioId) {
+    $stmt = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
+    $stmt->bind_param("i", $usuarioId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $stmt->close();
+
+    return ($res->num_rows > 0) ? $res->fetch_assoc()['id'] : null;
+}
+
+function getProductPrice($conn, $productoId) {
+    $stmt = $conn->prepare("SELECT precio FROM producto WHERE id = ?");
+    $stmt->bind_param("i", $productoId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $stmt->close();
+
+    return ($res->num_rows > 0) ? $res->fetch_assoc()['precio'] : null;
+}
+
+function getCartItem($conn, $carritoId, $productoId) {
+    $stmt = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_id = ?");
+    $stmt->bind_param("ii", $carritoId, $productoId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $stmt->close();
+
+    return ($res->num_rows > 0) ? $res->fetch_assoc() : null;
+}
+
+function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario) {
+    $precioTotal = $precioUnitario * $nuevaCantidad;
+    $stmt = $conn->prepare("UPDATE carrito_item SET cantidad = ?, precio_total = ? WHERE id = ?");
+    $stmt->bind_param("idi", $nuevaCantidad, $precioTotal, $itemId);
+    $stmt->execute();
+    $stmt->close();
+}
+
+function insertCartItem($conn, $carritoId, $productoId, $cantidad, $precioUnitario) {
+    $precioTotal = $precioUnitario * $cantidad;
+    $stmt = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total)
+                            VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("iiid", $carritoId, $productoId, $cantidad, $precioTotal);
+    $stmt->execute();
+    $stmt->close();
+}
+
+function addProductToCart($usuarioId, $productoId, $cantidad) {
+    $conn = conexion();
+
+    $carritoId = getActiveCartId($conn, $usuarioId);
+    if (!$carritoId) {
+        cerrar_conexion($conn);
+        return ['exito' => false, 'mensaje' => 'No se encontró un carrito activo.'];
     }
 
-    // Se agrega el producto al carrito
-    $query = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total) VALUES (?, ?, 1, (SELECT precio FROM producto WHERE id = ?))");
-    $query->bind_param("iii", $carritoId, $productId, $productId);
-    $result = $query->execute();
+    $precio = getProductPrice($conn, $productoId);
+    if ($precio === null) {
+        cerrar_conexion($conn);
+        return ['exito' => false, 'mensaje' => 'Producto no encontrado.'];
+    }
 
-    $query->close();
-    cerrar_conexion($conn); // Cierra la conexión
+    $item = getCartItem($conn, $carritoId, $productoId);
+    if ($item) {
+        updateCartItem($conn, $item['id'], $item['cantidad'] + $cantidad, $precio);
+    } else {
+        insertCartItem($conn, $carritoId, $productoId, $cantidad, $precio);
+    }
 
-    return $result; // Se retorna el resultado de la operación
+    cerrar_conexion($conn);
+    return ['exito' => true, 'mensaje' => 'Producto agregado al carrito.'];
 }
 
 /* ------------- FAVORITOS -------------  */

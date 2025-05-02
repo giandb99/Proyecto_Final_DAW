@@ -77,18 +77,26 @@ $productos = getCatalog();
                                                 <form id="favorito-form-<?= $producto['id'] ?>" method="post">
                                                     <input type="hidden" name="accion" value="agregar_favorito">
                                                     <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                                    <button type="button" class="add-to-favs" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFavs(<?= $producto['id'] ?>)">
+                                                    <button type="button" class="add-to-favs" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
                                                         <i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas' : 'far' ?> fa-heart"></i>
                                                     </button>
                                                 </form>
+                                                <form id="carrito-form-<?= $producto['id'] ?>" method="post">
+                                                    <input type="hidden" name="accion" value="agregar_carrito">
+                                                    <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
+                                                    <input type="hidden" name="cantidad" value="1">
+                                                    <button type="button" class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
+                                                        Agregar al carrito
+                                                    </button>
+                                                </form>
                                             <?php else: ?>
-                                                <button type="button" class="add-to-favs" onclick="event.stopPropagation(); window.location.href='catalog.php?debes_iniciar_sesion=error'">
+                                                <button type="button" class="add-to-favs" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
                                                     <i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i>
                                                 </button>
+                                                <button type="button" class="add-to-cart" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_carrito=error'">
+                                                    Agregar al carrito
+                                                </button>
                                             <?php endif; ?>
-                                            <button type="button" class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
-                                                Agregar al carrito
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -105,4 +113,5 @@ $productos = getCatalog();
     <?php include '../elements/footer.php' ?>
 
     <script src="../../scripts/addToFav.js"></script>
+    <script src="../../scripts/addToCart.js"></script>
     <script src="../../scripts/popup.js"></script>

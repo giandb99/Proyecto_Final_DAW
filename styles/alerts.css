@@ -1,18 +1,24 @@
-.error-msg-container {
-    background-color: #ffe5e5;
-    border: 1px solid #ff4c4c;
-    color: #a30000;
+.error-msg-container,
+.success-msg-container {
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 1rem;
 }
 
-.error-msg {
-    margin: 0.2rem 0;
-    font-size: 0.95rem;
+.error-msg-container {
+    background-color: #ffe5e5;
+    border: 1px solid #ff4c4c;
+    color: #a30000;
 }
 
+.success-msg-container {
+    background-color: #e6ffed;
+    border: 1px solid #28a745;
+    color: #1e7e34;
+}
+
+.error-msg,
 .success-msg {
-    color: #00f500;
-    margin-bottom: 10px;
+    margin: 0.2rem 0;
+    font-size: 0.95rem;
 }

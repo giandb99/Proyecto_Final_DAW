@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         case 'agregar_favorito':
             header('Content-Type: application/json');
-            
+
             if (!isset($_SESSION['usuario']['id'])) {
                 echo json_encode(['success' => false, 'error' => 'unauthorized']);
                 exit;
@@ -260,14 +260,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['success' => true, 'favorito' => $esFavorito]);
             break;
 
-        // case 'guardar_preferencias':
+        case 'agregar_carrito':
+            header('Content-Type: application/json');
 
-        //     // Obtener las preferencias del usuario
-        //     $idioma = $_POST['idioma'] ?? null;
-        //     $moneda = $_POST['moneda'] ?? null;
-        //     $tema = $_POST['tema'] ?? null;
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['success' => false, 'error' => 'unauthorized']);
+                exit;
+            }
 
-        //     exit;
+            $usuarioId = $_SESSION['usuario']['id'];
+            $productoId = $_POST['producto_id'] ?? null;
+
+            if (!$productoId) {
+                echo json_encode(['success' => false, 'error' => 'missing_product_id']);
+                exit;
+            }
+
+            $resultado = addProductToCart($usuarioId, $productoId, 1);
+            echo json_encode(['success' => true]);
+            break;
+
+            // case 'guardar_preferencias':
+
+            //     // Obtener las preferencias del usuario
+            //     $idioma = $_POST['idioma'] ?? null;
+            //     $moneda = $_POST['moneda'] ?? null;
+            //     $tema = $_POST['tema'] ?? null;
+
+            //     exit;
 
         default:
             // Si no se reconoce la acción, redirigir a una página de error
