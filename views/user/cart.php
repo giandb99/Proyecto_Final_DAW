@@ -3,11 +3,6 @@
 session_start();
 $usuarioLogueado = isset($_SESSION['usuario']['id']);
 
-if (!$usuarioLogueado) {
-    header('Location: login.php');
-    exit();
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -30,6 +25,16 @@ if (!$usuarioLogueado) {
     <?php include '../elements/nav.php' ?>
 
     <main class="main-content">
+
+        <?php if (!$usuarioLogueado): ?>
+            <div class="login-message">
+                <div>
+                    <h1>Debes iniciar sesión para acceder a esta página</h1>
+                    <p><a href="login.php">Haz clic aquí para iniciar sesión</a></p>
+                </div>
+            </div>
+        <?php else: ?>
+        <?php endif; ?>
 
     </main>
 

@@ -13,7 +13,7 @@ function validateData($tipo, $valor, $campoNombre = '') {
     switch ($tipo) {
         case 'string':
             if (empty($valor)) {
-                return "El {$campoNombre} no puede estar vacío.";
+                return "El campo '{$campoNombre}' no puede estar vacío.";
             }
             return true;
 
@@ -25,7 +25,7 @@ function validateData($tipo, $valor, $campoNombre = '') {
 
         case 'numero':
             if (!is_numeric($valor) || $valor < 0) {
-                return "El {$campoNombre} debe ser un número válido y mayor a cero.";
+                return "El campo '{$campoNombre}' debe ser un número válido y mayor a cero.";
             }
             return true;
 

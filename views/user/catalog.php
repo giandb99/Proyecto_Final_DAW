@@ -19,6 +19,7 @@ $productos = getCatalog();
     <link rel="stylesheet" href="../../styles/nav.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="../../styles/popup.css">
+    <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>FreeDays_Games - Compra online de videojuegos y mucho más</title>
@@ -77,24 +78,24 @@ $productos = getCatalog();
                                                 <form id="favorito-form-<?= $producto['id'] ?>" method="post">
                                                     <input type="hidden" name="accion" value="agregar_favorito">
                                                     <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                                    <button type="button" class="add-to-favs" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
-                                                        <i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas' : 'far' ?> fa-heart"></i>
+                                                    <button type="button" class="custom-btn btn-user" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
+                                                        <span><i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas' : 'far' ?> fa-heart"></i></span>
                                                     </button>
                                                 </form>
                                                 <form id="carrito-form-<?= $producto['id'] ?>" method="post">
                                                     <input type="hidden" name="accion" value="agregar_carrito">
                                                     <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
                                                     <input type="hidden" name="cantidad" value="1">
-                                                    <button type="button" class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
-                                                        Agregar al carrito
+                                                    <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
+                                                        <span>Agregar al carrito</span>
                                                     </button>
                                                 </form>
                                             <?php else: ?>
-                                                <button type="button" class="add-to-favs" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
-                                                    <i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i>
+                                                <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
+                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i></span>
                                                 </button>
-                                                <button type="button" class="add-to-cart" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_carrito=error'">
-                                                    Agregar al carrito
+                                                <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_carrito=error'">
+                                                    <span>Agregar al carrito</span>
                                                 </button>
                                             <?php endif; ?>
                                         </div>

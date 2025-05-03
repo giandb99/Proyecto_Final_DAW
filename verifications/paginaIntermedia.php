@@ -143,7 +143,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if (!empty($errores)) {
-                header("Location: ../views/admin/newProduct.php?errores=" . urlencode(implode(", ", $errores)));
+                $_SESSION['form_data'] = $_POST; // Guarda los datos enviados
+                $_SESSION['errores'] = $errores; // Guarda los errores
+                header("Location: ../views/admin/addOrModifyProduct.php");
                 exit;
             }
 
@@ -280,14 +282,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['success' => true]);
             break;
 
-            // case 'guardar_preferencias':
+        // case 'guardar_preferencias':
 
-            //     // Obtener las preferencias del usuario
-            //     $idioma = $_POST['idioma'] ?? null;
-            //     $moneda = $_POST['moneda'] ?? null;
-            //     $tema = $_POST['tema'] ?? null;
+        //     // Obtener las preferencias del usuario
+        //     $idioma = $_POST['idioma'] ?? null;
+        //     $moneda = $_POST['moneda'] ?? null;
+        //     $tema = $_POST['tema'] ?? null;
 
-            //     exit;
+        //     exit;
 
         default:
             // Si no se reconoce la acción, redirigir a una página de error

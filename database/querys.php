@@ -16,28 +16,29 @@ function createUser($name, $username, $email, $pass)
 {
     $conn = conexion();
 
-    // Si devuelve true, significa que el usuario ya existe
-    if (getUserData($email, $pass)) {
+    // Verificar si el nombre de usuario o el correo electrónico ya existen
+    $errores = verifyUser($conn, $username, $email);
+    if (!empty($errores)) {
         $query = http_build_query([
-            'error' => 'El correo electrónico ya está registrado.',
+            'errores' => implode(', ', $errores),
             'username' => $username,
             'email' => $email
         ]);
         header("Location: ../views/user/register.php?$query");
         cerrar_conexion($conn);
-        return false; // Sale de la función si el usuario ya existe
+        return false;
     }
 
-    // Se inserta el nuevo usuario en la base de datos
+    // Insertar nuevo usuario
     $query = $conn->prepare("INSERT INTO usuario (nombre, username, email, pass) VALUES (?, ?, ?, ?)");
     $query->bind_param("ssss", $name, $username, $email, $pass);
     $result = $query->execute();
 
     if ($result) {
-        $usuarioId = $conn->insert_id; // Se obtiene el ID del nuevo usuario
-        createFavList($usuarioId); // Se crea la lista de favoritos del usuario
-        createCart($usuarioId); // Se crea el carrito del usuario
-        header("Location: ../views/user/login.php?exito=Usuario+registrado+con+éxito."); // Luego de registrar al usuario, se lo redirige a la página de inicio de sesión
+        $usuarioId = $conn->insert_id;
+        createFavList($usuarioId);
+        createCart($usuarioId);
+        header("Location: ../views/user/login.php?exito=Usuario+registrado+con+éxito.");
     } else {
         $query = http_build_query([
             'error' => 'Ocurrió un error al registrar el usuario.',
@@ -49,6 +50,28 @@ function createUser($name, $username, $email, $pass)
 
     $query->close();
     cerrar_conexion($conn);
+}
+
+function verifyUser($conn, $username, $email)
+{
+    // Verificar si el username o el email ya existen
+    $query = $conn->prepare("SELECT username, email FROM usuario WHERE username = ? OR email = ?");
+    $query->bind_param("ss", $username, $email);
+    $query->execute();
+    $result = $query->get_result();
+
+    $errores = [];
+    while ($usuario = $result->fetch_assoc()) {
+        if ($usuario['username'] === $username) {
+            $errores[] = 'El nombre de usuario ya está registrado.';
+        }
+        if ($usuario['email'] === $email) {
+            $errores[] = 'El correo electrónico ya está registrado.';
+        }
+    }
+
+    $query->close();
+    return $errores;
 }
 
 /**
@@ -297,7 +320,7 @@ function getAllProdutcs()
 
     if ($result->num_rows > 0) {
         while ($producto = $result->fetch_assoc()) {
-            $products[] = $producto; 
+            $products[] = $producto;
         }
     }
 
@@ -381,7 +404,8 @@ function createCart($usuarioId)
     cerrar_conexion($conn);
 }
 
-function getActiveCartId($conn, $usuarioId) {
+function getActiveCartId($conn, $usuarioId)
+{
     $stmt = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
     $stmt->bind_param("i", $usuarioId);
     $stmt->execute();
@@ -391,17 +415,30 @@ function getActiveCartId($conn, $usuarioId) {
     return ($res->num_rows > 0) ? $res->fetch_assoc()['id'] : null;
 }
 
-function getProductPrice($conn, $productoId) {
-    $stmt = $conn->prepare("SELECT precio FROM producto WHERE id = ?");
+function getDiscountedPrice($conn, $productoId)
+{
+    $stmt = $conn->prepare("SELECT precio, descuento FROM producto WHERE id = ?");
     $stmt->bind_param("i", $productoId);
     $stmt->execute();
     $res = $stmt->get_result();
     $stmt->close();
 
-    return ($res->num_rows > 0) ? $res->fetch_assoc()['precio'] : null;
+    if ($res->num_rows > 0) {
+        $producto = $res->fetch_assoc();
+        $precio = $producto['precio'];
+        $descuento = $producto['descuento'];
+        if ($descuento && $descuento > 0) {
+            return $precio - ($precio * $descuento / 100);
+        } else {
+            return $precio;
+        }
+    }
+
+    return null;
 }
 
-function getCartItem($conn, $carritoId, $productoId) {
+function getCartItem($conn, $carritoId, $productoId)
+{
     $stmt = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_id = ?");
     $stmt->bind_param("ii", $carritoId, $productoId);
     $stmt->execute();
@@ -411,7 +448,8 @@ function getCartItem($conn, $carritoId, $productoId) {
     return ($res->num_rows > 0) ? $res->fetch_assoc() : null;
 }
 
-function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario) {
+function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario)
+{
     $precioTotal = $precioUnitario * $nuevaCantidad;
     $stmt = $conn->prepare("UPDATE carrito_item SET cantidad = ?, precio_total = ? WHERE id = ?");
     $stmt->bind_param("idi", $nuevaCantidad, $precioTotal, $itemId);
@@ -419,16 +457,17 @@ function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario) {
     $stmt->close();
 }
 
-function insertCartItem($conn, $carritoId, $productoId, $cantidad, $precioUnitario) {
+function insertCartItem($conn, $carritoId, $productoId, $cantidad, $precioUnitario)
+{
     $precioTotal = $precioUnitario * $cantidad;
-    $stmt = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total)
-                            VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("iiid", $carritoId, $productoId, $cantidad, $precioTotal);
     $stmt->execute();
     $stmt->close();
 }
 
-function addProductToCart($usuarioId, $productoId, $cantidad) {
+function addProductToCart($usuarioId, $productoId, $cantidad)
+{
     $conn = conexion();
 
     $carritoId = getActiveCartId($conn, $usuarioId);
@@ -437,7 +476,8 @@ function addProductToCart($usuarioId, $productoId, $cantidad) {
         return ['exito' => false, 'mensaje' => 'No se encontró un carrito activo.'];
     }
 
-    $precio = getProductPrice($conn, $productoId);
+    $precio = getDiscountedPrice($conn, $productoId);
+
     if ($precio === null) {
         cerrar_conexion($conn);
         return ['exito' => false, 'mensaje' => 'Producto no encontrado.'];
@@ -534,6 +574,35 @@ function addOrRemoveFav($usuarioId, $productoId)
         cerrar_conexion($conn);
         return true;
     }
+}
+
+function getFavoriteProducts($usuarioId)
+{
+    $conn = conexion();
+
+    $query = $conn->prepare("
+        SELECT p.id, p.nombre, p.precio, p.imagen, g.nombre AS genero, pl.nombre AS plataforma
+        FROM favorito_item fi
+        JOIN favorito f ON fi.favorito_id = f.id
+        JOIN producto p ON fi.producto_id = p.id
+        JOIN genero g ON p.genero_id = g.id
+        JOIN plataforma pl ON p.plataforma_id = pl.id
+        WHERE f.creado_por = ? AND f.activo = 1
+    ");
+    $query->bind_param("i", $usuarioId);
+    $query->execute();
+
+    $result = $query->get_result();
+    $productos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $productos[] = $row;
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+
+    return $productos;
 }
 
 /* ------------- DASHBOARD -------------  */

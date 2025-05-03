@@ -3,6 +3,11 @@
 require_once '../../database/querys.php';
 session_start();
 
+$formData = $_SESSION['form_data'] ?? [];
+$errores = $_SESSION['errores'] ?? [];
+
+unset($_SESSION['form_data'], $_SESSION['errores']);
+
 $id = $_GET['id'] ?? null;
 $producto = null;
 $modoEdicion = false;
@@ -21,7 +26,6 @@ $generos = getGenres();
 $plataformas = getPlatforms();
 
 $exito = $_GET['exito'] ?? null;
-$errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) : [];
 
 ?>
 
@@ -39,7 +43,7 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
     <link rel="stylesheet" href="../../styles/footer.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <title>Document</title>
+    <title><?= $modoEdicion ? 'Modificar Producto' : 'Agregar Producto' ?></title>
 </head>
 
 <body>
@@ -57,23 +61,29 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
                     <?php endif; ?>
 
                     <input type="text" id="name" name="name" placeholder="Nombre del producto"
-                        value="<?= $modoEdicion ? htmlspecialchars($producto['nombre']) : '' ?>">
-                    <textarea id="description" name="description" placeholder="Descripción"><?= $modoEdicion ? htmlspecialchars($producto['descripcion']) : '' ?></textarea>
+                        value="<?= htmlspecialchars($formData['name'] ?? ($modoEdicion ? $producto['nombre'] : '')) ?>">
+
+                    <textarea id="description" name="description" placeholder="Descripción"><?= htmlspecialchars($formData['description'] ?? ($modoEdicion ? $producto['descripcion'] : '')) ?></textarea>
+
                     <input type="date" id="release_date" name="release_date" placeholder="Fecha de lanzamiento"
-                        value="<?= $modoEdicion ? $producto['fecha_lanzamiento'] : '' ?>">
+                        value="<?= htmlspecialchars($formData['release_date'] ?? ($modoEdicion ? $producto['fecha_lanzamiento'] : '')) ?>">
+
                     <input type="number" id="price" name="price" placeholder="Precio" step="0.01" min="0"
-                        value="<?= $modoEdicion ? $producto['precio'] : '' ?>">
-                    <input type="number" id="discount" name="discount" step="5" min="0" max="100" placeholder="Descuento"
-                        value="<?= $modoEdicion ? $producto['descuento'] : '' ?>">
+                        value="<?= htmlspecialchars($formData['price'] ?? ($modoEdicion ? $producto['precio'] : '')) ?>">
+
+                    <input type="number" id="discount" name="discount" step="1" min="0" max="100" placeholder="Descuento"
+                        value="<?= htmlspecialchars($formData['discount'] ?? ($modoEdicion ? $producto['descuento'] : '')) ?>">
+
                     <input type="number" id="stock" name="stock" placeholder="Stock"
-                        value="<?= $modoEdicion ? $producto['stock'] : '' ?>">
+                        value="<?= htmlspecialchars($formData['stock'] ?? ($modoEdicion ? $producto['stock'] : '')) ?>">
 
                     <label for="plataforma">Plataforma:</label>
                     <select id="plataform" name="plataform">
                         <option value="">Seleccione una plataforma</option>
                         <?php foreach ($plataformas as $plataforma): ?>
                             <option value="<?= $plataforma['id'] ?>"
-                                <?= $modoEdicion && $plataforma['id'] == $producto['plataforma_id'] ? 'selected' : '' ?>>
+                                <?= (isset($formData['plataform']) && $formData['plataform'] == $plataforma['id']) ||
+                                    ($modoEdicion && $plataforma['id'] == $producto['plataforma_id']) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($plataforma['nombre']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -84,7 +94,8 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
                         <option value="">Seleccione un género</option>
                         <?php foreach ($generos as $genero): ?>
                             <option value="<?= $genero['id'] ?>"
-                                <?= $modoEdicion && $genero['id'] == $producto['genero_id'] ? 'selected' : '' ?>>
+                                <?= (isset($formData['gender']) && $formData['gender'] == $genero['id']) ||
+                                    ($modoEdicion && $genero['id'] == $producto['genero_id']) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($genero['nombre']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -92,7 +103,9 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
 
                     <label for="imagen">Imagen del producto:</label>
                     <input type="file" id="image" name="image" accept="image/*">
-                    <p style="font-size: 0.9em; border-radius: 6px; width: 70%; padding: .2rem .5rem; background-color:rgb(255, 234, 188); color: black;">Si seleccionas una nueva imagen, reemplazaras la actual.</p>
+                    <?php if ($modoEdicion): ?>
+                        <p class="image-advice">Si seleccionas una nueva imagen, reemplazarás la actual.</p>
+                    <?php endif; ?>
 
                     <?php if (!empty($errores)): ?>
                         <div class="error-msg-container">
@@ -115,3 +128,7 @@ $errores = isset($_GET['errores']) ? explode(', ', urldecode($_GET['errores'])) 
     </div>
 
     <?php include '../elements/footer.php' ?>
+
+</body>
+
+</html>

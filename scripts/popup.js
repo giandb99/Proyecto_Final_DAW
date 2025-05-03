@@ -68,3 +68,23 @@ window.onload = function () {
         }, 5000);
     }
 };
+
+function showPopup(message) {
+    const popup = document.createElement('div');
+    popup.className = 'popup popup-dynamic'; // clase extra opcional para diferenciar
+
+    popup.innerHTML = `
+        <p>${message}</p>
+        <button id="close-popup">Cerrar</button>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Cierre manual
+    document.getElementById('close-popup').onclick = function () {
+        popup.remove();
+    };
+
+    // Cierre automático
+    setTimeout(() => popup.remove(), 5000);
+}

@@ -19,7 +19,6 @@
     line-height: 42px;
     padding: 0;
     border: none;
-    border-radius: 6px;
 }
 
 .btn span {
@@ -98,4 +97,82 @@
     border: none;
     font-size: 1.2rem;
     color: #00ffff;
+}
+
+.btn-user {
+    background-color: #f0ecfc;
+    background-image: linear-gradient(to right, #7c3aed, #9333ea);
+    line-height: 42px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+}
+
+.btn-user span {
+    position: relative;
+    display: block;
+    transition: color .3s ease;
+    padding: 0 1rem;
+}
+
+.btn-user::before,
+.btn-user::after,
+.btn-user span::before,
+.btn-user span::after {
+    position: absolute;
+    content: "";
+    background: #fff5f5;
+    transition: all .3s ease;
+}
+
+.btn-user::before {
+    height: 0%;
+    width: 2px;
+    right: 0;
+    bottom: 0;
+}
+
+.btn-user::after {
+    width: 0%;
+    height: 2px;
+    right: 0;
+    bottom: 0;
+}
+
+.btn-user span::before {
+    height: 0%;
+    width: 2px;
+    left: 0;
+    top: 0;
+}
+
+.btn-user span::after {
+    width: 0%;
+    height: 2px;
+    left: 0;
+    top: 0;
+}
+
+.btn-user:hover::before {
+    height: 100%;
+}
+
+.btn-user:hover::after {
+    width: 100%;
+}
+
+.btn-user:hover span::before {
+    height: 100%;
+}
+
+.btn-user:hover span::after {
+    width: 100%;
+}
+
+.btn-user:hover {
+    background: linear-gradient(to left, #7c3aed, #9333ea);
+}
+
+.btn-user:hover span {
+    color: #fff5f5;
 }

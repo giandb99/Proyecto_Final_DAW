@@ -3,11 +3,15 @@
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 1rem;
+    animation: fadeIn 0.5s ease-in-out;
 }
 
 .error-msg-container {
-    background-color: #ffe5e5;
-    border: 1px solid #ff4c4c;
+    background-color: #fff0f0;
+    border-left: 4px solid #ff4c4c;
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(255, 76, 76, 0.1);
     color: #a30000;
 }
 
@@ -21,4 +25,15 @@
 .success-msg {
     margin: 0.2rem 0;
     font-size: 0.95rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
