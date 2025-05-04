@@ -30,10 +30,11 @@ function addToFav(productoId) {
                         if (remaining === 0) {
                             // Y si no queda ninguno, mostramos el mensaje y el botón que redirige al catálogo
                             counter.parentElement.innerHTML = `
-                                <h3>No tienes ningún juego en tu lista de favoritos.</h3>
-                                <div>
+                                <div class="empty-fav">
+                                    <h2>Tu lista de favoritos está vacía</h2>
+                                    <p>¡No te preocupes! Descubre los mejores videojuegos en nuestro catálogo.</p>
                                     <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
-                                        <span>Explorá nuestros productos <i class="fas fa-gamepad"></i></span>
+                                        <span>Explora nuestro catálogo <i class="fas fa-gamepad"></i></span>
                                     </button>
                                 </div>
                             `;

@@ -62,7 +62,7 @@ create table producto(
     FOREIGN KEY (actualizado_por) REFERENCES usuario(id)
 );
 
-create table stock_producto (
+create table producto_stock (
     id INT AUTO_INCREMENT PRIMARY KEY,
     producto_id INT,
     stock_reservado INT,

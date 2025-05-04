@@ -33,57 +33,64 @@ $totalFavoritos = count($productosFavoritos);
     <main class="main-content">
 
         <?php if (!$usuarioLogueado): ?>
-            <div class="login-message">
-                <div>
-                    <h1>Debes iniciar sesión para acceder a esta página</h1>
+            <section class="favorites-container">
+                <div class="login-message">
+                    <h1 class="section-title">Inicia sesión para ver tus favoritos</h1>
+                    <p class="section-subtitle">Accede a tu cuenta para ver y gestionar tus juegos guardados.</p>
                     <button type="button" class="custom-btn btn-user" onclick="window.location.href='login.php'">
                         <span>Iniciar sesión</span>
                     </button>
                 </div>
-            </div>
+            </section>
         <?php else: ?>
-            <div class="welcome-message">
-                <h1>Bienvenido <?= htmlspecialchars($_SESSION['usuario']['nombre']) ?></h1>
-                <p>Explora tus juegos favoritos y añade más a tu colección.</p>
-            </div>
-            <div class="favorites-container">
-                <h2 class="favorites-title">Tus Favoritos</h2>
-                <?php if ($totalFavoritos === 0): ?>
-                    <h3>No tienes ningún juego en tu lista de favoritos.</h3>
-                    <div>
-                        <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
-                            <span>Explorá nuestros productos <i class="fas fa-gamepad"></i></span>
-                        </button>
+
+            <section class="favorites-container">
+                <?php if ($totalFavoritos > 0): ?>
+                    <div class="fav-header">
+                        <h1>Tu lista de favoritos</h1>
+                        <p class="fav-subtitle">Revisa los productos que has guardado como favoritos.</p>
+                        <h3 id="favorites-count">
+                            Tienes <?= $totalFavoritos ?> juego<?= $totalFavoritos === 1 ? '' : 's' ?> en tu lista de favoritos.
+                        </h3>
                     </div>
-                <?php else: ?>
-                    <h3 id="favorites-count">
-                        Tienes <?= $totalFavoritos ?> juego<?= $totalFavoritos === 1 ? '' : 's' ?> en tu lista de favoritos.
-                    </h3>
                 <?php endif; ?>
-                <div class="favorites-grid">
-                    <?php foreach ($productosFavoritos as $producto): ?>
-                        <div class="favorite-card" onclick="window.location.href='product.php?id=<?= $producto['id'] ?>'">
-                            <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
-                            <div class="card-info">
-                                <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
-                                <p><?= htmlspecialchars($producto['plataforma']) ?> - <?= htmlspecialchars($producto['genero']) ?></p>
-                                <div class="card-actions">
-                                    <span class="price">$<?= number_format($producto['precio'], 2) ?></span>
-                                    <div class="buttons">
-                                        <form id="favorito-form-<?= $producto['id'] ?>" method="post">
-                                            <input type="hidden" name="accion" value="agregar_favorito">
-                                            <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                            <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
-                                                <span><i id="fav-icon-<?= $producto['id'] ?>" class="fas fa-heart-broken"></i></span>
-                                            </button>
-                                        </form>
+
+                <div class="fav-content">
+                    <?php if ($totalFavoritos === 0): ?>
+                        <div class="empty-fav">
+                            <h2>Tu lista de favoritos está vacía</h2>
+                            <p>¡No te preocupes! Descubre los mejores videojuegos en nuestro catálogo.</p>
+                            <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
+                                <span>Explora nuestro catálogo <i class="fas fa-gamepad"></i></span>
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div class="favorites-grid">
+                            <?php foreach ($productosFavoritos as $producto): ?>
+                                <div class="favorite-card" onclick="window.location.href='product.php?id=<?= $producto['id'] ?>'">
+                                    <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
+                                    <div class="card-info">
+                                        <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
+                                        <p><?= htmlspecialchars($producto['plataforma']) ?> - <?= htmlspecialchars($producto['genero']) ?></p>
+                                        <div class="card-actions">
+                                            <span class="price">$<?= number_format($producto['precio'], 2) ?></span>
+                                            <div class="buttons">
+                                                <form id="favorito-form-<?= $producto['id'] ?>" method="post">
+                                                    <input type="hidden" name="accion" value="agregar_favorito">
+                                                    <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
+                                                    <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
+                                                        <span><i id="fav-icon-<?= $producto['id'] ?>" class="fas fa-heart-broken"></i></span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
-            </div>
+            </section>
         <?php endif; ?>
 
     </main>

@@ -1,8 +1,7 @@
 --- User ---
 # Implementar interfaz perfil usuario
 # Implementar logica carrito
-# Implementar interfaz carrito
-# Implementar interfaz favoritos
+# Implementar eliminacion productos del carrito y actualizacion en tiempo real
 
 --- Admin ---
 # Modificar interfaz dashboard
@@ -10,7 +9,6 @@
 # Implementar interfaz finanzas
 # Implementar interfaz pedidos
 # Implementar interfaz usuarios
-# Implementar interfaz
 # Implementar logica eliminar/desactivar producto
 
 --- App ---

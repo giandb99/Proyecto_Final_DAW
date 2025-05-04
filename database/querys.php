@@ -52,6 +52,13 @@ function createUser($name, $username, $email, $pass)
     cerrar_conexion($conn);
 }
 
+/**
+ * Función para verificar si el nombre de usuario o el correo electrónico ya existen en la base de datos.
+ * @param mysqli $conn Conexión a la base de datos.
+ * @param string $username Nombre de usuario.
+ * @param string $email Correo electrónico.
+ * @return array Array con los errores encontrados.
+ */
 function verifyUser($conn, $username, $email)
 {
     // Verificar si el username o el email ya existen
@@ -131,7 +138,6 @@ function getUserData($email, $pass)
 function getAdminData($email, $pass)
 {
     $conn = conexion();
-
     $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND pass = ? AND rol = 'admin'");
     $query->bind_param("ss", $email, $pass);
     $query->execute();
@@ -139,7 +145,6 @@ function getAdminData($email, $pass)
     $datos = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
-
     return $datos ?: false;
 }
 
@@ -337,17 +342,13 @@ function getAllProdutcs()
 function getProductById($id)
 {
     $conn = conexion();
-
     $query = $conn->prepare("SELECT * FROM producto WHERE id = ?");
     $query->bind_param("i", $id);
     $query->execute();
     $result = $query->get_result();
-
     $producto = $result->fetch_assoc();
-
     $query->close();
     cerrar_conexion($conn);
-
     return $producto;
 }
 
@@ -406,25 +407,25 @@ function createCart($usuarioId)
 
 function getActiveCartId($conn, $usuarioId)
 {
-    $stmt = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
-    $stmt->bind_param("i", $usuarioId);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $stmt->close();
+    $query = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
+    $query->bind_param("i", $usuarioId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
 
-    return ($res->num_rows > 0) ? $res->fetch_assoc()['id'] : null;
+    return ($result->num_rows > 0) ? $result->fetch_assoc()['id'] : null;
 }
 
 function getDiscountedPrice($conn, $productoId)
 {
-    $stmt = $conn->prepare("SELECT precio, descuento FROM producto WHERE id = ?");
-    $stmt->bind_param("i", $productoId);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $stmt->close();
+    $query = $conn->prepare("SELECT precio, descuento FROM producto WHERE id = ?");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
 
-    if ($res->num_rows > 0) {
-        $producto = $res->fetch_assoc();
+    if ($result->num_rows > 0) {
+        $producto = $result->fetch_assoc();
         $precio = $producto['precio'];
         $descuento = $producto['descuento'];
         if ($descuento && $descuento > 0) {
@@ -439,31 +440,103 @@ function getDiscountedPrice($conn, $productoId)
 
 function getCartItem($conn, $carritoId, $productoId)
 {
-    $stmt = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_id = ?");
-    $stmt->bind_param("ii", $carritoId, $productoId);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $stmt->close();
-
-    return ($res->num_rows > 0) ? $res->fetch_assoc() : null;
+    $query = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_id = ?");
+    $query->bind_param("ii", $carritoId, $productoId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
+    return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
 }
 
 function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario)
 {
     $precioTotal = $precioUnitario * $nuevaCantidad;
-    $stmt = $conn->prepare("UPDATE carrito_item SET cantidad = ?, precio_total = ? WHERE id = ?");
-    $stmt->bind_param("idi", $nuevaCantidad, $precioTotal, $itemId);
-    $stmt->execute();
-    $stmt->close();
+    $query = $conn->prepare("UPDATE carrito_item SET cantidad = ?, precio_total = ? WHERE id = ?");
+    $query->bind_param("idi", $nuevaCantidad, $precioTotal, $itemId);
+    $query->execute();
+    $query->close();
 }
 
 function insertCartItem($conn, $carritoId, $productoId, $cantidad, $precioUnitario)
 {
     $precioTotal = $precioUnitario * $cantidad;
-    $stmt = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("iiid", $carritoId, $productoId, $cantidad, $precioTotal);
-    $stmt->execute();
-    $stmt->close();
+    $query = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total) VALUES (?, ?, ?, ?)");
+    $query->bind_param("iiid", $carritoId, $productoId, $cantidad, $precioTotal);
+    $query->execute();
+    $query->close();
+}
+
+function getCartItems($carritoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT ci.id, p.id AS producto_id, p.nombre, p.imagen, ci.cantidad, ci.precio_total
+        FROM carrito_item ci
+        JOIN producto p ON ci.producto_id = p.id
+        WHERE ci.carrito_id = ?
+    ");
+    $query->bind_param("i", $carritoId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
+
+    $items = [];
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
+
+    cerrar_conexion($conn);
+    return $items;
+}
+
+function getAvailableStock($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT p.stock - IFNULL(ps.stock_reservado, 0) AS stock_disponible
+        FROM producto p
+        LEFT JOIN producto_stock ps ON p.id = ps.producto_id
+        WHERE p.id = ?
+    ");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
+    cerrar_conexion($conn);
+
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc()['stock_disponible'];
+    }
+
+    return null;
+}
+
+function reserveProductStock($productoId, $cantidad)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        INSERT INTO producto_stock (producto_id, stock_reservado, stock_disponible)
+        VALUES (?, ?, 0)
+        ON DUPLICATE KEY UPDATE stock_reservado = stock_reservado + VALUES(stock_reservado)
+    ");
+    $query->bind_param("ii", $productoId, $cantidad);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+function releaseProductStock($productoId, $cantidad)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        UPDATE producto_stock
+        SET stock_reservado = GREATEST(stock_reservado - ?, 0)
+        WHERE producto_id = ?
+    ");
+    $query->bind_param("ii", $cantidad, $productoId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
 }
 
 function addProductToCart($usuarioId, $productoId, $cantidad)
@@ -477,21 +550,68 @@ function addProductToCart($usuarioId, $productoId, $cantidad)
     }
 
     $precio = getDiscountedPrice($conn, $productoId);
-
     if ($precio === null) {
         cerrar_conexion($conn);
         return ['exito' => false, 'mensaje' => 'Producto no encontrado.'];
     }
 
+    $stockDisponible = getAvailableStock($productoId);
+    if ($stockDisponible === null || $stockDisponible < $cantidad) {
+        cerrar_conexion($conn);
+        return ['exito' => false, 'mensaje' => 'No hay suficiente stock disponible.'];
+    }
+
     $item = getCartItem($conn, $carritoId, $productoId);
     if ($item) {
-        updateCartItem($conn, $item['id'], $item['cantidad'] + $cantidad, $precio);
+        $nuevaCantidad = $item['cantidad'] + $cantidad;
+
+        // Verificar si hay stock suficiente para aumentar
+        if ($stockDisponible < ($nuevaCantidad - $item['cantidad'])) {
+            cerrar_conexion($conn);
+            return ['exito' => false, 'mensaje' => 'Stock insuficiente para la cantidad solicitada.'];
+        }
+
+        updateCartItem($conn, $item['id'], $nuevaCantidad, $precio);
     } else {
         insertCartItem($conn, $carritoId, $productoId, $cantidad, $precio);
     }
 
     cerrar_conexion($conn);
+
+    reserveProductStock($productoId, $cantidad);
     return ['exito' => true, 'mensaje' => 'Producto agregado al carrito.'];
+}
+
+function getCartSummary($usuarioId)
+{
+    $conn = conexion();
+    $carritoId = getActiveCartId($conn, $usuarioId);
+
+    $query = $conn->prepare("
+        SELECT 
+            SUM(p.precio * ci.cantidad) AS total_original,
+            SUM((p.precio * p.descuento / 100) * ci.cantidad) AS total_descuento
+        FROM carrito_item ci
+        INNER JOIN producto p ON ci.producto_id = p.id
+        WHERE ci.carrito_id = ?
+    ");
+    $query->bind_param("i", $carritoId);
+    $query->execute();
+    $query->bind_result($totalOriginal, $totalDescuento);
+    $query->fetch();
+    $query->close();
+
+    cerrar_conexion($conn);
+
+    $totalOriginal = $totalOriginal ?? 0;
+    $totalDescuento = $totalDescuento ?? 0;
+    $totalFinal = $totalOriginal - $totalDescuento;
+
+    return [
+        'total' => $totalOriginal,
+        'descuento' => $totalDescuento,
+        'total_final' => $totalFinal
+    ];
 }
 
 /* ------------- FAVORITOS -------------  */
@@ -541,7 +661,6 @@ function productIsAlreadyFavorite($favoritoId, $productoId)
     $existe = $query->num_rows > 0;
     $query->close();
     cerrar_conexion($conn);
-
     return $existe;
 }
 
@@ -554,7 +673,6 @@ function productIsAlreadyFavorite($favoritoId, $productoId)
 function addOrRemoveFav($usuarioId, $productoId)
 {
     $favoritoId = getActiveFavListId($usuarioId);
-
     if (productIsAlreadyFavorite($favoritoId, $productoId)) {
         // Eliminar de favoritos
         $conn = conexion();
@@ -579,7 +697,6 @@ function addOrRemoveFav($usuarioId, $productoId)
 function getFavoriteProducts($usuarioId)
 {
     $conn = conexion();
-
     $query = $conn->prepare("
         SELECT p.id, p.nombre, p.precio, p.imagen, g.nombre AS genero, pl.nombre AS plataforma
         FROM favorito_item fi
@@ -591,7 +708,6 @@ function getFavoriteProducts($usuarioId)
     ");
     $query->bind_param("i", $usuarioId);
     $query->execute();
-
     $result = $query->get_result();
     $productos = [];
 
@@ -601,7 +717,6 @@ function getFavoriteProducts($usuarioId)
 
     $query->close();
     cerrar_conexion($conn);
-
     return $productos;
 }
 
@@ -611,16 +726,12 @@ function getFavoriteProducts($usuarioId)
 function obtenerTotalProductos()
 {
     $conn = conexion();
-
-    // Se prepara la consulta para contar el total de productos
     $query = $conn->prepare("SELECT COUNT(*) AS total FROM producto");
     $query->execute();
     $result = $query->get_result();
     $row = $result->fetch_assoc();
-
     $query->close();
     cerrar_conexion($conn);
-
     return $row['total']; // Retorna el total de productos
 }
 
@@ -628,16 +739,12 @@ function obtenerTotalProductos()
 function obtenerTotalProductosActivos()
 {
     $conn = conexion();
-
-    // Se prepara la consulta para contar el total de productos
     $query = $conn->prepare("SELECT COUNT(*) AS total FROM producto WHERE activo = 1");
     $query->execute();
     $result = $query->get_result();
     $row = $result->fetch_assoc();
-
     $query->close();
     cerrar_conexion($conn);
-
     return $row['total']; // Retorna el total de productos
 }
 
@@ -645,15 +752,11 @@ function obtenerTotalProductosActivos()
 function obtenerTotalUsuarios()
 {
     $conn = conexion();
-
-    // Se prepara la consulta para contar el total de usuarios
     $query = $conn->prepare("SELECT COUNT(*) AS total FROM usuario WHERE rol = 'user'");
     $query->execute();
     $result = $query->get_result();
     $row = $result->fetch_assoc();
-
     $query->close();
     cerrar_conexion($conn);
-
     return $row['total']; // Retorna el total de usuarios
 }
