@@ -206,6 +206,17 @@ function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
     );
 
     if ($query->execute()) {
+        $productoId = $conn->insert_id;
+
+        // Insertar en producto_stock
+        $stockQuery = $conn->prepare("
+            INSERT INTO producto_stock (producto_id, stock_disponible, stock_reservado)
+            VALUES (?, ?, 0)
+        ");
+        $stockQuery->bind_param("ii", $productoId, $stock);
+        $stockQuery->execute();
+        $stockQuery->close();
+
         header("Location: ../views/admin/products.php?exito=Producto+creado+con+éxito.");
     } else {
         header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+crear+el+producto.");
@@ -238,14 +249,25 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
         WHERE id = ?
     ");
     $query->bind_param("sssssidiii", $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $id);
+    $result = $query->execute();
+    $query->close();
 
-    if ($query->execute()) {
+    if ($result) {
+        // Actualizar producto_stock
+        $stockQuery = $conn->prepare("
+            UPDATE producto_stock
+            SET stock_disponible = ?
+            WHERE producto_id = ?
+        ");
+        $stockQuery->bind_param("ii", $stock, $id);
+        $stockQuery->execute();
+        $stockQuery->close();
+
         header("Location: ../views/admin/products.php?exito=Producto+modificado+con+éxito.");
     } else {
         header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+modificar+el+producto.");
     }
 
-    $query->close();
     cerrar_conexion($conn);
 }
 
@@ -335,14 +357,25 @@ function getAllProdutcs()
 }
 
 /**
- * Función para obtener un juego por su ID.
- * @param int $id ID del juego a buscar.
- * @return array|null Array con los datos del juego o null si no se encuentra.
+ * Función para obtener un producto por su ID.
+ * @param int $id ID del producto.
+ * @return array|bool Array con los datos del producto o false si no existe.
  */
 function getProductById($id)
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT * FROM producto WHERE id = ?");
+    $query = $conn->prepare("
+        SELECT 
+            p.*, 
+            g.nombre AS genero_nombre, 
+            pl.nombre AS plataforma_nombre,
+            ps.stock_disponible
+        FROM producto p
+        INNER JOIN genero g ON p.genero_id = g.id
+        INNER JOIN plataforma pl ON p.plataforma_id = pl.id
+        LEFT JOIN producto_stock ps ON p.id = ps.producto_id
+        WHERE p.id = ?
+    ");
     $query->bind_param("i", $id);
     $query->execute();
     $result = $query->get_result();
@@ -392,6 +425,59 @@ function getPlatforms()
     return $plataformas; // Retorna el array de plataformas
 }
 
+/* ------------- STOCK -------------  */
+
+function getAvailableStock($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT p.stock - IFNULL(ps.stock_reservado, 0) AS stock_disponible
+        FROM producto p
+        LEFT JOIN producto_stock ps ON p.id = ps.producto_id
+        WHERE p.id = ?
+    ");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
+    cerrar_conexion($conn);
+
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc()['stock_disponible'];
+    }
+
+    return null;
+}
+
+function reserveProductStock($productoId, $cantidad)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        INSERT INTO producto_stock (producto_id, stock_reservado, stock_disponible)
+        VALUES (?, ?, 0)
+        ON DUPLICATE KEY UPDATE stock_reservado = stock_reservado + VALUES(stock_reservado)
+    ");
+    $query->bind_param("ii", $productoId, $cantidad);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+// funcion que libera el stock reservado de un producto si se elimina del carrito
+function releaseProductStock($productoId, $cantidad)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        UPDATE producto_stock
+        SET stock_reservado = stock_reservado - ?
+        WHERE producto_id = ?
+    ");
+    $query->bind_param("ii", $cantidad, $productoId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
 /* ------------- CARRITO -------------  */
 
 // funcion para crear el carrito del usuario
@@ -434,7 +520,6 @@ function getDiscountedPrice($conn, $productoId)
             return $precio;
         }
     }
-
     return null;
 }
 
@@ -489,56 +574,6 @@ function getCartItems($carritoId)
     return $items;
 }
 
-function getAvailableStock($productoId)
-{
-    $conn = conexion();
-    $query = $conn->prepare("
-        SELECT p.stock - IFNULL(ps.stock_reservado, 0) AS stock_disponible
-        FROM producto p
-        LEFT JOIN producto_stock ps ON p.id = ps.producto_id
-        WHERE p.id = ?
-    ");
-    $query->bind_param("i", $productoId);
-    $query->execute();
-    $result = $query->get_result();
-    $query->close();
-    cerrar_conexion($conn);
-
-    if ($result->num_rows > 0) {
-        return $result->fetch_assoc()['stock_disponible'];
-    }
-
-    return null;
-}
-
-function reserveProductStock($productoId, $cantidad)
-{
-    $conn = conexion();
-    $query = $conn->prepare("
-        INSERT INTO producto_stock (producto_id, stock_reservado, stock_disponible)
-        VALUES (?, ?, 0)
-        ON DUPLICATE KEY UPDATE stock_reservado = stock_reservado + VALUES(stock_reservado)
-    ");
-    $query->bind_param("ii", $productoId, $cantidad);
-    $query->execute();
-    $query->close();
-    cerrar_conexion($conn);
-}
-
-function releaseProductStock($productoId, $cantidad)
-{
-    $conn = conexion();
-    $query = $conn->prepare("
-        UPDATE producto_stock
-        SET stock_reservado = GREATEST(stock_reservado - ?, 0)
-        WHERE producto_id = ?
-    ");
-    $query->bind_param("ii", $cantidad, $productoId);
-    $query->execute();
-    $query->close();
-    cerrar_conexion($conn);
-}
-
 function addProductToCart($usuarioId, $productoId, $cantidad)
 {
     $conn = conexion();
@@ -580,6 +615,48 @@ function addProductToCart($usuarioId, $productoId, $cantidad)
 
     reserveProductStock($productoId, $cantidad);
     return ['exito' => true, 'mensaje' => 'Producto agregado al carrito.'];
+}
+
+function removeProductFromCart($usuarioId, $productoId)
+{
+    $conn = conexion();
+
+    // Obtener el ID del carrito activo del usuario
+    $carritoId = getActiveCartId($conn, $usuarioId);
+    if (!$carritoId) {
+        error_log("No se encontró un carrito activo para el usuario $usuarioId");
+        cerrar_conexion($conn);
+        return false;
+    }
+
+    // Verificar si el producto está en el carrito
+    $item = getCartItem($conn, $carritoId, $productoId);
+    if (!$item) {
+        error_log("El producto $productoId no está en el carrito $carritoId");
+        cerrar_conexion($conn);
+        return false;
+    }
+
+    $cantidad = $item['cantidad'];
+    $itemId = $item['id'];
+
+    // Eliminar el ítem del carrito
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE id = ?");
+    $query->bind_param("i", $itemId);
+    $deleteSuccess = $query->execute();
+    $query->close();
+
+    if (!$deleteSuccess) {
+        error_log("Error al ejecutar la consulta DELETE para el producto $productoId en el carrito $carritoId");
+        cerrar_conexion($conn);
+        return false;
+    }
+
+    // Liberar stock reservado
+    releaseProductStock($productoId, $cantidad);
+
+    cerrar_conexion($conn);
+    return true;
 }
 
 function getCartSummary($usuarioId)

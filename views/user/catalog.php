@@ -113,6 +113,6 @@ $productos = getCatalog();
 
     <?php include '../elements/footer.php' ?>
 
-    <script src="../../scripts/addToFav.js"></script>
-    <script src="../../scripts/addToCart.js"></script>
+    <script src="../../scripts/favs.js"></script>
+    <script src="../../scripts/cart.js"></script>
     <script src="../../scripts/popup.js"></script>

@@ -25,10 +25,11 @@ if ($usuarioLogueado) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/cart.css">
-    <link rel="stylesheet" href="../../styles/logout.css">
-    <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="../../styles/nav.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
+    <link rel="stylesheet" href="../../styles/popup.css">
+    <link rel="stylesheet" href="../../styles/footer.css">
+    <link rel="stylesheet" href="../../styles/logout.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>FreeDays_Games - Compra online de videojuegos y mucho más</title>
@@ -60,9 +61,7 @@ if ($usuarioLogueado) {
                     </div>
                 <?php endif; ?>
 
-                <!-- Productos en el carrito -->
                 <div class="cart-content">
-                    <!-- Si el carrito está vacío -->
                     <?php if (count($carritoItems) == 0): ?>
                         <div class="empty-cart">
                             <h2>Tu carrito está vacío</h2>
@@ -72,18 +71,20 @@ if ($usuarioLogueado) {
                             </button>
                         </div>
                     <?php else: ?>
-                        <div class="cart-items">
-                            <?php foreach ($carritoItems as $item): ?>
-                                <div class="cart-item" id="cart-item-<?= $item['id'] ?>">
-                                    <div class="cart-item-image">
-                                        <img src="../../<?= htmlspecialchars($item['imagen']) ?>" alt="<?= htmlspecialchars($item['nombre']) ?>">
+
+                        <!-- Lista de productos en el carrito -->
+                        <div class="cart-cards">
+                            <?php foreach ($carritoItems as $producto): ?>
+                                <div class="cart-card" id="cart-card-<?= $producto['id'] ?>">
+                                    <div class="cart-card-image">
+                                        <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
                                     </div>
-                                    <div class="cart-item-details">
-                                        <h3><?= htmlspecialchars($item['nombre']) ?></h3>
-                                        <p>Cantidad: <?= $item['cantidad'] ?></p>
-                                        <p>Precio: $<?= number_format($item['precio_total'], 2) ?></p>
+                                    <div class="cart-card-details">
+                                        <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
+                                        <p style="color: red;">Cantidad: <?= $producto['cantidad'] ?></p>
+                                        <p>Precio: $<?= number_format($producto['precio_total'], 2) ?></p>
                                     </div>
-                                    <button class="custom-btn btn-user" onclick="removeItem(<?= $item['id'] ?>)">
+                                    <button class="custom-btn btn-user" type="button" onclick="removeFromCart(<?= $producto['id'] ?>)">
                                         <span>Eliminar</span>
                                     </button>
                                 </div>
@@ -118,5 +119,6 @@ if ($usuarioLogueado) {
     <!-- FOOTER -->
     <?php include '../elements/footer.php' ?>
 
-    <script src="../../scripts/logout.js"></script>
     <script src="../../scripts/cart.js"></script>
+    <script src="../../scripts/popup.js"></script>
+    <script src="../../scripts/logout.js"></script>

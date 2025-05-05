@@ -5,12 +5,6 @@ use tienda_online;
 
 ######################## TABLAS ########################
 
-create table estado_pedido(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50),
-    color VARCHAR(20)
-);
-
 create table usuario(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
@@ -67,6 +61,7 @@ create table producto_stock (
     producto_id INT,
     stock_reservado INT,
     stock_disponible INT,
+    CHECK (stock_disponible >= stock_reservado),
     FOREIGN KEY (producto_id) REFERENCES producto(id)
 );
 
@@ -80,7 +75,6 @@ create table pedido(
     activo BOOLEAN DEFAULT TRUE,
     fecha_envio TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id),
-    FOREIGN KEY (estado_pedido_id) REFERENCES estado_pedido(id),
     FOREIGN KEY (creado_por) REFERENCES usuario(id)
 );
 
@@ -157,13 +151,6 @@ CREATE TABLE votos (
 
 ######################## INSERCIONES ########################
 
--- Insertar estados de pedido
-INSERT INTO estado_pedido (nombre, color) VALUES
-('Pendiente', 'Azul'),
-('Enviado', 'Verde'),
-('Entregado', 'Gris'),
-('Cancelado', 'Rojo');
-
 -- Insertar usuarios (admin y usuario normal)
 INSERT INTO usuario (nombre, username, pass, email, telefono, direccion, fecha_nac, cp, rol) VALUES
 ('Admin', 'admin123', 'adminpass', 'admin@email.com', '123456789', 'Calle Falsa 123', '1990-01-01', '28001', 'admin');
@@ -226,11 +213,12 @@ VALUES
 ('Horizon Forbidden West', 'default.jpg', 'Mundo abierto post-apocalíptico.', '2022-02-18', 2, 69.99, NULL, 45, 2, 1),
 ('Returnal', 'default.jpg', 'Acción roguelike en bucle.', '2021-04-30', 1, 59.99, 20, 25, 2, 1);
 
+INSERT INTO producto_stock (producto_id, stock_reservado, stock_disponible) SELECT id, 0, stock FROM producto;
+
 ######################## CONSULTAS ########################
 
 select * from carrito;
 select * from carrito_item;
-select * from estado_pedido;
 select * from favorito;
 select * from favorito_item;
 select * from genero;
@@ -240,6 +228,6 @@ select * from plataforma;
 select * from producto;
 select * from producto_genero;
 select * from producto_plataforma;
-select * from stock_producto;
+select * from producto_stock;
 select * from usuario;
 select * from votos;

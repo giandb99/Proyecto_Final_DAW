@@ -1,6 +1,6 @@
 <?php
+
 session_start();
-// Incluir archivos necesarios para consultas, conexiones y validaciones
 require_once '../database/connection.php';
 require_once '../database/querys.php';
 require_once 'validations.php';
@@ -218,25 +218,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'eliminar_producto':
-
-            // Obtener el ID del producto
             $id = $_POST['id'] ?? null;
 
-            // Verificar si el ID es válido
             if (!validateData('numero', $id)) {
                 header("Location: ../views/admin/products.php?error=ID+de+producto+inválido.");
                 exit;
             }
 
-            // Eliminar el producto usando la función que creamos
             $productoEliminado = deleteProduct($id);
 
             if ($productoEliminado) {
-                // Redirigir al catálogo con un mensaje de éxito
                 header("Location: ../views/admin/products.php?exito=Producto+eliminado+con+éxito.");
                 exit;
             } else {
-                // Redirigir con mensaje de error si no se pudo eliminar el producto
                 header("Location: ../views/admin/products.php?error=Hubo+un+error+al+eliminar+el+producto.");
                 exit;
             }
@@ -282,14 +276,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['success' => true]);
             break;
 
-        // case 'guardar_preferencias':
+        case 'eliminar_carrito':
+            header('Content-Type: application/json');
 
-        //     // Obtener las preferencias del usuario
-        //     $idioma = $_POST['idioma'] ?? null;
-        //     $moneda = $_POST['moneda'] ?? null;
-        //     $tema = $_POST['tema'] ?? null;
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['success' => false, 'error' => 'unauthorized']);
+                exit;
+            }
 
-        //     exit;
+            $usuarioId = $_SESSION['usuario']['id'];
+            $productoId = $_POST['producto_id'] ?? null;
+
+            if (!$productoId) {
+                echo json_encode(['success' => false, 'error' => 'missing_product_id']);
+                exit;
+            }
+
+            error_log("Intentando eliminar el producto $productoId del carrito del usuario $usuarioId");
+
+            $resultado = removeProductFromCart($usuarioId, $productoId);
+            if ($resultado) {
+                echo json_encode(['success' => true]);
+            } else {
+                error_log("Error al eliminar el producto $productoId del carrito del usuario $usuarioId");
+                echo json_encode(['success' => false, 'error' => 'db_error']);
+            }
+            break;
 
         default:
             // Si no se reconoce la acción, redirigir a una página de error

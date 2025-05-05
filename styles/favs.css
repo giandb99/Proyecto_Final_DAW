@@ -13,7 +13,6 @@ body {
 }
 
 .main-content {
-    flex: 1;
     padding-top: 80px;
     padding-bottom: 100px;
 }
@@ -34,22 +33,22 @@ body {
 }
 
 .favorites-container {
-    padding: 2rem;
     max-width: 1200px;
-    margin: auto;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
-.fav-header {
+.favorites-header {
     text-align: left;
     margin-bottom: 2rem;
 }
 
-.fav-header h1 {
+.favorites-header h1 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
 }
 
-.fav-subtitle {
+.favorites-subtitle {
     color: #bbb;
     margin-bottom: 2rem;
     font-size: 1.1rem;

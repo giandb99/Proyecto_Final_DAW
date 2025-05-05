@@ -2,7 +2,9 @@
 
 require_once '../../database/querys.php';
 
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+$producto = getProductById($_GET['id']);
+
+if (!$producto) {
     echo '<p>Producto no encontrado</p>';
     exit;
 }
