@@ -108,40 +108,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $fecha_lanzamiento = $_POST['release_date'] ?? null;
             $precio = $_POST['price'] ?? null;
             $descuento = $_POST['discount'] ?? null;
-            $stock = $_POST['stock'] ?? null;
-            $plataforma = $_POST['plataform'] ?? null;
-            $genero = $_POST['gender'] ?? null;
+            $plataformas = $_POST['plataformas'] ?? [];
+            $generos = $_POST['generos'] ?? [];
+            $stock_por_plataforma = $_POST['stock'] ?? [];
             $imagen = $_FILES['image'] ?? null;
             $errores = [];
 
+            // Validaciones de acceso
             if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
                 header("Location: ../views/user/login.php?error=Acceso+denegado");
                 exit;
             }
 
-            $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null; // Obtener el ID del administrador de la sesión
+            $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null;
 
+            // Validación de datos
             $validaciones = [
                 validateData('string', $nombre, 'nombre'),
                 validateData('string', $descripcion, 'descripción'),
                 validateData('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
                 validateData('numero', $precio, 'precio'),
-                validateData('numero', $stock, 'stock'),
-                validateData('numero', $plataforma, 'plataforma'),
-                validateData('numero', $genero, 'género'),
             ];
 
-            foreach ($validaciones as $campo => $resultado) {
-                if ($resultado !== true) {
-                    $errores[] = $resultado;
+            // Validar que se haya seleccionado al menos un género y plataforma
+            if (empty($generos)) {
+                $errores[] = "Debes seleccionar al menos un género.";
+            }
+
+            if (empty($plataformas)) {
+                $errores[] = "Debes seleccionar al menos una plataforma.";
+            }
+
+            // Validar el stock por plataforma
+            foreach ($stock_por_plataforma as $plataformaId => $stock) {
+                $validacionStock = validateData('numero', $stock, "stock para la plataforma ID {$plataformaId}");
+                if ($validacionStock !== true) {
+                    $errores[] = $validacionStock;
                 }
             }
 
+            // Validación de imagen
             $resultadoImagen = validateImage($imagen);
             if ($resultadoImagen !== true) {
                 $errores[] = $resultadoImagen;
             }
 
+            // Si hay errores, redirigir al formulario
             if (!empty($errores)) {
                 $_SESSION['form_data'] = $_POST; // Guarda los datos enviados
                 $_SESSION['errores'] = $errores; // Guarda los errores
@@ -149,19 +161,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
+            // Crear el producto
             $productoCreado = createProduct(
                 $nombre,
                 $imagen,
                 $descripcion,
                 $fecha_lanzamiento,
-                $genero,
+                $generos,  // Ahora pasamos el array de géneros
                 $precio,
                 $descuento,
-                $stock,
-                $plataforma,
+                $stock_por_plataforma,  // Pasamos el array de stock por plataforma
+                $plataformas,  // Ahora pasamos el array de plataformas
                 $admin_id,
                 $admin_id
             );
+
+            // Aquí deberías crear la lógica que asocie el producto con los géneros, plataformas y stock
+            if ($productoCreado) {
+                // Crear relaciones con géneros
+                foreach ($generos as $generoId) {
+                    // Suponiendo que hay una función para agregar géneros
+                    addProductGenre($productoCreado['id'], $generoId);
+                }
+
+                // Crear relaciones con plataformas y stock
+                foreach ($plataformas as $plataformaId) {
+                    $stock = $stock_por_plataforma[$plataformaId] ?? 0;
+                    // Suponiendo que hay una función para agregar plataformas y stock
+                    addProductPlatform($productoCreado['id'], $plataformaId, $stock);
+                }
+
+                // Redirigir a la página de éxito o de lista de productos
+                header("Location: ../views/admin/products.php?success=Producto+agregado+correctamente");
+                exit;
+            }
 
             break;
 
@@ -172,28 +205,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $fecha_lanzamiento = $_POST['release_date'] ?? null;
             $precio = $_POST['price'] ?? null;
             $descuento = $_POST['discount'] ?? null;
-            $stock = $_POST['stock'] ?? null;
-            $genero_id = $_POST['gender'] ?? null;
-            $plataforma_id = $_POST['plataform'] ?? null;
+            $plataformas = $_POST['plataformas'] ?? []; // Plataformas seleccionadas (array vacío por defecto)
+            $generos = $_POST['generos'] ?? []; // Géneros seleccionados (array vacío por defecto)
+            $stock_por_plataforma = $_POST['stock'] ?? []; // Stock por plataforma (array vacío por defecto)
             $imagenArchivo = $_FILES['image'] ?? null;
             $errores = [];
 
+            // Validación de acceso
+            if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+                header("Location: ../views/user/login.php?error=Acceso+denegado");
+                exit;
+            }
+
+            // Obtener el nombre del usuario que está actualizando
+            $actualizado_por = $_SESSION['usuario']['id'];  // Asumiendo que el nombre está en la sesión del usuario
+
+            // Validación de datos
             $validaciones = [
                 validateData('string', $nombre, 'nombre'),
                 validateData('string', $descripcion, 'descripción'),
                 validateData('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
                 validateData('numero', $precio, 'precio'),
-                validateData('numero', $stock, 'stock'),
-                validateData('numero', $plataforma_id, 'plataforma'),
-                validateData('numero', $genero_id, 'género'),
             ];
 
-            foreach ($validaciones as $resultado) {
-                if ($resultado !== true) {
-                    $errores[] = $resultado;
+            // Validar que se haya seleccionado al menos un género y plataforma
+            if (empty($generos)) {
+                $errores[] = "Debes seleccionar al menos un género.";
+            }
+
+            if (empty($plataformas)) {
+                $errores[] = "Debes seleccionar al menos una plataforma.";
+            }
+
+            // Validar el stock por plataforma
+            foreach ($stock_por_plataforma as $plataformaId => $stock) {
+                $validacionStock = validateData('numero', $stock, "stock para la plataforma ID {$plataformaId}");
+                if ($validacionStock !== true) {
+                    $errores[] = $validacionStock;
                 }
             }
 
+            // Validación de imagen
             if ($imagenArchivo && $imagenArchivo['error'] === UPLOAD_ERR_OK) {
                 $resultadoImagen = validateImage($imagenArchivo);
                 if ($resultadoImagen !== true) {
@@ -205,17 +257,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $imagen = 'images/products/' . $nombreImagen;
                 }
             } else {
+                // Si no se sube una nueva imagen, mantenemos la imagen existente
                 $productoExistente = getProductById($id);
                 $imagen = $productoExistente['imagen'];
             }
 
+            // Si hay errores, redirigir al formulario
             if (!empty($errores)) {
                 header("Location: ../views/admin/addOrModifyProduct.php?id=" . $id . "&errores=" . urlencode(implode(", ", $errores)));
                 exit;
             }
 
-            modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id);
+            // Actualizar el producto
+            modifyProduct(
+                $id,
+                $nombre,
+                $imagen,
+                $descripcion,
+                $fecha_lanzamiento,
+                $generos, // Pasamos el array de géneros
+                $precio,
+                $descuento,
+                $stock_por_plataforma, // Pasamos el array de stock por plataforma
+                $plataformas, // Pasamos el array de plataformas
+                $actualizado_por // El usuario que está realizando la modificación
+            );
+
+            // Redirigir a la página de productos con mensaje de éxito
+            header("Location: ../views/admin/products.php?exito=Producto+modificado+correctamente");
             exit;
+
+            break;
 
         case 'eliminar_producto':
             $id = $_POST['id'] ?? null;
@@ -256,51 +328,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['success' => true, 'favorito' => $esFavorito]);
             break;
 
-        case 'agregar_carrito':
-            header('Content-Type: application/json');
+        case 'obtener_stock':
+            $producto_id = $_POST['producto_id'];
+            $plataforma_id = $_POST['plataforma_id'];
+            $stock = getStockByProductPlatform($producto_id, $plataforma_id);
+            echo json_encode(['stock' => $stock]);
+            exit;
 
+        case 'agregar_carrito':
+            header('Content-Type: application/json'); // Asegura que la respuesta sea JSON
+
+            // Verificar si el usuario está logueado
             if (!isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['success' => false, 'error' => 'unauthorized']);
+                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para agregar productos al carrito.']);
                 exit;
             }
 
             $usuarioId = $_SESSION['usuario']['id'];
             $productoId = $_POST['producto_id'] ?? null;
+            $plataformaId = $_POST['plataforma_id'] ?? null;
+            $cantidad = $_POST['cantidad'] ?? 1;
 
-            if (!$productoId) {
-                echo json_encode(['success' => false, 'error' => 'missing_product_id']);
+            // Validar los datos recibidos
+            if (!$productoId || !$plataformaId || !is_numeric($cantidad) || $cantidad <= 0) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Datos inválidos.']);
                 exit;
             }
 
-            $resultado = addProductToCart($usuarioId, $productoId, 1);
-            echo json_encode(['success' => true]);
-            break;
+            $conn = conexion();
+
+            // Obtener el precio unitario con descuento (si aplica)
+            $precioUnitario = getDiscountedPrice($conn, $productoId);
+            if ($precioUnitario === null) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Producto no encontrado o inválido.']);
+                cerrar_conexion($conn);
+                exit;
+            }
+
+            // Agregar el producto al carrito
+            $resultado = addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantidad, $precioUnitario);
+
+            cerrar_conexion($conn);
+
+            // Devolver la respuesta en formato JSON
+            echo json_encode([
+                'exito' => $resultado['exito'],
+                'mensaje' => $resultado['mensaje']
+            ]);
+            exit;
 
         case 'eliminar_carrito':
-            header('Content-Type: application/json');
 
-            if (!isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['success' => false, 'error' => 'unauthorized']);
-                exit;
-            }
-
-            $usuarioId = $_SESSION['usuario']['id'];
-            $productoId = $_POST['producto_id'] ?? null;
-
-            if (!$productoId) {
-                echo json_encode(['success' => false, 'error' => 'missing_product_id']);
-                exit;
-            }
-
-            error_log("Intentando eliminar el producto $productoId del carrito del usuario $usuarioId");
-
-            $resultado = removeProductFromCart($usuarioId, $productoId);
-            if ($resultado) {
-                echo json_encode(['success' => true]);
-            } else {
-                error_log("Error al eliminar el producto $productoId del carrito del usuario $usuarioId");
-                echo json_encode(['success' => false, 'error' => 'db_error']);
-            }
             break;
 
         default:

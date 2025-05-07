@@ -165,7 +165,7 @@ function getAdminData($email, $pass)
  * @param int $actualizado_por ID del usuario que actualizó el producto.
  * @return void Redirige a la página de productos o muestra un error.
  */
-function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $creado_por, $actualizado_por)
+function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $generos, $precio, $descuento, $stock, $plataformas, $creado_por, $actualizado_por)
 {
     // Ruta relativa (para guardar en la BD)
     $rutaRelativa = 'images/products/' . basename($imagen['name']);
@@ -184,37 +184,64 @@ function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
 
     $conn = conexion();
 
+    // Insertar el producto
     $query = $conn->prepare("
         INSERT INTO producto 
-        (nombre, imagen, descripcion, fecha_lanzamiento, genero_id, precio, descuento, stock, plataforma_id, creado_por, actualizado_por) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (nombre, imagen, descripcion, fecha_lanzamiento, precio, descuento, creado_por, actualizado_por) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $query->bind_param(
-        "ssssiddiisi",
+        "ssssidii",
         $nombre,
         $rutaRelativa,
         $descripcion,
         $fecha_lanzamiento,
-        $genero_id,
         $precio,
         $descuento,
-        $stock,
-        $plataforma_id,
         $creado_por,
         $actualizado_por
     );
 
-    if ($query->execute()) {
+    $result = $query->execute();
+
+    if ($result) {
         $productoId = $conn->insert_id;
 
-        // Insertar en producto_stock
-        $stockQuery = $conn->prepare("
-            INSERT INTO producto_stock (producto_id, stock_disponible, stock_reservado)
-            VALUES (?, ?, 0)
+        // Insertar géneros relacionados
+        $generoQuery = $conn->prepare("
+            INSERT INTO producto_genero (producto_id, genero_id) 
+            VALUES (?, ?)
         ");
-        $stockQuery->bind_param("ii", $productoId, $stock);
-        $stockQuery->execute();
+        foreach ($generos as $genero_id) {
+            $generoQuery->bind_param("ii", $productoId, $genero_id);
+            $generoQuery->execute();
+        }
+        $generoQuery->close();
+
+        // Insertar plataformas relacionadas
+        $plataformaQuery = $conn->prepare("
+            INSERT INTO producto_plataforma (producto_id, plataforma_id) 
+            VALUES (?, ?)
+        ");
+
+        $stockQuery = $conn->prepare("
+            INSERT INTO producto_stock (producto_id, plataforma_id, stock_disponible, stock_reservado)
+            VALUES (?, ?, ?, 0)
+        ");
+
+        foreach ($plataformas as $plataforma_id) {
+            $plataformaQuery->bind_param("ii", $productoId, $plataforma_id);
+            $plataformaQuery->execute();
+
+            // Obtener el stock específico para esta plataforma
+            $stockDisponible = isset($stock[$plataforma_id]) ? $stock[$plataforma_id] : 0;
+
+            $stockQuery->bind_param("iii", $productoId, $plataforma_id, $stockDisponible);
+            $stockQuery->execute();
+        }
+
+        $plataformaQuery->close();
         $stockQuery->close();
 
         header("Location: ../views/admin/products.php?exito=Producto+creado+con+éxito.");
@@ -240,34 +267,70 @@ function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
  * @param int $plataforma_id ID de la plataforma del producto.
  * @return void Redirige a la página de productos o muestra un error.
  */
-function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id)
+function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $generos, $precio, $descuento, $stock, $plataformas, $actualizado_por)
 {
     $conn = conexion();
+
+    // Actualiza la información del producto
     $query = $conn->prepare("
         UPDATE producto 
-        SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, genero_id = ?, precio = ?, descuento = ?, stock = ?, plataforma_id = ?
+        SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, precio = ?, descuento = ?, actualizado_por = ?
         WHERE id = ?
     ");
-    $query->bind_param("sssssidiii", $nombre, $imagen, $descripcion, $fecha_lanzamiento, $genero_id, $precio, $descuento, $stock, $plataforma_id, $id);
+
+    $query->bind_param(
+        "ssssiddi",
+        $nombre,
+        $imagen,
+        $descripcion,
+        $fecha_lanzamiento,
+        $precio,
+        $descuento,
+        $actualizado_por,
+        $id
+    );
+
     $result = $query->execute();
-    $query->close();
 
     if ($result) {
-        // Actualizar producto_stock
-        $stockQuery = $conn->prepare("
-            UPDATE producto_stock
-            SET stock_disponible = ?
-            WHERE producto_id = ?
-        ");
-        $stockQuery->bind_param("ii", $stock, $id);
-        $stockQuery->execute();
-        $stockQuery->close();
+        // Comparar géneros actuales con los enviados
+        $generosActuales = getSelectedGenreIds($id);
+        sort($generosActuales);
+        $generosRecibidos = $generos;
+        sort($generosRecibidos);
+
+        if ($generosActuales !== $generosRecibidos) {
+            // Eliminar los existentes
+            $conn->query("DELETE FROM producto_genero WHERE producto_id = $id");
+
+            // Agregar los nuevos
+            foreach ($generosRecibidos as $genero_id) {
+                addProductGenre($id, $genero_id);
+            }
+        }
+
+        // Comparar plataformas actuales con las enviadas
+        $plataformasActuales = getSelectedPlatformIds($id);
+        sort($plataformasActuales);
+        $plataformasRecibidas = $plataformas;
+        sort($plataformasRecibidas);
+
+        if ($plataformasActuales !== $plataformasRecibidas) {
+            $conn->query("DELETE FROM producto_plataforma WHERE producto_id = $id");
+            $conn->query("DELETE FROM producto_stock WHERE producto_id = $id");
+
+            foreach ($plataformasRecibidas as $plataforma_id) {
+                $stock_plataforma = $stock[$plataforma_id] ?? 0;
+                addProductPlatform($id, $plataforma_id, $stock_plataforma);
+            }
+        }
 
         header("Location: ../views/admin/products.php?exito=Producto+modificado+con+éxito.");
     } else {
         header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+modificar+el+producto.");
     }
 
+    $query->close();
     cerrar_conexion($conn);
 }
 
@@ -279,12 +342,44 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
 function deleteProduct($id)
 {
     $conn = conexion();
+
+    // Eliminamos el producto
     $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
     $query->bind_param("i", $id);
     $resultado = $query->execute();
+
     $query->close();
     cerrar_conexion($conn);
-    return $resultado; // Retorna `true` si se eliminó correctamente
+
+    return $resultado;
+}
+
+function addProductGenre($productId, $genreId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("INSERT INTO producto_genero (producto_id, genero_id) VALUES (?, ?)");
+    $query->bind_param("ii", $productId, $genreId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+function addProductPlatform($productId, $platformId, $stock)
+{
+    $conn = conexion();
+
+    $query = $conn->prepare("INSERT INTO producto_plataforma (producto_id, plataforma_id) VALUES (?, ?)");
+    $query->bind_param("ii", $productId, $platformId);
+    $query->execute();
+    $query->close();
+
+    // Agregar stock por plataforma
+    $query = $conn->prepare("INSERT INTO producto_stock (producto_id, plataforma_id, stock_disponible) VALUES (?, ?, ?)");
+    $query->bind_param("iii", $productId, $platformId, $stock);
+    $query->execute();
+    $query->close();
+
+    cerrar_conexion($conn);
 }
 
 /**
@@ -321,7 +416,7 @@ function getCatalog()
  * Función para obtener todos los productos de la base de datos.
  * @return array Array con todos los productos.
  */
-function getAllProdutcs()
+function getAllProducts()
 {
     $conn = conexion();
     $query = $conn->prepare("
@@ -331,13 +426,17 @@ function getAllProdutcs()
             producto.imagen,
             producto.precio,
             producto.descuento,
-            producto.stock,
-            genero.nombre AS genero,
-            plataforma.nombre AS plataforma
+            COALESCE(ps.stock_disponible, 0) AS stock_disponible,
+            GROUP_CONCAT(DISTINCT genero.nombre) AS genero,
+            GROUP_CONCAT(DISTINCT plataforma.nombre) AS plataforma
         FROM producto
-        JOIN genero ON producto.genero_id = genero.id
-        JOIN plataforma ON producto.plataforma_id = plataforma.id
+        LEFT JOIN producto_genero pg ON producto.id = pg.producto_id
+        LEFT JOIN genero ON pg.genero_id = genero.id
+        LEFT JOIN producto_plataforma pp ON producto.id = pp.producto_id
+        LEFT JOIN plataforma ON pp.plataforma_id = plataforma.id
+        LEFT JOIN producto_stock ps ON producto.id = ps.producto_id
         WHERE producto.activo = 1
+        GROUP BY producto.id
         ORDER BY producto.id ASC
     ");
 
@@ -371,8 +470,10 @@ function getProductById($id)
             pl.nombre AS plataforma_nombre,
             ps.stock_disponible
         FROM producto p
-        INNER JOIN genero g ON p.genero_id = g.id
-        INNER JOIN plataforma pl ON p.plataforma_id = pl.id
+        INNER JOIN producto_genero pg ON p.id = pg.producto_id
+        INNER JOIN genero g ON pg.genero_id = g.id
+        INNER JOIN producto_plataforma pp ON p.id = pp.producto_id
+        INNER JOIN plataforma pl ON pp.plataforma_id = pl.id
         LEFT JOIN producto_stock ps ON p.id = ps.producto_id
         WHERE p.id = ?
     ");
@@ -382,20 +483,36 @@ function getProductById($id)
     $producto = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
+
     return $producto;
 }
 
-function getGenres()
+function getAllGenres()
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT * FROM genero WHERE activo = 1");
+    $result = $conn->query("SELECT id, nombre FROM genero");
+    $generos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $generos[] = $row;
+    }
+
+    cerrar_conexion($conn);
+    return $generos;
+}
+
+function getSelectedGenreIds($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT genero_id FROM producto_genero WHERE producto_id = ?");
+    $query->bind_param("i", $productoId);
     $query->execute();
     $result = $query->get_result();
     $generos = [];
 
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            $generos[] = $row; // Agrega cada género al array
+            $generos[] = $row['genero_id']; // Agrega cada género al array
         }
     }
 
@@ -405,17 +522,32 @@ function getGenres()
     return $generos; // Retorna el array de géneros
 }
 
-function getPlatforms()
+function getAllPlatforms()
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT * FROM plataforma WHERE activo = 1");
+    $result = $conn->query("SELECT id, nombre FROM plataforma");
+    $plataformas = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $plataformas[] = $row;
+    }
+
+    cerrar_conexion($conn);
+    return $plataformas;
+}
+
+function getSelectedPlatformIds($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT plataforma_id FROM producto_plataforma WHERE producto_id = ?");
+    $query->bind_param("i", $productoId);
     $query->execute();
     $result = $query->get_result();
     $plataformas = [];
 
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            $plataformas[] = $row; // Agrega cada plataforma al array
+            $plataformas[] = $row['plataforma_id']; // Agrega cada plataforma al array
         }
     }
 
@@ -425,83 +557,143 @@ function getPlatforms()
     return $plataformas; // Retorna el array de plataformas
 }
 
-/* ------------- STOCK -------------  */
+function geProductStockByPlataform($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT plataforma_id, stock_disponible FROM producto_stock WHERE producto_id = ?");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $result = $query->get_result();
+    $stock = [];
 
-function getAvailableStock($productoId)
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $stock[$row['plataforma_id']] = $row['stock_disponible'];
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+
+    return $stock;
+}
+
+function getPlatformsByProduct($productoId)
 {
     $conn = conexion();
     $query = $conn->prepare("
-        SELECT p.stock - IFNULL(ps.stock_reservado, 0) AS stock_disponible
-        FROM producto p
-        LEFT JOIN producto_stock ps ON p.id = ps.producto_id
-        WHERE p.id = ?
+        SELECT pp.plataforma_id, p.nombre AS plataforma_nombre
+        FROM producto_plataforma pp
+        JOIN plataforma p ON pp.plataforma_id = p.id
+        WHERE pp.producto_id = ?
     ");
     $query->bind_param("i", $productoId);
     $query->execute();
     $result = $query->get_result();
-    $query->close();
-    cerrar_conexion($conn);
 
-    if ($result->num_rows > 0) {
-        return $result->fetch_assoc()['stock_disponible'];
+    $plataformas = [];
+    while ($row = $result->fetch_assoc()) {
+        $plataformas[] = $row;
     }
 
-    return null;
-}
-
-function reserveProductStock($productoId, $cantidad)
-{
-    $conn = conexion();
-    $query = $conn->prepare("
-        INSERT INTO producto_stock (producto_id, stock_reservado, stock_disponible)
-        VALUES (?, ?, 0)
-        ON DUPLICATE KEY UPDATE stock_reservado = stock_reservado + VALUES(stock_reservado)
-    ");
-    $query->bind_param("ii", $productoId, $cantidad);
-    $query->execute();
     $query->close();
     cerrar_conexion($conn);
+    return $plataformas;
 }
 
-// funcion que libera el stock reservado de un producto si se elimina del carrito
-function releaseProductStock($productoId, $cantidad)
+function getStockByProductPlatform($productoId, $plataformaId)
 {
     $conn = conexion();
     $query = $conn->prepare("
-        UPDATE producto_stock
-        SET stock_reservado = stock_reservado - ?
+        SELECT stock_disponible
+        FROM producto_stock
+        WHERE producto_id = ? AND plataforma_id = ?
+    ");
+    $query->bind_param("ii", $productoId, $plataformaId);
+    $query->execute();
+    $result = $query->get_result();
+    $stock = $result->fetch_assoc()['stock_disponible'] ?? 0;
+
+    $query->close();
+    cerrar_conexion($conn);
+
+    return $stock;
+}
+
+function getRelatedProducts($producto_id, $limit = 10)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT genero_id
+        FROM producto_genero 
         WHERE producto_id = ?
     ");
-    $query->bind_param("ii", $cantidad, $productoId);
+    $query->bind_param("i", $producto_id);
     $query->execute();
+    $result = $query->get_result();
+    $generos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $generos[] = $row['genero_id'];
+    }
+
+    $query->close();
+
+    if (empty($generos)) return [];
+
+    // Buscamos otros productos que compartan alguno de esos géneros
+    $placeholders = implode(',', array_fill(0, count($generos), '?'));
+    $types = str_repeat('i', count($generos) + 1);
+    $params = array_merge($generos, [$producto_id]);
+
+    $query = $conn->prepare("
+        SELECT DISTINCT p.id, p.nombre, p.imagen, p.precio, p.descuento
+        FROM producto p
+        JOIN producto_genero pg ON p.id = pg.producto_id
+        WHERE pg.genero_id IN ($placeholders)
+        AND p.id != ?
+        AND p.activo = 1
+        ORDER BY p.creado_en DESC
+        LIMIT $limit
+    ");
+    $query->bind_param($types, ...$params);
+    $query->execute();
+    $result = $query->get_result();
+    $productosRelacionados = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $productosRelacionados[] = $row;
+    }
+
     $query->close();
     cerrar_conexion($conn);
+
+    return $productosRelacionados;
 }
 
-/* ------------- CARRITO -------------  */
-
-// funcion para crear el carrito del usuario
-function createCart($usuarioId)
+/**
+ * Función para obtener el ID de la combinación producto-plataforma.
+ * @param mysqli $conn Conexión a la base de datos.
+ * @param int $productoId ID del producto.
+ * @param int $plataformaId ID de la plataforma.
+ * @return int|null ID de la combinación producto-plataforma o null si no existe.
+ */
+function getProductoPlataformaId($conn, $productoId, $plataformaId)
 {
-    $conn = conexion();
-    $query = $conn->prepare("INSERT INTO carrito (creado_por, activo) VALUES (?, 1)");
-    $query->bind_param("i", $usuarioId);
-    $query->execute();
-    $query->close();
-    cerrar_conexion($conn);
-}
-
-function getActiveCartId($conn, $usuarioId)
-{
-    $query = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
-    $query->bind_param("i", $usuarioId);
+    $query = $conn->prepare("SELECT 1 FROM producto_plataforma WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("ii", $productoId, $plataformaId);
     $query->execute();
     $result = $query->get_result();
     $query->close();
-
-    return ($result->num_rows > 0) ? $result->fetch_assoc()['id'] : null;
+    return ($result->num_rows > 0) ? true : null;
 }
 
+/**
+ * Función para obtener el precio con descuento de un producto.
+ * @param mysqli $conn Conexión a la base de datos.
+ * @param int $productoId ID del producto.
+ * @return float|null Precio con descuento o null si no existe.
+ */
 function getDiscountedPrice($conn, $productoId)
 {
     $query = $conn->prepare("SELECT precio, descuento FROM producto WHERE id = ?");
@@ -523,14 +715,105 @@ function getDiscountedPrice($conn, $productoId)
     return null;
 }
 
-function getCartItem($conn, $carritoId, $productoId)
+/* ------------- STOCK -------------  */
+
+function getAvailableStock($productoId, $plataformaId)
 {
-    $query = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_id = ?");
-    $query->bind_param("ii", $carritoId, $productoId);
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT stock_disponible - IFNULL(stock_reservado, 0) AS stock_disponible
+        FROM producto_stock
+        WHERE producto_id = ? AND plataforma_id = ?
+    ");
+    $query->bind_param("ii", $productoId, $plataformaId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
+    cerrar_conexion($conn);
+
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc()['stock_disponible'];
+    }
+
+    return null;
+}
+
+function reserveProductStock($productoId, $plataformaId, $cantidad)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        UPDATE producto_stock
+        SET 
+            stock_reservado = stock_reservado + ?,
+            stock_disponible = stock_disponible - ?
+        WHERE producto_id = ? AND plataforma_id = ?
+    ");
+    $query->bind_param("iiii", $cantidad, $cantidad, $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+// funcion que libera el stock reservado de un producto si se elimina del carrito
+function releaseProductStock($productoId, $plataformaId, $cantidad)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        UPDATE producto_stock
+        SET 
+            stock_reservado = GREATEST(stock_reservado - ?, 0),
+            stock_disponible = stock_disponible + ?
+        WHERE producto_id = ? AND plataforma_id = ?
+    ");
+    $query->bind_param("iiii", $cantidad, $cantidad, $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+/* ------------- CARRITO -------------  */
+
+// funcion para crear el carrito del usuario
+function createCart($usuarioId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("INSERT INTO carrito (creado_por, activo) VALUES (?, 1)");
+    $query->bind_param("i", $usuarioId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+function getActiveCartId($conn, $usuarioId)
+{
+    error_log("Debug: Buscando carrito activo para Usuario ID: $usuarioId");
+    $query = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
+    $query->bind_param("i", $usuarioId);
+    $query->execute();
+    $result = $query->get_result();
+    $query->close();
+    $carritoId = ($result->num_rows > 0) ? $result->fetch_assoc()['id'] : null;
+    error_log("Debug: Carrito activo encontrado: " . ($carritoId ?? 'Ninguno'));
+    return $carritoId;
+}
+
+function getCartItem($conn, $carritoId, $productoPlataformaId)
+{
+    $query = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_plataforma_id = ?");
+    $query->bind_param("ii", $carritoId, $productoPlataformaId);
     $query->execute();
     $result = $query->get_result();
     $query->close();
     return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
+}
+
+function insertCartItem($conn, $carritoId, $productoPlataformaId, $cantidad, $precioUnitario)
+{
+    $precioTotal = $precioUnitario * $cantidad;
+    $query = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_plataforma_id, cantidad, precio_total) VALUES (?, ?, ?, ?)");
+    $query->bind_param("iiid", $carritoId, $productoPlataformaId, $cantidad, $precioTotal);
+    $query->execute();
+    $query->close();
 }
 
 function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario)
@@ -542,134 +825,102 @@ function updateCartItem($conn, $itemId, $nuevaCantidad, $precioUnitario)
     $query->close();
 }
 
-function insertCartItem($conn, $carritoId, $productoId, $cantidad, $precioUnitario)
+function getCartItems($conn, $carritoId)
 {
-    $precioTotal = $precioUnitario * $cantidad;
-    $query = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_id, cantidad, precio_total) VALUES (?, ?, ?, ?)");
-    $query->bind_param("iiid", $carritoId, $productoId, $cantidad, $precioTotal);
-    $query->execute();
-    $query->close();
-}
-
-function getCartItems($carritoId)
-{
-    $conn = conexion();
     $query = $conn->prepare("
-        SELECT ci.id, p.id AS producto_id, p.nombre, p.imagen, ci.cantidad, ci.precio_total
+        SELECT 
+            ci.id AS item_id,
+            ci.producto_id,
+            p.nombre AS producto_nombre,
+            p.imagen,
+            ci.plataforma_id,
+            pl.nombre AS plataforma_nombre,
+            p.precio,
+            p.descuento,
+            ci.cantidad,
+            ROUND(
+                IF(p.descuento > 0, p.precio - (p.precio * p.descuento / 100), p.precio), 
+                2
+            ) AS precio_descuento,
+            ROUND(
+                IF(p.descuento > 0, (p.precio - (p.precio * p.descuento / 100)) * ci.cantidad, p.precio * ci.cantidad), 
+                2
+            ) AS precio_total_descuento
         FROM carrito_item ci
         JOIN producto p ON ci.producto_id = p.id
+        JOIN plataforma pl ON ci.plataforma_id = pl.id
         WHERE ci.carrito_id = ?
     ");
     $query->bind_param("i", $carritoId);
     $query->execute();
     $result = $query->get_result();
+    $items = $result->fetch_all(MYSQLI_ASSOC);
     $query->close();
-
-    $items = [];
-    while ($row = $result->fetch_assoc()) {
-        $items[] = $row;
-    }
-
-    cerrar_conexion($conn);
     return $items;
 }
 
-function addProductToCart($usuarioId, $productoId, $cantidad)
+function addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantidad, $precioUnitario)
 {
-    $conn = conexion();
+    error_log("Debug: Usuario ID: $usuarioId, Producto ID: $productoId, Plataforma ID: $plataformaId, Cantidad: $cantidad, Precio Unitario: $precioUnitario");
 
     $carritoId = getActiveCartId($conn, $usuarioId);
     if (!$carritoId) {
-        cerrar_conexion($conn);
+        error_log("Error: No se encontró un carrito activo para el usuario $usuarioId");
         return ['exito' => false, 'mensaje' => 'No se encontró un carrito activo.'];
     }
 
-    $precio = getDiscountedPrice($conn, $productoId);
-    if ($precio === null) {
-        cerrar_conexion($conn);
-        return ['exito' => false, 'mensaje' => 'Producto no encontrado.'];
+    $productoPlataformaId = getProductoPlataformaId($conn, $productoId, $plataformaId);
+    if (!$productoPlataformaId) {
+        error_log("Error: Combinación producto-plataforma no válida para Producto ID: $productoId y Plataforma ID: $plataformaId");
+        return ['exito' => false, 'mensaje' => 'Combinación producto-plataforma no válida.'];
     }
 
-    $stockDisponible = getAvailableStock($productoId);
-    if ($stockDisponible === null || $stockDisponible < $cantidad) {
-        cerrar_conexion($conn);
-        return ['exito' => false, 'mensaje' => 'No hay suficiente stock disponible.'];
+    $stockDisponible = getAvailableStock($productoId, $productoPlataformaId);
+    if ($cantidad > $stockDisponible) {
+        error_log("Error: Stock insuficiente para Producto-Plataforma ID: $productoPlataformaId. Stock disponible: $stockDisponible, Cantidad solicitada: $cantidad");
+        return ['exito' => false, 'mensaje' => 'Stock insuficiente.'];
     }
 
-    $item = getCartItem($conn, $carritoId, $productoId);
+    $item = getCartItem($conn, $carritoId, $productoPlataformaId);
     if ($item) {
         $nuevaCantidad = $item['cantidad'] + $cantidad;
-
-        // Verificar si hay stock suficiente para aumentar
-        if ($stockDisponible < ($nuevaCantidad - $item['cantidad'])) {
-            cerrar_conexion($conn);
-            return ['exito' => false, 'mensaje' => 'Stock insuficiente para la cantidad solicitada.'];
+        if ($nuevaCantidad > $stockDisponible) {
+            error_log("Error: Stock insuficiente al actualizar. Nueva cantidad: $nuevaCantidad, Stock disponible: $stockDisponible");
+            return ['exito' => false, 'mensaje' => 'Stock insuficiente al actualizar.'];
         }
-
-        updateCartItem($conn, $item['id'], $nuevaCantidad, $precio);
+        updateCartItem($conn, $item['id'], $nuevaCantidad, $precioUnitario);
+        error_log("Info: Producto actualizado en el carrito. Item ID: {$item['id']}, Nueva cantidad: $nuevaCantidad");
     } else {
-        insertCartItem($conn, $carritoId, $productoId, $cantidad, $precio);
+        insertCartItem($conn, $carritoId, $productoPlataformaId, $cantidad, $precioUnitario);
+        error_log("Info: Producto insertado en el carrito. Carrito ID: $carritoId, Producto-Plataforma ID: $productoPlataformaId, Cantidad: $cantidad");
     }
 
-    cerrar_conexion($conn);
-
-    reserveProductStock($productoId, $cantidad);
     return ['exito' => true, 'mensaje' => 'Producto agregado al carrito.'];
 }
 
-function removeProductFromCart($usuarioId, $productoId)
+function removeProductFromCart($conn, $carritoId, $productoPlataformaId)
 {
-    $conn = conexion();
-
-    // Obtener el ID del carrito activo del usuario
-    $carritoId = getActiveCartId($conn, $usuarioId);
-    if (!$carritoId) {
-        error_log("No se encontró un carrito activo para el usuario $usuarioId");
-        cerrar_conexion($conn);
-        return false;
-    }
-
-    // Verificar si el producto está en el carrito
-    $item = getCartItem($conn, $carritoId, $productoId);
-    if (!$item) {
-        error_log("El producto $productoId no está en el carrito $carritoId");
-        cerrar_conexion($conn);
-        return false;
-    }
-
-    $cantidad = $item['cantidad'];
-    $itemId = $item['id'];
-
-    // Eliminar el ítem del carrito
-    $query = $conn->prepare("DELETE FROM carrito_item WHERE id = ?");
-    $query->bind_param("i", $itemId);
-    $deleteSuccess = $query->execute();
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ? AND producto_plataforma_id = ?");
+    $query->bind_param("ii", $carritoId, $productoPlataformaId);
+    $query->execute();
     $query->close();
-
-    if (!$deleteSuccess) {
-        error_log("Error al ejecutar la consulta DELETE para el producto $productoId en el carrito $carritoId");
-        cerrar_conexion($conn);
-        return false;
-    }
-
-    // Liberar stock reservado
-    releaseProductStock($productoId, $cantidad);
-
-    cerrar_conexion($conn);
-    return true;
 }
 
-function getCartSummary($usuarioId)
+function getCartSummary($conn, $carritoId)
 {
-    $conn = conexion();
-    $carritoId = getActiveCartId($conn, $usuarioId);
+    $totalOriginal = 0;
+    $totalDescuento = 0;
 
     $query = $conn->prepare("
         SELECT 
             SUM(p.precio * ci.cantidad) AS total_original,
-            SUM((p.precio * p.descuento / 100) * ci.cantidad) AS total_descuento
+            SUM(
+                IF(p.descuento > 0, (p.precio * p.descuento / 100) * ci.cantidad, 0)
+            ) AS total_descuento
         FROM carrito_item ci
-        INNER JOIN producto p ON ci.producto_id = p.id
+        JOIN producto p ON ci.producto_id = p.id
+        -- Opcional: validar si el producto está disponible en esa plataforma
+        JOIN producto_plataforma pp ON ci.producto_id = pp.producto_id AND ci.plataforma_id = pp.plataforma_id
         WHERE ci.carrito_id = ?
     ");
     $query->bind_param("i", $carritoId);
@@ -678,16 +929,14 @@ function getCartSummary($usuarioId)
     $query->fetch();
     $query->close();
 
-    cerrar_conexion($conn);
-
     $totalOriginal = $totalOriginal ?? 0;
     $totalDescuento = $totalDescuento ?? 0;
-    $totalFinal = $totalOriginal - $totalDescuento;
+    $subtotal = $totalOriginal - $totalDescuento;
 
     return [
-        'total' => $totalOriginal,
-        'descuento' => $totalDescuento,
-        'total_final' => $totalFinal
+        'total_original' => round($totalOriginal, 2),
+        'total_descuento' => round($totalDescuento, 2),
+        'subtotal' => round($subtotal, 2)
     ];
 }
 
@@ -774,20 +1023,24 @@ function addOrRemoveFav($usuarioId, $productoId)
 function getFavoriteProducts($usuarioId)
 {
     $conn = conexion();
+    $favoritoId = getActiveFavListId($usuarioId);
+
+    if (!$favoritoId) {
+        cerrar_conexion($conn);
+        return [];
+    }
+
     $query = $conn->prepare("
-        SELECT p.id, p.nombre, p.precio, p.imagen, g.nombre AS genero, pl.nombre AS plataforma
+        SELECT p.id, p.nombre, p.precio, p.imagen
         FROM favorito_item fi
-        JOIN favorito f ON fi.favorito_id = f.id
         JOIN producto p ON fi.producto_id = p.id
-        JOIN genero g ON p.genero_id = g.id
-        JOIN plataforma pl ON p.plataforma_id = pl.id
-        WHERE f.creado_por = ? AND f.activo = 1
+        WHERE fi.favorito_id = ?
     ");
-    $query->bind_param("i", $usuarioId);
+    $query->bind_param("i", $favoritoId);
     $query->execute();
     $result = $query->get_result();
-    $productos = [];
 
+    $productos = [];
     while ($row = $result->fetch_assoc()) {
         $productos[] = $row;
     }

@@ -16,7 +16,6 @@ $totalFavoritos = count($productosFavoritos);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/favs.css">
-    <link rel="stylesheet" href="../../styles/logout.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="../../styles/nav.css">
@@ -66,22 +65,18 @@ $totalFavoritos = count($productosFavoritos);
                     <?php else: ?>
                         <div class="favorites-grid">
                             <?php foreach ($productosFavoritos as $producto): ?>
-                                <div class="favorite-card" onclick="window.location.href='product.php?id=<?= $producto['id'] ?>'">
+                                <div class="favorite-card" onclick="window.location.href='detailProduct.php?id=<?= $producto['id'] ?>'">
                                     <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
                                     <div class="card-info">
-                                        <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
-                                        <p><?= htmlspecialchars($producto['plataforma']) ?> - <?= htmlspecialchars($producto['genero']) ?></p>
                                         <div class="card-actions">
-                                            <span class="price">$<?= number_format($producto['precio'], 2) ?></span>
-                                            <div class="buttons">
-                                                <form>
-                                                    <input type="hidden" name="accion" value="agregar_favorito">
-                                                    <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                                    <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
-                                                        <span><i id="fav-icon-<?= $producto['id'] ?>" class="fas fa-heart-broken"></i></span>
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
+                                            <form>
+                                                <input type="hidden" name="accion" value="agregar_favorito">
+                                                <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
+                                                <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
+                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="fas fa-heart-broken"></i></span>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -97,4 +92,3 @@ $totalFavoritos = count($productosFavoritos);
     <?php include '../elements/footer.php' ?>
 
     <script src="../../scripts/favs.js"></script>
-    <script src="../../scripts/logout.js"></script>

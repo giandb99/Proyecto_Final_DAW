@@ -11,11 +11,11 @@ $resumenCarrito = ['total' => 0, 'descuento' => 0, 'total_final' => 0];
 if ($usuarioLogueado) {
     $conn = conexion();
     $carritoId = getActiveCartId($conn, $_SESSION['usuario']['id']);
-    cerrar_conexion($conn);
-
-    $carritoItems = getCartItems($carritoId);
-    $resumenCarrito = getCartSummary($_SESSION['usuario']['id']);
+    $carritoItems = getCartItems($conn, $carritoId);
+    $resumenCarrito = getCartSummary($conn, $carritoId);
+    cerrar_conexion($conn);    
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -29,7 +29,6 @@ if ($usuarioLogueado) {
     <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/footer.css">
-    <link rel="stylesheet" href="../../styles/logout.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>FreeDays_Games - Compra online de videojuegos y mucho más</title>
@@ -121,4 +120,3 @@ if ($usuarioLogueado) {
 
     <script src="../../scripts/cart.js"></script>
     <script src="../../scripts/popup.js"></script>
-    <script src="../../scripts/logout.js"></script>

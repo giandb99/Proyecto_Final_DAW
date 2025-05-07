@@ -22,8 +22,11 @@ if ($id) {
     }
 }
 
-$generos = getGenres();
-$plataformas = getPlatforms();
+$generos = getAllGenres();
+$plataformas = getAllPlatforms();
+$generosSeleccionados = $modoEdicion ? getSelectedGenreIds($producto['id']) : [];
+$plataformasSeleccionadas = $modoEdicion ? getSelectedPlatformIds($producto['id']) : [];
+$stockPorPlataforma = geProductStockByPlataform($producto['id'] ?? null);
 
 $exito = $_GET['exito'] ?? null;
 
@@ -74,32 +77,34 @@ $exito = $_GET['exito'] ?? null;
                     <input type="number" id="discount" name="discount" step="1" min="0" max="100" placeholder="Descuento"
                         value="<?= htmlspecialchars($formData['discount'] ?? ($modoEdicion ? $producto['descuento'] : '')) ?>">
 
-                    <input type="number" id="stock" name="stock" placeholder="Stock"
-                        value="<?= htmlspecialchars($formData['stock'] ?? ($modoEdicion ? $producto['stock'] : '')) ?>">
-
-                    <label for="plataforma">Plataforma:</label>
-                    <select id="plataform" name="plataform">
-                        <option value="">Seleccione una plataforma</option>
-                        <?php foreach ($plataformas as $plataforma): ?>
-                            <option value="<?= $plataforma['id'] ?>"
-                                <?= (isset($formData['plataform']) && $formData['plataform'] == $plataforma['id']) ||
-                                    ($modoEdicion && $plataforma['id'] == $producto['plataforma_id']) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($plataforma['nombre']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-
-                    <label for="genero">Género:</label>
-                    <select id="gender" name="gender">
-                        <option value="">Seleccione un género</option>
-                        <?php foreach ($generos as $genero): ?>
-                            <option value="<?= $genero['id'] ?>"
-                                <?= (isset($formData['gender']) && $formData['gender'] == $genero['id']) ||
-                                    ($modoEdicion && $genero['id'] == $producto['genero_id']) ? 'selected' : '' ?>>
+                    <fieldset class="generos-section">
+                        <legend>Géneros</legend>
+                        <?php foreach ($generos as $genero):
+                            $generoId = $genero['id'];
+                            $checked = in_array($generoId, $generosSeleccionados);
+                        ?>
+                            <label>
+                                <input type="checkbox" name="generos[]" value="<?= $generoId ?>" <?= $checked ? 'checked' : '' ?>>
                                 <?= htmlspecialchars($genero['nombre']) ?>
-                            </option>
+                            </label>
                         <?php endforeach; ?>
-                    </select>
+
+                    </fieldset>
+
+                    <fieldset class="plataformas-section">
+                        <legend>Plataformas</legend>
+                        <?php foreach ($plataformas as $plataforma):
+                            $plataformaId = $plataforma['id'];
+                            $checked = in_array($plataformaId, $plataformasSeleccionadas);
+                        ?>
+                            <label style="display: block; margin-bottom: 5px;">
+                                <input type="checkbox" name="plataformas[]" value="<?= $plataformaId ?>" <?= $checked ? 'checked' : '' ?>>
+                                <?= htmlspecialchars($plataforma['nombre']) ?>
+                                <input type="number" name="stock[<?= $plataformaId ?>]" placeholder="Stock para esta plataforma"
+                                    value="<?= htmlspecialchars($stockPorPlataforma[$plataformaId] ?? 0) ?>" min="0">
+                            </label>
+                        <?php endforeach; ?>
+                    </fieldset>
 
                     <label for="imagen">Imagen del producto:</label>
                     <input type="file" id="image" name="image" accept="image/*">

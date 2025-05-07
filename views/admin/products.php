@@ -3,7 +3,7 @@
 require_once '../../database/querys.php';
 session_start();
 
-$productos = getAllProdutcs();
+$productos = getAllProducts();
 
 ?>
 
@@ -13,7 +13,7 @@ $productos = getAllProdutcs();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../styles/listProductsAdmin.css">
+    <link rel="stylesheet" href="../../styles/products.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/sidebar.css">
     <link rel="stylesheet" href="../../styles/footer.css">
@@ -39,7 +39,6 @@ $productos = getAllProdutcs();
                         <th>Imagen</th>
                         <th>Precio</th>
                         <th>Descuento</th>
-                        <th>Stock</th>
                         <th>Plataforma</th>
                         <th>Género</th>
                         <th>Acciones</th>
@@ -54,9 +53,8 @@ $productos = getAllProdutcs();
                                 <td><img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="Imagen" class="tabla-img"></td>
                                 <td><?= number_format($producto['precio'], 2) ?>€</td>
                                 <td><?= $producto['descuento'] ?? '0' ?>%</td>
-                                <td><?= $producto['stock'] ?></td>
-                                <td><?= htmlspecialchars($producto['plataforma']) ?></td>
-                                <td><?= htmlspecialchars($producto['genero']) ?></td>
+                                <td><?= htmlspecialchars($producto['plataforma']) ?> </td>
+                                <td><?= htmlspecialchars($producto['genero']) ?> </td>
                                 <td class="acciones">
                                     <button onclick="window.location.href='addOrModifyProduct.php?id=<?= $producto['id'] ?>'" class="btn-icon-modificar" title="Modificar">
                                         <i class="fas fa-pen"></i>
@@ -82,6 +80,3 @@ $productos = getAllProdutcs();
     </div>
 
     <?php include '../elements/footer.php' ?>
-</body>
-
-</html>

@@ -57,6 +57,9 @@ html, body {
     text-align: center;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tabla-productos th {
@@ -66,12 +69,24 @@ html, body {
     text-transform: uppercase;
 }
 
-.tabla-img {
-    width: 60px;
+.tabla-productos td {
+    max-width: 250px;
+}
+
+.tabla-productos td img {
+    width: 75px;
     height: auto;
     border-radius: 6px;
     object-fit: cover;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    display: flex;
+    margin: 0 auto;
+}
+
+.tabla-productos td:nth-child(6),
+.tabla-productos td:nth-child(7) {
+    max-width: 200px;
+    padding: 8px;
 }
 
 .btn-icon-eliminar,

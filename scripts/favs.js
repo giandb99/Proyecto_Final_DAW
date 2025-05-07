@@ -8,10 +8,19 @@ function addToFav(productoId) {
     .then(data => {
         if (data.success) {
             const icon = document.getElementById(`fav-icon-${productoId}`);
+            const spanText = icon?.nextSibling;
+
             if (icon) {
-                // Cambiar el ícono con animación
-                icon.classList.remove('far', 'fas');
-                icon.classList.add(data.favorito ? 'fas' : 'far');
+                icon.classList.remove('far', 'fas', 'fa-heart', 'fa-heart-broken');
+
+                if (data.favorito) {
+                    icon.classList.add('fas', 'fa-heart-broken');
+                    if (spanText?.nodeType === 3) spanText.nodeValue = ' Eliminar de favoritos';
+                } else {
+                    icon.classList.add('far', 'fa-heart');
+                    if (spanText?.nodeType === 3) spanText.nodeValue = ' Agregar a favoritos';
+                }
+
                 icon.classList.add('heart-pulse');
                 setTimeout(() => icon.classList.remove('heart-pulse'), 300);
             }
@@ -19,16 +28,12 @@ function addToFav(productoId) {
             // Si estamos en favs.php y se quitó de favoritos, eliminar la tarjeta
             if (window.location.pathname.includes('favs.php') && !data.favorito) {
                 const card = document.querySelector(`.favorite-card[onclick*="id=${productoId}"]`);
-                if (card) {
-                    card.remove();
-                }
+                if (card) card.remove();
 
-                // Actualizamos el contador de favoritos
                 const counter = document.getElementById('favorites-count');
                 if (counter) {
                     const remaining = document.querySelectorAll('.favorite-card').length;
                     if (remaining === 0) {
-                        // Y si no queda ninguno, mostramos el mensaje y el botón que redirige al catálogo
                         counter.parentElement.innerHTML = `
                             <div class="empty-fav">
                                 <h2>Tu lista de favoritos está vacía</h2>

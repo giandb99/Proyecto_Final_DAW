@@ -46,7 +46,7 @@ $productos = getCatalog();
                                 $isFav = productIsAlreadyFavorite($favoritoId, $producto['id']);
                             }
                             ?>
-                            <div class="product-card" onclick="window.location.href='product.php?id=<?= $producto['id'] ?>'">
+                            <div class="product-card" onclick="window.location.href='detailProduct.php?id=<?= $producto['id'] ?>'">
                                 <div class="relative">
                                     <img src="../../<?= htmlspecialchars($producto['imagen'] ?: 'placeholder.svg') ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
                                     <?php if ($producto['descuento']): ?>
@@ -79,24 +79,17 @@ $productos = getCatalog();
                                                     <input type="hidden" name="accion" value="agregar_favorito">
                                                     <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
                                                     <button type="button" class="custom-btn btn-user" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
-                                                        <span><i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas' : 'far' ?> fa-heart"></i></span>
+                                                        <span><i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas fa-heart-broken' : 'far fa-heart' ?>"></i> Agregar a favoritos</span>
                                                     </button>
                                                 </form>
-                                                <form id="carrito-form-<?= $producto['id'] ?>" method="post">
-                                                    <input type="hidden" name="accion" value="agregar_carrito">
-                                                    <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                                    <input type="hidden" name="cantidad" value="1">
-                                                    <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
-                                                        <span>Agregar al carrito</span>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="custom-btn btn-user">
+                                                    <span>Ver detalles</span>
+                                                </button>
                                             <?php else: ?>
                                                 <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
-                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i></span>
+                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i> Agregar a favoritos</span>
                                                 </button>
-                                                <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_carrito=error'">
-                                                    <span>Agregar al carrito</span>
-                                                </button>
+                                                <button type="button" class="custom-btn btn-user"><span>Ver detalles</span></button>
                                             <?php endif; ?>
                                         </div>
                                     </div>

@@ -1,46 +1,30 @@
 function addToCart(productoId) {
-    fetch('../../verifications/paginaIntermedia.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `accion=agregar_carrito&producto_id=${encodeURIComponent(productoId)}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            console.log(`Producto ${productoId} agregado al carrito`);
-            showPopup('Producto agregado al carrito.');
-        } else {
-            console.error("Error al agregar el producto al carrito: ", data.error);
-        }
-    })
-    .catch(err => {
-        console.error("Error al agregar el producto al carrito: ", err);
-    });
-}
+    const plataformaSelect = document.getElementById('plataforma-select');
+    const cantidadSelect = document.getElementById('cantidad-select');
 
-function removeFromCart(productoId) {
+    const plataformaId = plataformaSelect ? plataformaSelect.value : null;
+    const cantidad = cantidadSelect ? cantidadSelect.value : 1;
+
+    if (!plataformaId) {
+        showPopup('Por favor, seleccione una plataforma.');
+        return;
+    }
+
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `accion=eliminar_carrito&producto_id=${encodeURIComponent(productoId)}`
+        body: `accion=agregar_carrito&producto_id=${encodeURIComponent(productoId)}&plataforma_id=${encodeURIComponent(plataformaId)}&cantidad=${encodeURIComponent(cantidad)}`
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            const card = document.querySelector(`#cart-card-${productoId}`);
-            if (card) {
-                card.remove();
-            }
-            showPopup('Producto eliminado del carrito.');
+        if (data.exito) {
+            showPopup(data.mensaje || 'Producto agregado al carrito.');
         } else {
-            console.error("Error al eliminar el producto del carrito: ", data.error);
-            const msg = data.error === 'db_error'
-                ? 'No se pudo eliminar el producto del carrito.'
-                : 'Ocurrió un error inesperado.';
-            showPopup(msg);
+            showPopup(data.mensaje || 'No se pudo agregar al carrito.');
         }
     })
     .catch(err => {
-        console.error("Error al eliminar el producto del carrito: ", err);
+        console.error("Error al agregar al carrito:", err);
+        showPopup('Ocurrió un error inesperado.');
     });
 }
