@@ -701,7 +701,7 @@ function getDiscountedPrice($conn, $productoId)
 function getAvailableStock($conn, $productoId, $plataformaId)
 {
     $query = $conn->prepare("
-        SELECT stock_disponible - IFNULL(stock_reservado, 0) AS stock_disponible
+        SELECT stock_disponible
         FROM producto_stock
         WHERE producto_id = ? AND plataforma_id = ?
     ");
@@ -719,6 +719,10 @@ function getAvailableStock($conn, $productoId, $plataformaId)
 
 function reserveProductStock($conn, $productoId, $plataformaId, $cantidad)
 {
+    if ($cantidad <= 0) {
+        return false;
+    }
+
     $query = $conn->prepare("
         UPDATE producto_stock
         SET 
@@ -726,6 +730,11 @@ function reserveProductStock($conn, $productoId, $plataformaId, $cantidad)
             stock_disponible = stock_disponible - ?
         WHERE producto_id = ? AND plataforma_id = ? AND stock_disponible >= ?
     ");
+
+    if (!$query) {
+        return false;
+    }
+    
     $query->bind_param("iiiii", $cantidad, $cantidad, $productoId, $plataformaId, $cantidad);
     $query->execute();
     $exito = $query->affected_rows > 0;
@@ -863,9 +872,6 @@ function addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantid
     $item = getCartItem($conn, $carritoId, $productoId, $plataformaId);
     if ($item) {
         $nuevaCantidad = $item['cantidad'] + $cantidad;
-        if ($nuevaCantidad > $stockDisponible) {
-            return ['exito' => false, 'mensaje' => 'Stock insuficiente al actualizar.'];
-        }
         updateCartItem($conn, $item['id'], $nuevaCantidad, $precioUnitario);
     } else {
         insertCartItem($conn, $carritoId, $productoId, $plataformaId, $cantidad, $precioUnitario);

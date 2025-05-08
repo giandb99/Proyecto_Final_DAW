@@ -25,7 +25,7 @@ function addToCart(productoId) {
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto agregado al carrito.');
-                stockInfo.textContent = `Stock disponible: ${data.stock_restante || 'Sin stock disponible'}`;
+                stockInfo.textContent = `Stock disponible: ${data.stock_restante || '0'}`;
             } else {
                 showPopup(data.mensaje || 'No se pudo agregar al carrito.');
             }
@@ -65,8 +65,8 @@ function obtenerStock(productoId, plataformaId, stockInfo) {
 document.addEventListener('DOMContentLoaded', function () {
     const plataformaSelect = document.getElementById('plataforma-select');
     const stockInfo = document.getElementById('stock-info');
-    const productoId = document.getElementById('product-form').dataset.productoId;
-    stockInfo.style.color = "red";
+    const productoId = document.getElementById('product-form').dataset.productoId;    
+
     // Detectar el cambio en la plataforma seleccionada
     plataformaSelect.addEventListener('change', function () {
         const plataformaId = plataformaSelect.value;
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
             obtenerStock(productoId, plataformaId, stockInfo);
             stockInfo.style.color = "lightgreen";
         } else {
-            stockInfo.textContent = "Stock disponible:  ----- ";
+            stockInfo.textContent = "Stock disponible: Seleccione una plataforma";
             stockInfo.style.color = "red";
         }
     });

@@ -207,24 +207,6 @@ body {
     margin: 2rem 0;
 }
 
-::-webkit-scrollbar {
-    width: 12px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: #121212;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #05e5e5;
-    border: 2px solid #1e293b;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #11b0b0;
-}
-
 @keyframes pulse {
     0% {
         transform: scale(1);
