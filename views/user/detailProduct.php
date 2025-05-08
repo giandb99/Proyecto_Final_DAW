@@ -84,14 +84,14 @@ if (!$producto) {
                 <form id="product-form" data-producto-id="<?= $producto['id'] ?>">
                     <label for="plataforma-select">Plataforma:</label>
                     <select id="plataforma-select" name="plataforma_id" required>
-                        <option value="">Elegí una plataforma</option>
+                        <option value="">Elige una plataforma</option>
                         <?php foreach ($plataformas as $plataforma): ?>
                             <option value="<?= $plataforma['plataforma_id'] ?>"><?= htmlspecialchars($plataforma['plataforma_nombre']) ?></option>
                         <?php endforeach; ?>
                     </select>
 
                     <div class="product-details">
-                        <p class="stock-display" id="stock-info">Stock disponible: </p>
+                        <p class="stock-display" id="stock-info">Stock disponible: ----- </p>
                         <p>Fecha de lanzamiento: <?= date("d/m/Y", strtotime($producto['fecha_lanzamiento'])) ?></p>
                     </div>
 
@@ -105,20 +105,20 @@ if (!$producto) {
                 
                 <?php if ($usuarioLogueado): ?>
                     <div class="buttons-container" style="display: flex;">
-                        <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
+                        <button type="button" class="custom-btn btn-user" onclick="addToFav(<?= $producto['id'] ?>)">
                             <span><i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas fa-heart-broken' : 'far fa-heart' ?>"></i> Agregar a favoritos</span>
                         </button>
                         
-                        <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); addToCart(<?= $producto['id'] ?>)">
+                        <button type="button" class="custom-btn btn-user" onclick="addToCart(<?= $producto['id'] ?>)">
                             <span><i class="fas fa-cart-plus"></i> Agregar al carrito</span>
                         </button>
                     </div>
                 <?php else: ?>
                     <div class="buttons-container" style="display: flex;">
-                        <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
+                        <button type="button" class="custom-btn btn-user" onclick="window.location.href='detailProduct.php?id=<?= $producto['id'] ?>&agregar_favorito=error'">
                             <span><i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i> Agregar a favoritos</span>
                         </button>
-                        <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
+                        <button type="button" class="custom-btn btn-user" onclick="window.location.href='detailProduct.php?id=<?= $producto['id'] ?>&agregar_carrito=error'">
                             <span><i class="fas fa-cart-plus"></i> Agregar al carrito</span>
                         </button>
                     </div>
@@ -157,6 +157,5 @@ if (!$producto) {
     <script src="../../scripts/popup.js"></script>
     <script src="../../scripts/detailProduct.js"></script>
     <script src="../../scripts/favs.js"></script>
-    <script src="../../scripts/cart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>

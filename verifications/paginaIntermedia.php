@@ -329,16 +329,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'obtener_stock':
-            $producto_id = $_POST['producto_id'];
-            $plataforma_id = $_POST['plataforma_id'];
-            $stock = getStockByProductPlatform($producto_id, $plataforma_id);
-            echo json_encode(['stock' => $stock]);
-            exit;
+            header('Content-Type: application/json');
+
+            $productoId = $_POST['producto_id'] ?? null;
+            $plataformaId = $_POST['plataforma_id'] ?? null;
+
+            if (!$productoId || !$plataformaId) {
+                echo json_encode(['success' => false, 'error' => 'missing_data']);
+                exit;
+            }
+            
+            $conn = conexion();
+            $stock = getAvailableStock($conn, $productoId, $plataformaId);
+            cerrar_conexion($conn);
+            
+            echo json_encode(['success' => true, 'stock' => $stock]);
+            break;
 
         case 'agregar_carrito':
-            header('Content-Type: application/json'); // Asegura que la respuesta sea JSON
+            header('Content-Type: application/json');
 
-            // Verificar si el usuario está logueado
             if (!isset($_SESSION['usuario']['id'])) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para agregar productos al carrito.']);
                 exit;
@@ -347,9 +357,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $usuarioId = $_SESSION['usuario']['id'];
             $productoId = $_POST['producto_id'] ?? null;
             $plataformaId = $_POST['plataforma_id'] ?? null;
-            $cantidad = $_POST['cantidad'] ?? 1;
+            $cantidad = isset($_POST['cantidad']) ? intval($_POST['cantidad']) : 1;
 
-            // Validar los datos recibidos
             if (!$productoId || !$plataformaId || !is_numeric($cantidad) || $cantidad <= 0) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Datos inválidos.']);
                 exit;
@@ -357,7 +366,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $conn = conexion();
 
-            // Obtener el precio unitario con descuento (si aplica)
+            // Obtener el precio final del producto
             $precioUnitario = getDiscountedPrice($conn, $productoId);
             if ($precioUnitario === null) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Producto no encontrado o inválido.']);
@@ -365,17 +374,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
-            // Agregar el producto al carrito
+            // Intentar agregar el producto al carrito
             $resultado = addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantidad, $precioUnitario);
 
             cerrar_conexion($conn);
 
-            // Devolver la respuesta en formato JSON
             echo json_encode([
                 'exito' => $resultado['exito'],
-                'mensaje' => $resultado['mensaje']
+                'mensaje' => $resultado['mensaje'],
+                'stock_restante' => $resultado['stock_restante'] ?? null
             ]);
-            exit;
+            break;
 
         case 'eliminar_carrito':
 

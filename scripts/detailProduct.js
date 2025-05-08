@@ -1,9 +1,46 @@
 /**
- * Función para obtener el stock de un producto en una plataforma específica
- * @param int productoId - ID del producto
- * @param int plataformaId - ID de la plataforma seleccionada
- * @param HTMLElement stockInfo - Elemento donde se mostrará la información del stock
- * @returns void
+ * Función para manejar la lógica de agregar un producto al carrito.
+ * También verifica el stock disponible antes de agregarlo.
+ * @param {number} productoId - ID del producto.
+ */
+function addToCart(productoId) {
+    const plataformaSelect = document.getElementById('plataforma-select');
+    const cantidadSelect = document.getElementById('cantidad-select');
+    const stockInfo = document.getElementById('stock-info');
+
+    const plataformaId = plataformaSelect ? plataformaSelect.value : null;
+    const cantidad = cantidadSelect ? cantidadSelect.value : 1;
+
+    if (!plataformaId) {
+        showPopup('Por favor, seleccione una plataforma.');
+        return;
+    }
+
+    fetch('../../verifications/paginaIntermedia.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `accion=agregar_carrito&producto_id=${encodeURIComponent(productoId)}&plataforma_id=${encodeURIComponent(plataformaId)}&cantidad=${encodeURIComponent(cantidad)}`
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                showPopup(data.mensaje || 'Producto agregado al carrito.');
+                stockInfo.textContent = `Stock disponible: ${data.stock_restante || 'Sin stock disponible'}`;
+            } else {
+                showPopup(data.mensaje || 'No se pudo agregar al carrito.');
+            }
+        })
+        .catch(err => {
+            console.error("Error al agregar al carrito:", err);
+            showPopup('Ocurrió un error inesperado.');
+        });
+}
+
+/**
+ * Función para obtener el stock de un producto en una plataforma específica.
+ * @param {number} productoId - ID del producto.
+ * @param {number} plataformaId - ID de la plataforma seleccionada.
+ * @param {HTMLElement} stockInfo - Elemento donde se mostrará la información del stock.
  */
 function obtenerStock(productoId, plataformaId, stockInfo) {
     fetch('../../verifications/paginaIntermedia.php', {
@@ -28,20 +65,23 @@ function obtenerStock(productoId, plataformaId, stockInfo) {
 document.addEventListener('DOMContentLoaded', function () {
     const plataformaSelect = document.getElementById('plataforma-select');
     const stockInfo = document.getElementById('stock-info');
-
+    const productoId = document.getElementById('product-form').dataset.productoId;
+    stockInfo.style.color = "red";
     // Detectar el cambio en la plataforma seleccionada
     plataformaSelect.addEventListener('change', function () {
         const plataformaId = plataformaSelect.value;
-        const productoId = document.getElementById('product-form').dataset.productoId;
 
-        // Llamar a la función que hace la petición AJAX
+        // Llamar a la función que hace la petición AJAX para obtener el stock
         if (plataformaId) {
             obtenerStock(productoId, plataformaId, stockInfo);
+            stockInfo.style.color = "lightgreen";
         } else {
-            stockInfo.textContent = "Stock disponible: ";
+            stockInfo.textContent = "Stock disponible:  ----- ";
+            stockInfo.style.color = "red";
         }
     });
 
+    // Configuración del carrusel
     if (typeof $ !== 'undefined' && $('.slick-carousel').length > 0) {
         $('.slick-carousel').slick({
             slidesToShow: 4,

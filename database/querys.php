@@ -279,7 +279,7 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
     ");
 
     $query->bind_param(
-        "ssssiddi",
+        "ssssdddi",
         $nombre,
         $imagen,
         $descripcion,
@@ -601,25 +601,6 @@ function getPlatformsByProduct($productoId)
     return $plataformas;
 }
 
-function getStockByProductPlatform($productoId, $plataformaId)
-{
-    $conn = conexion();
-    $query = $conn->prepare("
-        SELECT stock_disponible
-        FROM producto_stock
-        WHERE producto_id = ? AND plataforma_id = ?
-    ");
-    $query->bind_param("ii", $productoId, $plataformaId);
-    $query->execute();
-    $result = $query->get_result();
-    $stock = $result->fetch_assoc()['stock_disponible'] ?? 0;
-
-    $query->close();
-    cerrar_conexion($conn);
-
-    return $stock;
-}
-
 function getRelatedProducts($producto_id, $limit = 10)
 {
     $conn = conexion();
@@ -678,14 +659,14 @@ function getRelatedProducts($producto_id, $limit = 10)
  * @param int $plataformaId ID de la plataforma.
  * @return int|null ID de la combinación producto-plataforma o null si no existe.
  */
-function getProductoPlataformaId($conn, $productoId, $plataformaId)
+function getProductPlataformId($conn, $productoId, $plataformaId)
 {
-    $query = $conn->prepare("SELECT 1 FROM producto_plataforma WHERE producto_id = ? AND plataforma_id = ?");
+    $query = $conn->prepare("SELECT 1 FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
     $query->bind_param("ii", $productoId, $plataformaId);
     $query->execute();
     $result = $query->get_result();
     $query->close();
-    return ($result->num_rows > 0) ? true : null;
+    return ($result->num_rows > 0);
 }
 
 /**
@@ -717,9 +698,8 @@ function getDiscountedPrice($conn, $productoId)
 
 /* ------------- STOCK -------------  */
 
-function getAvailableStock($productoId, $plataformaId)
+function getAvailableStock($conn, $productoId, $plataformaId)
 {
-    $conn = conexion();
     $query = $conn->prepare("
         SELECT stock_disponible - IFNULL(stock_reservado, 0) AS stock_disponible
         FROM producto_stock
@@ -729,29 +709,28 @@ function getAvailableStock($productoId, $plataformaId)
     $query->execute();
     $result = $query->get_result();
     $query->close();
-    cerrar_conexion($conn);
 
     if ($result->num_rows > 0) {
-        return $result->fetch_assoc()['stock_disponible'];
+        return (int)$result->fetch_assoc()['stock_disponible'];
     }
 
     return null;
 }
 
-function reserveProductStock($productoId, $plataformaId, $cantidad)
+function reserveProductStock($conn, $productoId, $plataformaId, $cantidad)
 {
-    $conn = conexion();
     $query = $conn->prepare("
         UPDATE producto_stock
         SET 
             stock_reservado = stock_reservado + ?,
             stock_disponible = stock_disponible - ?
-        WHERE producto_id = ? AND plataforma_id = ?
+        WHERE producto_id = ? AND plataforma_id = ? AND stock_disponible >= ?
     ");
-    $query->bind_param("iiii", $cantidad, $cantidad, $productoId, $plataformaId);
+    $query->bind_param("iiiii", $cantidad, $cantidad, $productoId, $plataformaId, $cantidad);
     $query->execute();
+    $exito = $query->affected_rows > 0;
     $query->close();
-    cerrar_conexion($conn);
+    return $exito;
 }
 
 // funcion que libera el stock reservado de un producto si se elimina del carrito
@@ -786,32 +765,37 @@ function createCart($usuarioId)
 
 function getActiveCartId($conn, $usuarioId)
 {
-    error_log("Debug: Buscando carrito activo para Usuario ID: $usuarioId");
-    $query = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1 LIMIT 1");
+    $query = $conn->prepare("SELECT id FROM carrito WHERE creado_por = ? AND activo = 1");
     $query->bind_param("i", $usuarioId);
     $query->execute();
     $result = $query->get_result();
     $query->close();
     $carritoId = ($result->num_rows > 0) ? $result->fetch_assoc()['id'] : null;
-    error_log("Debug: Carrito activo encontrado: " . ($carritoId ?? 'Ninguno'));
     return $carritoId;
 }
 
-function getCartItem($conn, $carritoId, $productoPlataformaId)
+function getCartItem($conn, $carritoId, $productoId, $plataformaId)
 {
-    $query = $conn->prepare("SELECT id, cantidad FROM carrito_item WHERE carrito_id = ? AND producto_plataforma_id = ?");
-    $query->bind_param("ii", $carritoId, $productoPlataformaId);
+    $query = $conn->prepare("
+        SELECT id, cantidad 
+        FROM carrito_item 
+        WHERE carrito_id = ? AND producto_id = ? AND plataforma_id = ?
+    ");
+    $query->bind_param("iii", $carritoId, $productoId, $plataformaId);
     $query->execute();
     $result = $query->get_result();
     $query->close();
     return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
 }
 
-function insertCartItem($conn, $carritoId, $productoPlataformaId, $cantidad, $precioUnitario)
+function insertCartItem($conn, $carritoId, $productoId, $plataformaId, $cantidad, $precioUnitario)
 {
     $precioTotal = $precioUnitario * $cantidad;
-    $query = $conn->prepare("INSERT INTO carrito_item (carrito_id, producto_plataforma_id, cantidad, precio_total) VALUES (?, ?, ?, ?)");
-    $query->bind_param("iiid", $carritoId, $productoPlataformaId, $cantidad, $precioTotal);
+    $query = $conn->prepare("
+        INSERT INTO carrito_item (carrito_id, producto_id, plataforma_id, cantidad, precio_total)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $query->bind_param("iiiid", $carritoId, $productoId, $plataformaId, $cantidad, $precioTotal);
     $query->execute();
     $query->close();
 }
@@ -861,46 +845,47 @@ function getCartItems($conn, $carritoId)
 
 function addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantidad, $precioUnitario)
 {
-    error_log("Debug: Usuario ID: $usuarioId, Producto ID: $productoId, Plataforma ID: $plataformaId, Cantidad: $cantidad, Precio Unitario: $precioUnitario");
-
     $carritoId = getActiveCartId($conn, $usuarioId);
     if (!$carritoId) {
-        error_log("Error: No se encontró un carrito activo para el usuario $usuarioId");
         return ['exito' => false, 'mensaje' => 'No se encontró un carrito activo.'];
     }
 
-    $productoPlataformaId = getProductoPlataformaId($conn, $productoId, $plataformaId);
-    if (!$productoPlataformaId) {
-        error_log("Error: Combinación producto-plataforma no válida para Producto ID: $productoId y Plataforma ID: $plataformaId");
+    $combinacionValida = getProductPlataformId($conn, $productoId, $plataformaId);
+    if (!$combinacionValida) {
         return ['exito' => false, 'mensaje' => 'Combinación producto-plataforma no válida.'];
     }
 
-    $stockDisponible = getAvailableStock($productoId, $productoPlataformaId);
-    if ($cantidad > $stockDisponible) {
-        error_log("Error: Stock insuficiente para Producto-Plataforma ID: $productoPlataformaId. Stock disponible: $stockDisponible, Cantidad solicitada: $cantidad");
+    $stockDisponible = getAvailableStock($conn, $productoId, $plataformaId);
+    if ($stockDisponible === null || $cantidad > $stockDisponible) {
         return ['exito' => false, 'mensaje' => 'Stock insuficiente.'];
     }
 
-    $item = getCartItem($conn, $carritoId, $productoPlataformaId);
+    $item = getCartItem($conn, $carritoId, $productoId, $plataformaId);
     if ($item) {
         $nuevaCantidad = $item['cantidad'] + $cantidad;
         if ($nuevaCantidad > $stockDisponible) {
-            error_log("Error: Stock insuficiente al actualizar. Nueva cantidad: $nuevaCantidad, Stock disponible: $stockDisponible");
             return ['exito' => false, 'mensaje' => 'Stock insuficiente al actualizar.'];
         }
         updateCartItem($conn, $item['id'], $nuevaCantidad, $precioUnitario);
-        error_log("Info: Producto actualizado en el carrito. Item ID: {$item['id']}, Nueva cantidad: $nuevaCantidad");
     } else {
-        insertCartItem($conn, $carritoId, $productoPlataformaId, $cantidad, $precioUnitario);
-        error_log("Info: Producto insertado en el carrito. Carrito ID: $carritoId, Producto-Plataforma ID: $productoPlataformaId, Cantidad: $cantidad");
+        insertCartItem($conn, $carritoId, $productoId, $plataformaId, $cantidad, $precioUnitario);
     }
 
-    return ['exito' => true, 'mensaje' => 'Producto agregado al carrito.'];
+    // Reservar stock
+    if (!reserveProductStock($conn, $productoId, $plataformaId, $cantidad)) {
+        return ['exito' => false, 'mensaje' => 'No se pudo reservar stock.'];
+    }
+
+    return [
+        'exito' => true,
+        'mensaje' => 'Producto agregado al carrito.',
+        'stock_restante' => $stockDisponible - $cantidad
+    ];
 }
 
 function removeProductFromCart($conn, $carritoId, $productoPlataformaId)
 {
-    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ? AND producto_plataforma_id = ?");
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ? AND plataforma_id = ?");
     $query->bind_param("ii", $carritoId, $productoPlataformaId);
     $query->execute();
     $query->close();
