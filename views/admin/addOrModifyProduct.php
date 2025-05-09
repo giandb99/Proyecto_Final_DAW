@@ -83,7 +83,7 @@ $exito = $_GET['exito'] ?? null;
                             $generoId = $genero['id'];
                             $checked = in_array($generoId, $generosSeleccionados);
                         ?>
-                            <label>
+                            <label class="genero-label">
                                 <input type="checkbox" name="generos[]" value="<?= $generoId ?>" <?= $checked ? 'checked' : '' ?>>
                                 <?= htmlspecialchars($genero['nombre']) ?>
                             </label>
@@ -97,20 +97,28 @@ $exito = $_GET['exito'] ?? null;
                             $plataformaId = $plataforma['id'];
                             $checked = in_array($plataformaId, $plataformasSeleccionadas);
                         ?>
-                            <label style="display: block; margin-bottom: 5px;">
-                                <input type="checkbox" name="plataformas[]" value="<?= $plataformaId ?>" <?= $checked ? 'checked' : '' ?>>
-                                <?= htmlspecialchars($plataforma['nombre']) ?>
-                                <input type="number" name="stock[<?= $plataformaId ?>]" placeholder="Stock para esta plataforma"
+                            <div class="plataforma" style="display: flex; align-items: center; justify-content: space-between;">
+                                <label class="plataforma-label">
+                                    <input type="checkbox" name="plataformas[]" value="<?= $plataformaId ?>" <?= $checked ? 'checked' : '' ?>>
+                                    <?= htmlspecialchars($plataforma['nombre']) ?>
+                                </label>
+                                <input class="plataforma-stock" type="number" name="stock[<?= $plataformaId ?>]"
+                                    <?= !$checked ? 'disabled' : '' ?>
                                     value="<?= htmlspecialchars($stockPorPlataforma[$plataformaId] ?? 0) ?>" min="0">
-                            </label>
+
+                            </div>
                         <?php endforeach; ?>
                     </fieldset>
 
-                    <label for="imagen">Imagen del producto:</label>
-                    <input type="file" id="image" name="image" accept="image/*">
-                    <?php if ($modoEdicion): ?>
+                    <label for="imagen"><?= $modoEdicion ? 'Imagen actual del producto:' : 'Imagen del producto:' ?></label>
+                    <?php if ($modoEdicion && !empty($producto['imagen'])): ?>
+                        <div class="current-image">
+                            <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="Imagen actual del producto" style="width: 100%;">
+                        </div>
                         <p class="image-advice">Si seleccionas una nueva imagen, reemplazarás la actual.</p>
                     <?php endif; ?>
+
+                    <input type="file" id="image" name="image" accept="image/*">
 
                     <?php if (!empty($errores)): ?>
                         <div class="error-msg-container">
@@ -134,6 +142,21 @@ $exito = $_GET['exito'] ?? null;
 
     <?php include '../elements/footer.php' ?>
 
-</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const plataformasCheckboxes = document.querySelectorAll('.plataforma input[type="checkbox"]');
 
-</html>
+            plataformasCheckboxes.forEach(checkbox => {
+                const plataformaDiv = checkbox.closest('.plataforma');
+                const stockInput = plataformaDiv.querySelector('.plataforma-stock');
+
+                // Inicializar estado al cargar
+                stockInput.disabled = !checkbox.checked;
+
+                // Listener al hacer clic
+                checkbox.addEventListener('change', function() {
+                    stockInput.disabled = !this.checked;
+                });
+            });
+        });
+    </script>

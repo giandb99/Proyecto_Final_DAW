@@ -265,64 +265,79 @@ function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
  * @param float $descuento Descuento del producto.
  * @param int $stock Stock del producto.
  * @param int $plataforma_id ID de la plataforma del producto.
+ * @param int $actualizado_por ID del usuario que actualizó el producto.
  * @return void Redirige a la página de productos o muestra un error.
  */
 function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, $generos, $precio, $descuento, $stock, $plataformas, $actualizado_por)
 {
     $conn = conexion();
 
-    // Actualiza la información del producto
+    // Actualiza la información principal del producto
     $query = $conn->prepare("
         UPDATE producto 
-        SET nombre = ?, imagen = ?, descripcion = ?, fecha_lanzamiento = ?, precio = ?, descuento = ?, actualizado_por = ?
+        SET nombre = ?, imagen = ?, 
+        descripcion = ?, fecha_lanzamiento = ?, 
+        precio = ?, descuento = ?, actualizado_por = ?
         WHERE id = ?
     ");
-
     $query->bind_param(
-        "ssssdddi",
-        $nombre,
-        $imagen,
-        $descripcion,
-        $fecha_lanzamiento,
-        $precio,
-        $descuento,
-        $actualizado_por,
+        "ssssdddi", 
+        $nombre, $imagen, 
+        $descripcion, $fecha_lanzamiento, 
+        $precio, $descuento, $actualizado_por, 
         $id
     );
-
     $result = $query->execute();
+    $query->close();
 
     if ($result) {
-        // Comparar géneros actuales con los enviados
         $generosActuales = getSelectedGenreIds($id);
         sort($generosActuales);
-        $generosRecibidos = $generos;
-        sort($generosRecibidos);
+        sort($generos);
 
-        if ($generosActuales !== $generosRecibidos) {
-            // Eliminar los existentes
+        if ($generosActuales !== $generos) {
             $conn->query("DELETE FROM producto_genero WHERE producto_id = $id");
-
-            // Agregar los nuevos
-            foreach ($generosRecibidos as $genero_id) {
+            foreach ($generos as $genero_id) {
                 addProductGenre($id, $genero_id);
             }
         }
 
         // Comparar plataformas actuales con las enviadas
         $plataformasActuales = getSelectedPlatformIds($id);
-        sort($plataformasActuales);
-        $plataformasRecibidas = $plataformas;
-        sort($plataformasRecibidas);
+        $plataformasAEliminar = array_diff($plataformasActuales, $plataformas);
+        $plataformasANuevas = array_diff($plataformas, $plataformasActuales);
+        $plataformasExistentes = array_intersect($plataformas, $plataformasActuales);
 
-        if ($plataformasActuales !== $plataformasRecibidas) {
-            $conn->query("DELETE FROM producto_plataforma WHERE producto_id = $id");
-            $conn->query("DELETE FROM producto_stock WHERE producto_id = $id");
+        // Eliminar plataformas que ya no están seleccionadas
+        foreach ($plataformasAEliminar as $plataforma_id) {
+            $stmt = $conn->prepare("DELETE FROM producto_plataforma WHERE producto_id = ? AND plataforma_id = ?");
+            $stmt->bind_param("ii", $id, $plataforma_id);
+            $stmt->execute();
+            $stmt->close();
 
-            foreach ($plataformasRecibidas as $plataforma_id) {
-                $stock_plataforma = $stock[$plataforma_id] ?? 0;
-                addProductPlatform($id, $plataforma_id, $stock_plataforma);
-            }
+            $stmt = $conn->prepare("DELETE FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
+            $stmt->bind_param("ii", $id, $plataforma_id);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        // Agregar plataformas nuevas
+        foreach ($plataformasANuevas as $plataforma_id) {
+            $nuevoStock = $stock[$plataforma_id] ?? 0;
+            addProductPlatform($id, $plataforma_id, $nuevoStock);
+        }
+
+        // Actualizar stock disponible para las plataformas existentes (sin tocar el reservado)
+        foreach ($plataformasExistentes as $plataforma_id) {
+            $nuevoStock = $stock[$plataforma_id] ?? 0;
+            $stmt = $conn->prepare("
+                UPDATE producto_stock 
+                SET stock_disponible = ? 
+                WHERE producto_id = ? AND plataforma_id = ?
+            ");
+            $stmt->bind_param("iii", $nuevoStock, $id, $plataforma_id);
+            $stmt->execute();
+            $stmt->close();
         }
 
         header("Location: ../views/admin/products.php?exito=Producto+modificado+con+éxito.");
@@ -330,7 +345,6 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
         header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+modificar+el+producto.");
     }
 
-    $query->close();
     cerrar_conexion($conn);
 }
 
@@ -426,7 +440,6 @@ function getAllProducts()
             producto.imagen,
             producto.precio,
             producto.descuento,
-            COALESCE(ps.stock_disponible, 0) AS stock_disponible,
             GROUP_CONCAT(DISTINCT genero.nombre) AS genero,
             GROUP_CONCAT(DISTINCT plataforma.nombre) AS plataforma
         FROM producto
@@ -634,7 +647,7 @@ function getRelatedProducts($producto_id, $limit = 10)
         WHERE pg.genero_id IN ($placeholders)
         AND p.id != ?
         AND p.activo = 1
-        ORDER BY p.creado_en DESC
+        ORDER BY p.id DESC
         LIMIT $limit
     ");
     $query->bind_param($types, ...$params);
@@ -648,7 +661,6 @@ function getRelatedProducts($producto_id, $limit = 10)
 
     $query->close();
     cerrar_conexion($conn);
-
     return $productosRelacionados;
 }
 
@@ -734,7 +746,7 @@ function reserveProductStock($conn, $productoId, $plataformaId, $cantidad)
     if (!$query) {
         return false;
     }
-    
+
     $query->bind_param("iiiii", $cantidad, $cantidad, $productoId, $plataformaId, $cantidad);
     $query->execute();
     $exito = $query->affected_rows > 0;
