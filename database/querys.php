@@ -281,10 +281,14 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
         WHERE id = ?
     ");
     $query->bind_param(
-        "ssssdddi", 
-        $nombre, $imagen, 
-        $descripcion, $fecha_lanzamiento, 
-        $precio, $descuento, $actualizado_por, 
+        "ssssdddi",
+        $nombre,
+        $imagen,
+        $descripcion,
+        $fecha_lanzamiento,
+        $precio,
+        $descuento,
+        $actualizado_por,
         $id
     );
     $result = $query->execute();
@@ -308,14 +312,22 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
         $plataformasANuevas = array_diff($plataformas, $plataformasActuales);
         $plataformasExistentes = array_intersect($plataformas, $plataformasActuales);
 
-        // Eliminar plataformas que ya no están seleccionadas
+        // Se recorre la lista de plataformas a eliminar
         foreach ($plataformasAEliminar as $plataforma_id) {
+            // Eliminar la relación del producto con la plataforma
             $stmt = $conn->prepare("DELETE FROM producto_plataforma WHERE producto_id = ? AND plataforma_id = ?");
             $stmt->bind_param("ii", $id, $plataforma_id);
             $stmt->execute();
             $stmt->close();
 
+            // Eliminar el stock del producto para la plataforma
             $stmt = $conn->prepare("DELETE FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
+            $stmt->bind_param("ii", $id, $plataforma_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // Eliminar producto del carrito 
+            $stmt = $conn->prepare("DELETE FROM carrito_item WHERE producto_id = ? AND plataforma_id = ?");
             $stmt->bind_param("ii", $id, $plataforma_id);
             $stmt->execute();
             $stmt->close();
