@@ -31,7 +31,8 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    margin: 2rem 3rem;
+    margin: 2rem auto;
+    max-width: 1400px;
 }
 
 .catalog-container {
@@ -53,7 +54,7 @@ body {
 
 .catalog-items {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));;
     gap: 2rem;
     justify-items: center;
 }

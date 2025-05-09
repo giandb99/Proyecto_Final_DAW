@@ -846,9 +846,9 @@ function getCartItems($conn, $carritoId)
 {
     $query = $conn->prepare("
         SELECT 
-            ci.id AS item_id,
+            ci.id AS id,
             ci.producto_id,
-            p.nombre AS producto_nombre,
+            p.nombre AS nombre,
             p.imagen,
             ci.plataforma_id,
             pl.nombre AS plataforma_nombre,
@@ -913,14 +913,6 @@ function addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantid
     ];
 }
 
-function removeProductFromCart($conn, $carritoId, $productoPlataformaId)
-{
-    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ? AND plataforma_id = ?");
-    $query->bind_param("ii", $carritoId, $productoPlataformaId);
-    $query->execute();
-    $query->close();
-}
-
 function getCartSummary($conn, $carritoId)
 {
     $totalOriginal = 0;
@@ -934,7 +926,6 @@ function getCartSummary($conn, $carritoId)
             ) AS total_descuento
         FROM carrito_item ci
         JOIN producto p ON ci.producto_id = p.id
-        -- Opcional: validar si el producto está disponible en esa plataforma
         JOIN producto_plataforma pp ON ci.producto_id = pp.producto_id AND ci.plataforma_id = pp.plataforma_id
         WHERE ci.carrito_id = ?
     ");
@@ -949,10 +940,27 @@ function getCartSummary($conn, $carritoId)
     $subtotal = $totalOriginal - $totalDescuento;
 
     return [
-        'total_original' => round($totalOriginal, 2),
-        'total_descuento' => round($totalDescuento, 2),
+        'total' => round($totalOriginal, 2),
+        'descuento' => round($totalDescuento, 2),
         'subtotal' => round($subtotal, 2)
     ];
+}
+
+function removeProductFromCart($conn, $carritoId, $productoPlataformaId)
+{
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ? AND plataforma_id = ?");
+    $query->bind_param("ii", $carritoId, $productoPlataformaId);
+    $query->execute();
+    $query->close();
+}
+
+function emptyCart($conn, $carritoId)
+{
+    // Podés sumar lógica para devolver el stock también
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ?");
+    $query->bind_param("i", $carritoId);
+    $query->execute();
+    $query->close();
 }
 
 /* ------------- FAVORITOS -------------  */

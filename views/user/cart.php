@@ -6,7 +6,7 @@ session_start();
 
 $usuarioLogueado = isset($_SESSION['usuario']['id']);
 $carritoItems = [];
-$resumenCarrito = ['total' => 0, 'descuento' => 0, 'total_final' => 0];
+$resumenCarrito = ['total' => 0, 'descuento' => 0, 'subtotal' => 0];
 
 if ($usuarioLogueado) {
     $conn = conexion();
@@ -81,7 +81,7 @@ if ($usuarioLogueado) {
                                     <div class="cart-card-details">
                                         <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
                                         <p style="color: red;">Cantidad: <?= $producto['cantidad'] ?></p>
-                                        <p>Precio: $<?= number_format($producto['precio_total'], 2) ?></p>
+                                        <p>Precio: $<?= number_format($producto['precio_total_descuento'], 2) ?></p>
                                     </div>
                                     <button class="custom-btn btn-user" type="button" onclick="removeFromCart(<?= $producto['id'] ?>)">
                                         <span>Eliminar</span>
@@ -96,7 +96,7 @@ if ($usuarioLogueado) {
                                 <h2>Resumen</h2>
                                 <p>Precio original: <span id="total-price">$<?= number_format($resumenCarrito['total'], 2) ?></span></p>
                                 <p>Descuento: <span id="discount">- $<?= number_format($resumenCarrito['descuento'], 2) ?></span></p>
-                                <p><strong>Subtotal: <span id="final-price">$<?= number_format($resumenCarrito['total_final'], 2) ?></span></strong></p>
+                                <p><strong>Subtotal: <span id="final-price">$<?= number_format($resumenCarrito['subtotal'], 2) ?></span></strong></p>
                             </div>
 
                             <div class="summary-actions">
