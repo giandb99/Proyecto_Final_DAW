@@ -53,24 +53,27 @@ if ($usuarioLogueado) {
         <?php else: ?>
 
             <section class="cart-container">
-                <?php if (count($carritoItems) > 0): ?>
+                <?php if (count($carritoItems) == 0): ?>
+                    <div class="empty-cart">
+                        <h2>Tu carrito está vacío</h2>
+                        <p>¡No te preocupes! Descubre los mejores videojuegos en nuestro catálogo.</p>
+                        <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
+                            <span>Explora nuestro catálogo <i class="fas fa-gamepad"></i></span>
+                        </button>
+                    </div>
+
+                <?php elseif (count($carritoItems) > 0): ?>
                     <div class="cart-header">
                         <h1>Tu carrito de compras</h1>
-                        <p class="cart-subtitle">Revisa los productos en tu carrito y procede con tu compra.</p>
-                    </div>
-                <?php endif; ?>
-
-                <div class="cart-content">
-                    <?php if (count($carritoItems) == 0): ?>
-                        <div class="empty-cart">
-                            <h2>Tu carrito está vacío</h2>
-                            <p>¡No te preocupes! Descubre los mejores videojuegos en nuestro catálogo.</p>
-                            <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
-                                <span>Explora nuestro catálogo <i class="fas fa-gamepad"></i></span>
+                        <div class="cart-header-actions">
+                            <p class="cart-subtitle">Revisa los productos en tu carrito y procede con tu compra.</p>
+                            <button type="button" class="custom-btn btn-empty-cart" onclick="emptyCart()">
+                                <span>Vaciar carrito</span>
                             </button>
                         </div>
-                    <?php else: ?>
+                    </div>
 
+                    <div class="cart-content">
                         <!-- Lista de productos en el carrito -->
                         <div class="cart-cards">
                             <?php foreach ($carritoItems as $producto): ?>
@@ -94,22 +97,30 @@ if ($usuarioLogueado) {
                         <div class="cart-summary" id="cart-summary" data-carrito-id="<?= $carritoId ?>">
                             <div class="summary-box">
                                 <h2>Resumen</h2>
-                                <p>Precio original: <span id="total-price">$<?= number_format($resumenCarrito['total'], 2) ?></span></p>
-                                <p>Descuento: <span id="discount">- $<?= number_format($resumenCarrito['descuento'], 2) ?></span></p>
-                                <p><strong>Subtotal: <span id="final-price">$<?= number_format($resumenCarrito['subtotal'], 2) ?></span></strong></p>
-                            </div>
-
-                            <div class="summary-actions">
-                                <button class="custom-btn btn-checkout" onclick="window.location.href='checkout.php'">
-                                    <span>Proceder al pago</span>
-                                </button>
-                                <button class="custom-btn btn-cart" onclick="window.location.href='catalog.php'">
-                                    <span>Seguir comprando</span>
-                                </button>
+                                <div class="summary-row">
+                                    <span class="summary-label">Precio original:</span>
+                                    <span class="summary-value" id="total-price">$<?= number_format($resumenCarrito['total'], 2) ?></span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Descuento:</span>
+                                    <span class="summary-value" id="discount">- $<?= number_format($resumenCarrito['descuento'], 2) ?></span>
+                                </div>
+                                <div class="summary-row summary-total">
+                                    <span class="summary-label"><strong>Subtotal:</strong></span>
+                                    <span class="summary-value" id="final-price"><strong>$<?= number_format($resumenCarrito['subtotal'], 2) ?></strong></span>
+                                </div>
+                                <div class="summary-actions">
+                                    <button class="custom-btn btn-checkout" onclick="window.location.href='checkout.php'">
+                                        <span>Proceder con el pago</span>
+                                    </button>
+                                    <button class="custom-btn btn-cart" onclick="window.location.href='catalog.php'">
+                                        <span>Seguir comprando</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
             </section>
         <?php endif; ?>
 

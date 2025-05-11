@@ -429,7 +429,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             echo json_encode(['exito' => true, 'resumen' => $resumen]);
             exit;
-            
+
+        case 'vaciar_carrito':
+            header('Content-Type: application/json');
+
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para vaciar el carrito.']);
+                exit;
+            }
+
+            $usuarioId = $_SESSION['usuario']['id'];
+            $conn = conexion();
+
+            // Llamar a la función emptyCart
+            $success = emptyCart($conn, $usuarioId);
+            cerrar_conexion($conn);
+
+            if ($success) {
+                echo json_encode(['exito' => true, 'mensaje' => 'El carrito ha sido vaciado.']);
+            } else {
+                echo json_encode(['exito' => false, 'mensaje' => 'No se pudo vaciar el carrito.']);
+            }
+            exit;
+
         default:
             header("Location: error.php");
             break;

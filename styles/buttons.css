@@ -140,8 +140,8 @@
     background: #00ffff;
 }
 
-/* BOTÓN DE CARRITO */
-.btn-cart, .btn-checkout {
+/* BOTONES DEL CARRITO */
+.btn-cart, .btn-checkout, .btn-empty-cart {
     line-height: 42px;
     padding: 0;
 }
@@ -166,4 +166,14 @@
 
 .btn-cart {
     color: #fff;
+}
+
+.btn-empty-cart {
+    background: linear-gradient(to right, #e60000, #bd3535);
+}
+
+.btn-empty-cart:hover {
+    background: linear-gradient(to left, #e60000, #bd3535);
+    transform: scale(1.05);
+    transition: all 0.3s ease;
 }

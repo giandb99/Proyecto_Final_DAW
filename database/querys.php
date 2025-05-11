@@ -993,13 +993,40 @@ function removeProductFromCart($conn, $carritoItemId, $userId)
     return $success;
 }
 
-function emptyCart($conn, $carritoId)
+/**
+ * Función para vaciar el carrito y devolver el stock reservado al stock disponible.
+ * @param mysqli $conn Conexión a la base de datos.
+ * @param int $userId ID del usuario.
+ * @return bool Retorna true si se vació correctamente, false en caso contrario.
+ */
+function emptyCart($conn, $userId)
 {
-    // Podés sumar lógica para devolver el stock también
+    // Obtener el ID del carrito activo
+    $carritoId = getActiveCartId($conn, $userId);
+    if (!$carritoId) {
+        return false; // No hay carrito activo
+    }
+
+    // Obtener los productos del carrito
+    $items = getCartItems($conn, $carritoId);
+
+    // Liberar el stock reservado para cada producto
+    foreach ($items as $item) {
+        $productoId = $item['producto_id'];
+        $plataformaId = $item['plataforma_id'];
+        $cantidad = $item['cantidad'];
+
+        releaseProductStock($productoId, $plataformaId, $cantidad);
+    }
+
+    // Vaciar el carrito
     $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ?");
     $query->bind_param("i", $carritoId);
     $query->execute();
+    $success = $query->affected_rows > 0;
     $query->close();
+
+    return $success;
 }
 
 function getCartSummary($conn, $carritoId)

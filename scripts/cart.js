@@ -59,20 +59,78 @@ function removeFromCart(carritoItemId) {
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto eliminado del carrito.');
-                
+
                 const cartItemElement = document.getElementById(`cart-card-${carritoItemId}`);
                 if (cartItemElement) {
                     cartItemElement.remove();
                 }
 
-                const carritoId = document.getElementById('cart-summary').dataset.carritoId; // Asegúrate de tener el carritoId en el DOM
-                updateCartSummary(carritoId);
+                const hayProductos = document.querySelectorAll('.cart-card').length > 0;
+
+                if (!hayProductos) {
+                    const cartContainer = document.querySelector('.cart-container');
+                    cartContainer.innerHTML = `
+                        <div class="empty-cart">
+                            <h2>Tu carrito está vacío</h2>
+                            <p>¡No te preocupes! Descubre los mejores videojuegos en nuestro catálogo.</p>
+                            <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
+                                <span>Explora nuestro catálogo <i class="fas fa-gamepad"></i></span>
+                            </button>
+                        </div>`;
+                    cartContainer.style.flexDirection = 'row';
+                }
+
+                const resumenElement = document.getElementById('cart-summary');
+                if (resumenElement && hayProductos) {
+                    const carritoId = resumenElement.dataset.carritoId;
+                    updateCartSummary(carritoId);
+                }
             } else {
                 showPopup(data.mensaje || 'No se pudo eliminar el producto del carrito.');
             }
         })
         .catch(err => {
             console.error("Error al eliminar del carrito:", err);
+            showPopup('Ocurrió un error inesperado.');
+        });
+}
+
+function emptyCart() {
+    if (!confirm('¿Estás seguro de que deseas vaciar el carrito?')) {
+        return;
+    }
+
+    fetch('../../verifications/paginaIntermedia.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `accion=vaciar_carrito`
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                showPopup(data.mensaje || 'El carrito ha sido vaciado.');
+
+                const cartContent = document.querySelector('.cart-container');
+                if (cartContent) {
+                    cartContent.innerHTML = `
+                    <div class="empty-cart">
+                        <h2>Tu carrito está vacío</h2>
+                        <p>¡No te preocupes! Descubre los mejores videojuegos en nuestro catálogo.</p>
+                        <button type="button" class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
+                            <span>Explora nuestro catálogo <i class="fas fa-gamepad"></i></span>
+                        </button>
+                    </div>`;
+                }
+
+                const summaryBox = document.querySelector('.summary-box');
+                if (summaryBox) summaryBox.remove();
+
+            } else {
+                showPopup(data.mensaje || 'No se pudo vaciar el carrito.');
+            }
+        })
+        .catch(err => {
+            console.error('Error al vaciar el carrito:', err);
             showPopup('Ocurrió un error inesperado.');
         });
 }
