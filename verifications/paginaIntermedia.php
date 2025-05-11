@@ -258,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             } else {
                 // Si no se sube una nueva imagen, mantenemos la imagen existente
-                $productoExistente = getProductById($id);
+                $productoExistente = getProductById($conn, $id);
                 $imagen = $productoExistente['imagen'];
             }
 
@@ -338,15 +338,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo json_encode(['success' => false, 'error' => 'missing_data']);
                 exit;
             }
-            
+
             $conn = conexion();
             $stock = getAvailableStock($conn, $productoId, $plataformaId);
             cerrar_conexion($conn);
-            
+
             echo json_encode(['success' => true, 'stock' => $stock]);
             break;
 
-        case 'agregar_carrito':
+        case 'agregar_producto_carrito':
             header('Content-Type: application/json');
 
             if (!isset($_SESSION['usuario']['id'])) {
@@ -386,13 +386,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
             break;
 
-        case 'eliminar_carrito':
+        case 'eliminar_producto_carrito':
+            // header('Content-Type: application/json');
 
-            break;
+            // if (!isset($_SESSION['usuario']['id'])) {
+            //     echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para eliminar productos del carrito.']);
+            //     exit;
+            // }
+
+            // $usuarioId = $_SESSION['usuario']['id'];
+            // $productoId = $_POST['producto_id'] ?? null;
+
+            // if (!$productoId) {
+            //     echo json_encode(['exito' => false, 'mensaje' => 'ID de producto inválido.']);
+            //     exit;
+            // }
+
+            // $conn = conexion();
+            // $resultado = removeProductFromCart($conn, $usuarioId, $productoId);
+            // cerrar_conexion($conn);
+
+            // echo json_encode([
+            //     'exito' => $resultado['exito'],
+            //     'mensaje' => $resultado['mensaje']
+            // ]);
+            // break;
 
         default:
             // Si no se reconoce la acción, redirigir a una página de error
-            header("Location: error.php");
+            header("Location: catalog.php");
             break;
     }
 }

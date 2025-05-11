@@ -13,7 +13,7 @@ if ($usuarioLogueado) {
     $carritoId = getActiveCartId($conn, $_SESSION['usuario']['id']);
     $carritoItems = getCartItems($conn, $carritoId);
     $resumenCarrito = getCartSummary($conn, $carritoId);
-    cerrar_conexion($conn);    
+    cerrar_conexion($conn);
 }
 
 ?>
@@ -74,17 +74,17 @@ if ($usuarioLogueado) {
                         <!-- Lista de productos en el carrito -->
                         <div class="cart-cards">
                             <?php foreach ($carritoItems as $producto): ?>
-                                <div class="cart-card" id="cart-card-<?= $producto['id'] ?>">
+                                <div class="cart-card" id="cart-card-<?= $producto['id'] ?>" onclick="window.location.href='detailProduct.php?id=<?= $producto['producto_id'] ?>'">
                                     <div class="cart-card-image">
                                         <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
                                     </div>
                                     <div class="cart-card-details">
-                                        <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
+                                        <h3><?= htmlspecialchars($producto['nombre']) ?> - <?= htmlspecialchars($producto['plataforma_nombre']) ?></h3>
                                         <p style="color: red;">Cantidad: <?= $producto['cantidad'] ?></p>
                                         <p>Precio: $<?= number_format($producto['precio_total_descuento'], 2) ?></p>
                                     </div>
-                                    <button class="custom-btn btn-user" type="button" onclick="removeFromCart(<?= $producto['id'] ?>)">
-                                        <span>Eliminar</span>
+                                    <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); removeFromCart(<?= $producto['id'] ?>)">
+                                        <span>Eliminar <i class="fas fa-trash"></i></span>
                                     </button>
                                 </div>
                             <?php endforeach; ?>
@@ -100,10 +100,10 @@ if ($usuarioLogueado) {
                             </div>
 
                             <div class="summary-actions">
-                                <button class="custom-btn btn-user" onclick="window.location.href='checkout.php'">
+                                <button class="custom-btn btn-checkout" onclick="window.location.href='checkout.php'">
                                     <span>Proceder al pago</span>
                                 </button>
-                                <button class="custom-btn btn-user" onclick="window.location.href='catalog.php'">
+                                <button class="custom-btn btn-cart" onclick="window.location.href='catalog.php'">
                                     <span>Seguir comprando</span>
                                 </button>
                             </div>

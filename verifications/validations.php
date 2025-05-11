@@ -18,8 +18,8 @@ function validateData($tipo, $valor, $campoNombre = '') {
             return true;
 
         case 'fecha':
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor)) {
-                return "La fecha debe estar en formato YYYY-MM-DD.";
+            if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $valor)) {
+                return "La fecha debe estar en formato DD-MM-YYYY.";
             }
             return true;
 

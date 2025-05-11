@@ -75,21 +75,22 @@ $productos = getCatalog();
                                         </div>
                                         <div class="buttons-container">
                                             <?php if ($usuarioLogueado): ?>
-                                                <form id="favorito-form-<?= $producto['id'] ?>" method="post">
-                                                    <input type="hidden" name="accion" value="agregar_favorito">
-                                                    <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                                    <button type="button" class="custom-btn btn-user" id="fav-btn-<?= $producto['id'] ?>" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
-                                                        <span><i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas fa-heart-broken' : 'far fa-heart' ?>"></i> Agregar a favoritos</span>
-                                                    </button>
-                                                </form>
+                                                <button type="button" id="add-to-fav-btn" class="custom-btn btn-user" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
+                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="<?= $isFav ? 'fas fa-heart-broken' : 'far fa-heart' ?>"></i></span>
+                                                </button>
+
                                                 <button type="button" class="custom-btn btn-user">
                                                     <span>Ver detalles</span>
                                                 </button>
                                             <?php else: ?>
-                                                <button type="button" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?agregar_favorito=error'">
-                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i> Agregar a favoritos</span>
+                                                <button type="button" id="add-to-fav-btn" class="custom-btn btn-user" onclick="event.stopPropagation(); window.location.href='catalog.php?id=<?= $producto['id'] ?>&agregar_favorito=error'">
+                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="far fa-heart"></i></span>
                                                 </button>
-                                                <button type="button" class="custom-btn btn-user"><span>Ver detalles</span></button>
+
+                                                <button type="button" class="custom-btn btn-user">
+                                                    <span>Ver detalles</span>
+                                                </button>
+
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -107,5 +108,4 @@ $productos = getCatalog();
     <?php include '../elements/footer.php' ?>
 
     <script src="../../scripts/favs.js"></script>
-    <script src="../../scripts/cart.js"></script>
     <script src="../../scripts/popup.js"></script>

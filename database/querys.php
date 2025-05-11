@@ -314,23 +314,13 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
 
         // Se recorre la lista de plataformas a eliminar
         foreach ($plataformasAEliminar as $plataforma_id) {
-            // Eliminar la relación del producto con la plataforma
-            $stmt = $conn->prepare("DELETE FROM producto_plataforma WHERE producto_id = ? AND plataforma_id = ?");
-            $stmt->bind_param("ii", $id, $plataforma_id);
-            $stmt->execute();
-            $stmt->close();
+            deleteProductPlatform($id, $plataforma_id);
 
             // Eliminar el stock del producto para la plataforma
-            $stmt = $conn->prepare("DELETE FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
-            $stmt->bind_param("ii", $id, $plataforma_id);
-            $stmt->execute();
-            $stmt->close();
+            deleteProductStock($id, $plataforma_id);
 
             // Eliminar producto del carrito 
-            $stmt = $conn->prepare("DELETE FROM carrito_item WHERE producto_id = ? AND plataforma_id = ?");
-            $stmt->bind_param("ii", $id, $plataforma_id);
-            $stmt->execute();
-            $stmt->close();
+            deleteProductFromCart($id, $plataforma_id);
         }
 
         // Agregar plataformas nuevas
@@ -342,14 +332,7 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
         // Actualizar stock disponible para las plataformas existentes (sin tocar el reservado)
         foreach ($plataformasExistentes as $plataforma_id) {
             $nuevoStock = $stock[$plataforma_id] ?? 0;
-            $stmt = $conn->prepare("
-                UPDATE producto_stock 
-                SET stock_disponible = ? 
-                WHERE producto_id = ? AND plataforma_id = ?
-            ");
-            $stmt->bind_param("iii", $nuevoStock, $id, $plataforma_id);
-            $stmt->execute();
-            $stmt->close();
+            updateProductStock($nuevoStock, $id, $plataforma_id);
         }
 
         header("Location: ../views/admin/products.php?exito=Producto+modificado+con+éxito.");
@@ -357,6 +340,36 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
         header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+modificar+el+producto.");
     }
 
+    cerrar_conexion($conn);
+}
+
+function deleteProductPlatform($productoId, $plataformaId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("DELETE FROM producto_plataforma WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("ii", $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+function deleteProductStock($productoId, $plataformaId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("DELETE FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("ii", $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+function deleteProductFromCart($productoId, $plataformaId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("ii", $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
     cerrar_conexion($conn);
 }
 
@@ -378,6 +391,16 @@ function deleteProduct($id)
     cerrar_conexion($conn);
 
     return $resultado;
+}
+
+function updateProductStock($stock, $productoId, $plataformaId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE producto_stock SET stock_disponible = ? WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("iii", $stock, $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
 }
 
 function addProductGenre($productId, $genreId)
@@ -485,30 +508,20 @@ function getAllProducts()
  * @param int $id ID del producto.
  * @return array|bool Array con los datos del producto o false si no existe.
  */
-function getProductById($id)
+function getProductById($conn, $productoId)
 {
-    $conn = conexion();
     $query = $conn->prepare("
         SELECT 
-            p.*, 
-            g.nombre AS genero_nombre, 
-            pl.nombre AS plataforma_nombre,
-            ps.stock_disponible
+            p.id, p.nombre, p.descripcion, p.imagen, 
+            p.precio, p.descuento, p.fecha_lanzamiento
         FROM producto p
-        INNER JOIN producto_genero pg ON p.id = pg.producto_id
-        INNER JOIN genero g ON pg.genero_id = g.id
-        INNER JOIN producto_plataforma pp ON p.id = pp.producto_id
-        INNER JOIN plataforma pl ON pp.plataforma_id = pl.id
-        LEFT JOIN producto_stock ps ON p.id = ps.producto_id
         WHERE p.id = ?
     ");
-    $query->bind_param("i", $id);
+    $query->bind_param("i", $productoId);
     $query->execute();
     $result = $query->get_result();
     $producto = $result->fetch_assoc();
     $query->close();
-    cerrar_conexion($conn);
-
     return $producto;
 }
 
@@ -523,6 +536,22 @@ function getAllGenres()
     }
 
     cerrar_conexion($conn);
+    return $generos;
+}
+
+function getGenresByProduct($conn, $productoId)
+{
+    $query = $conn->prepare("
+        SELECT g.id, g.nombre
+        FROM producto_genero pg
+        JOIN genero g ON pg.genero_id = g.id
+        WHERE pg.producto_id = ?
+    ");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $result = $query->get_result();
+    $generos = $result->fetch_all(MYSQLI_ASSOC);
+    $query->close();
     return $generos;
 }
 
@@ -603,26 +632,25 @@ function geProductStockByPlataform($productoId)
     return $stock;
 }
 
-function getPlatformsByProduct($productoId)
+function getPlatformsByProduct($conn, $productoId)
 {
-    $conn = conexion();
     $query = $conn->prepare("
-        SELECT pp.plataforma_id, p.nombre AS plataforma_nombre
+        SELECT 
+            pl.id AS plataforma_id,
+            pl.nombre AS plataforma_nombre,
+            ps.stock_disponible
         FROM producto_plataforma pp
-        JOIN plataforma p ON pp.plataforma_id = p.id
+        JOIN plataforma pl ON pp.plataforma_id = pl.id
+        LEFT JOIN producto_stock ps 
+            ON ps.producto_id = pp.producto_id 
+            AND ps.plataforma_id = pp.plataforma_id
         WHERE pp.producto_id = ?
     ");
     $query->bind_param("i", $productoId);
     $query->execute();
     $result = $query->get_result();
-
-    $plataformas = [];
-    while ($row = $result->fetch_assoc()) {
-        $plataformas[] = $row;
-    }
-
+    $plataformas = $result->fetch_all(MYSQLI_ASSOC);
     $query->close();
-    cerrar_conexion($conn);
     return $plataformas;
 }
 
@@ -946,13 +974,18 @@ function getCartSummary($conn, $carritoId)
     ];
 }
 
-function removeProductFromCart($conn, $carritoId, $productoPlataformaId)
-{
-    $query = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ? AND plataforma_id = ?");
-    $query->bind_param("ii", $carritoId, $productoPlataformaId);
-    $query->execute();
-    $query->close();
-}
+// function removeProductFromCart($conn, $carritoItemId, $userId)
+// {
+//     $carritoId = getActiveCartId($conn, $userId);
+    
+//     $query = $conn->prepare("DELETE FROM carrito_item WHERE id = ? AND carrito_id = ?");
+//     $query->bind_param("ii", $carritoItemId, $carritoId);
+//     $query->execute();
+//     $success = $query->affected_rows > 0;
+//     $query->close();
+//     return $success;
+// }
+
 
 function emptyCart($conn, $carritoId)
 {
