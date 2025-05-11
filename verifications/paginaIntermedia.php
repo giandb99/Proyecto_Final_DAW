@@ -290,23 +290,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'eliminar_producto':
+            header('Content-Type: application/json');
+
             $id = $_POST['id'] ?? null;
 
             if (!validateData('numero', $id)) {
-                header("Location: ../views/admin/products.php?error=ID+de+producto+inválido.");
+                echo json_encode(['exito' => false, 'mensaje' => 'ID de producto inválido.']);
                 exit;
             }
 
             $productoEliminado = deleteProduct($id);
 
             if ($productoEliminado) {
-                header("Location: ../views/admin/products.php?exito=Producto+eliminado+con+éxito.");
-                exit;
+                echo json_encode(['exito' => true, 'mensaje' => 'Producto eliminado con éxito.']);
             } else {
-                header("Location: ../views/admin/products.php?error=Hubo+un+error+al+eliminar+el+producto.");
-                exit;
+                echo json_encode(['exito' => false, 'mensaje' => 'Hubo un error al eliminar el producto.']);
             }
-            break;
+            exit;
 
         case 'agregar_favorito':
             header('Content-Type: application/json');

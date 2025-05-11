@@ -16,9 +16,10 @@ $totalFavoritos = count($productosFavoritos);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/favs.css">
+    <link rel="stylesheet" href="../../styles/nav.css">
+    <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/footer.css">
-    <link rel="stylesheet" href="../../styles/nav.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>FreeDays_Games - Compra online de videojuegos y mucho más</title>
@@ -70,13 +71,9 @@ $totalFavoritos = count($productosFavoritos);
                                     <div class="card-info">
                                         <div class="card-actions">
                                             <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
-                                            <form>
-                                                <input type="hidden" name="accion" value="agregar_favorito">
-                                                <input type="hidden" name="producto_id" value="<?= $producto['id'] ?>">
-                                                <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
-                                                    <span><i id="fav-icon-<?= $producto['id'] ?>" class="fas fa-heart-broken"></i></span>
-                                                </button>
-                                            </form>
+                                            <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); addToFav(<?= $producto['id'] ?>)">
+                                                <span><i id="fav-icon-<?= $producto['id'] ?>" class="fas fa-heart-broken"></i></span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -92,3 +89,4 @@ $totalFavoritos = count($productosFavoritos);
     <?php include '../elements/footer.php' ?>
 
     <script src="../../scripts/favs.js"></script>
+    <script src="../../scripts/popup.js"></script>

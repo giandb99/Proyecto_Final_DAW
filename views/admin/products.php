@@ -15,6 +15,7 @@ $productos = getAllProducts();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/products.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
+    <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/sidebar.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -47,7 +48,7 @@ $productos = getAllProducts();
                 <tbody>
                     <?php if (!empty($productos)): ?>
                         <?php foreach ($productos as $producto): ?>
-                            <tr>
+                            <tr data-product-id="<?= $producto['id'] ?>">
                                 <td><?= $producto['id'] ?></td>
                                 <td><?= htmlspecialchars($producto['nombre']) ?></td>
                                 <td><img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="Imagen" class="tabla-img"></td>
@@ -59,13 +60,9 @@ $productos = getAllProducts();
                                     <button onclick="window.location.href='addOrModifyProduct.php?id=<?= $producto['id'] ?>'" class="btn-icon-modificar" title="Modificar">
                                         <i class="fas fa-pen"></i>
                                     </button>
-                                    <form action="../../verifications/paginaIntermedia.php" method="POST">
-                                        <input type="hidden" name="accion" value="eliminar_producto">
-                                        <input type="hidden" name="id" value="<?= $producto['id'] ?>">
-                                        <button type="submit" class="btn-icon-eliminar" title="Eliminar">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
+                                    <button type="submit" class="btn-icon-eliminar" onclick="deleteProduct(<?= $producto['id'] ?>)" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -80,3 +77,7 @@ $productos = getAllProducts();
     </div>
 
     <?php include '../elements/footer.php' ?>
+
+    <script src="../../scripts/sidebar.js"></script>
+    <script src="../../scripts/products.js"></script>
+    <script src="../../scripts/popup.js"></script>
