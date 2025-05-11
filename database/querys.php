@@ -29,9 +29,12 @@ function createUser($name, $username, $email, $pass)
         return false;
     }
 
+    // Hashear la contraseña antes de almacenarla
+    $hashedPassword = password_hash($pass, PASSWORD_DEFAULT);
+
     // Insertar nuevo usuario
     $query = $conn->prepare("INSERT INTO usuario (nombre, username, email, pass) VALUES (?, ?, ?, ?)");
-    $query->bind_param("ssss", $name, $username, $email, $pass);
+    $query->bind_param("ssss", $name, $username, $email, $hashedPassword);
     $result = $query->execute();
 
     if ($result) {
@@ -114,22 +117,67 @@ function login($usuario)
 }
 
 /**
- * Función para obtener los datos del usuario por su correo electrónico y contraseña.
+ * Función para obtener los datos del usuario por su correo electrónico y rol.
  * @param string $email Correo electrónico del usuario.
- * @param string $pass Contraseña del usuario.
+ * @param string $rol Rol del usuario (por defecto "user").
  * @return array|bool Retorna un array con los datos del usuario si existe, false en caso contrario.
  */
-function getUserData($email, $pass)
+function getUserData($email, $rol = 'user')
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND pass = ? AND rol = 'user'");
-    $query->bind_param("ss", $email, $pass);
+    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND rol = ?");
+    $query->bind_param("ss", $email, $rol);
     $query->execute();
     $result = $query->get_result();
     $datos = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
     return $datos ?: false;
+}
+
+function getUserDataById($conn, $userId)
+{
+    $query = $conn->prepare("SELECT * FROM usuario WHERE id = ?");
+    $query->bind_param("i", $userId);
+    $query->execute();
+    $result = $query->get_result();
+    $user = $result->fetch_assoc();
+    $query->close();
+    return $user;
+}
+
+function updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagenPerfil = null)
+{
+    $query = $conn->prepare("
+        UPDATE usuario 
+        SET nombre = ?, username = ?, email = ?, telefono = ?, direccion = ?, fecha_nac = ?, cp = ?, imagen_perfil = IFNULL(?, imagen_perfil)
+        WHERE id = ?
+    ");
+    $query->bind_param("sssssssii", $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagenPerfil, $userId);
+    $success = $query->execute();
+    $query->close();
+    return $success;
+}
+
+function getCurrentPassword($conn, $userId)
+{
+    $hashedPassword = null;
+    $query = $conn->prepare("SELECT pass FROM usuario WHERE id = ?");
+    $query->bind_param("i", $userId);
+    $query->execute();
+    $query->bind_result($hashedPassword);
+    $query->fetch();
+    $query->close();
+    return $hashedPassword;
+}
+
+function updatePassword($conn, $userId, $newHashedPassword)
+{
+    $query = $conn->prepare("UPDATE usuario SET pass = ? WHERE id = ?");
+    $query->bind_param("si", $newHashedPassword, $userId);
+    $success = $query->execute();
+    $query->close();
+    return $success;
 }
 
 /* ------------- ADMIN -------------  */

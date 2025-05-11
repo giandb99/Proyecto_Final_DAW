@@ -177,3 +177,28 @@
     transform: scale(1.05);
     transition: all 0.3s ease;
 }
+
+.custom-btn-profile {
+    flex: 1;
+    padding: 0.9rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    color: white;
+}
+
+.btn-save, .btn-edit {
+    background-color: var(--accent);
+}
+
+.btn-save:hover, .btn-edit:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-save:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}

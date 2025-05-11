@@ -10,7 +10,7 @@ CREATE TABLE usuario (
     nombre VARCHAR(100),
     username VARCHAR(50) UNIQUE NOT NULL,
     imagen_perfil LONGBLOB,
-    pass VARCHAR(50),
+    pass VARCHAR(255),
     email VARCHAR(100) UNIQUE NOT NULL,
     telefono VARCHAR(20),
     direccion VARCHAR(255),

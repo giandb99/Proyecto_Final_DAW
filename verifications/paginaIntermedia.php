@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $confirmPassword = $_POST['confirm_password'] ?? null;
             $errores = [];
 
+            // Validaciones
             $validaciones = [
                 validateData('string', $username, 'nombre de usuario'),
                 validateData('email', $email, 'correo electrónico'),
@@ -51,9 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Se capturan los datos del formulario
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
-            $checkbox = isset($_POST['admin']);
+            $checkbox = isset($_POST['admin']); // Verificar si el checkbox de admin está marcado
             $errores = [];
 
+            // Validaciones
             $validaciones = [
                 validateData('email', $email, 'correo electrónico')
             ];
@@ -71,18 +73,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if (!$checkbox) {
-                $user = getUserData($email, $password);
+                // Si no es admin, buscar al usuario con rol "user"
+                $user = getUserData($email, 'user');
 
                 if ($user) {
-                    login($user);
-                    // Si hay productos en el carrito guardados antes de loguearse
-                    if (isset($_SESSION['carrito_temp'])) {
-                        $_SESSION['carrito'] = $_SESSION['carrito_temp'];
-                        unset($_SESSION['carrito_temp']);
+                    // Verificar las contraseñas
+                    if (password_verify($password, $user['pass'])) {
+                        login($user);
+                        header("Location: ../views/user/catalog.php?Inicio+exitoso");
+                        exit();
+                    } else {
+                        header("Location: ../views/user/login.php?errores=Credenciales+inválidas");
+                        exit();
                     }
-
-                    header("Location: ../views/user/catalog.php?Inicio+exitoso");
-                    exit();
                 } else {
                     header("Location: ../views/user/login.php?errores=Credenciales+inválidas");
                     exit();
@@ -100,6 +103,77 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
             break;
+
+        case 'actualizar_perfil':
+            header('Content-Type: application/json');
+
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
+                exit;
+            }
+
+            $userId = $_SESSION['usuario']['id'];
+            $nombre = $_POST['nombre'] ?? '';
+            $username = $_POST['username'] ?? '';
+            $email = $_POST['email'] ?? '';
+            $telefono = $_POST['telefono'] ?? '';
+            $direccion = $_POST['direccion'] ?? '';
+            $fecha_nac = $_POST['fecha_nac'] ?? '';
+            $cp = $_POST['cp'] ?? '';
+            $imagenPerfil = null;
+
+            if (isset($_FILES['imagen_perfil']) && $_FILES['imagen_perfil']['error'] === UPLOAD_ERR_OK) {
+                $rutaRelativa = 'images/profiles/' . basename($_FILES['imagen_perfil']['name']);
+                $rutaAbsoluta = '../../' . $rutaRelativa;
+
+                if (move_uploaded_file($_FILES['imagen_perfil']['tmp_name'], $rutaAbsoluta)) {
+                    $imagenPerfil = $rutaRelativa;
+                } else {
+                    echo json_encode(['exito' => false, 'mensaje' => 'Error al subir la imagen.']);
+                    exit;
+                }
+            }
+
+            $conn = conexion();
+            $success = updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagenPerfil);
+            cerrar_conexion($conn);
+
+            echo json_encode(['exito' => $success, 'mensaje' => $success ? 'Perfil actualizado correctamente.' : 'Error al actualizar el perfil.']);
+            exit;
+
+        case 'cambiar_contraseña':
+            header('Content-Type: application/json');
+
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
+                exit;
+            }
+
+            $userId = $_SESSION['usuario']['id'];
+            $currentPassword = $_POST['current_password'] ?? '';
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+
+            if ($newPassword !== $confirmPassword) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Las contraseñas no coinciden.']);
+                exit;
+            }
+
+            $conn = conexion();
+            $hashedPassword = getCurrentPassword($conn, $userId);
+
+            if (!$hashedPassword || !password_verify($currentPassword, $hashedPassword)) {
+                echo json_encode(['exito' => false, 'mensaje' => 'La contraseña actual es incorrecta.']);
+                cerrar_conexion($conn);
+                exit;
+            }
+
+            $newHashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $success = updatePassword($conn, $userId, $newHashedPassword);
+            cerrar_conexion($conn);
+
+            echo json_encode(['exito' => $success, 'mensaje' => $success ? 'Contraseña actualizada correctamente.' : 'Error al actualizar la contraseña.']);
+            exit;
 
         case 'agregar_producto':
             // Obtener los datos del producto
