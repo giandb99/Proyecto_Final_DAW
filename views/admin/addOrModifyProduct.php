@@ -13,7 +13,7 @@ $producto = null;
 $modoEdicion = false;
 
 if ($id) {
-    $producto = getProductById($id);
+    $producto = getProductById($conn, $id);
     $modoEdicion = true;
 
     if (!$producto) {

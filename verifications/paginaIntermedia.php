@@ -387,34 +387,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'eliminar_producto_carrito':
-            // header('Content-Type: application/json');
+            header('Content-Type: application/json');
 
-            // if (!isset($_SESSION['usuario']['id'])) {
-            //     echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para eliminar productos del carrito.']);
-            //     exit;
-            // }
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para eliminar productos del carrito.']);
+                exit;
+            }
 
-            // $usuarioId = $_SESSION['usuario']['id'];
-            // $productoId = $_POST['producto_id'] ?? null;
+            $usuarioId = $_SESSION['usuario']['id'];
+            $carritoItemId = $_POST['carrito_item_id'] ?? null;
 
-            // if (!$productoId) {
-            //     echo json_encode(['exito' => false, 'mensaje' => 'ID de producto inválido.']);
-            //     exit;
-            // }
+            if (!$carritoItemId || !is_numeric($carritoItemId)) {
+                echo json_encode(['exito' => false, 'mensaje' => 'ID de producto inválido.']);
+                exit;
+            }
 
-            // $conn = conexion();
-            // $resultado = removeProductFromCart($conn, $usuarioId, $productoId);
-            // cerrar_conexion($conn);
+            $conn = conexion();
+            $success = removeProductFromCart($conn, $carritoItemId, $usuarioId);
+            cerrar_conexion($conn);
 
-            // echo json_encode([
-            //     'exito' => $resultado['exito'],
-            //     'mensaje' => $resultado['mensaje']
-            // ]);
-            // break;
+            if ($success) {
+                echo json_encode(['exito' => true, 'mensaje' => 'Producto eliminado del carrito.']);
+            } else {
+                echo json_encode(['exito' => false, 'mensaje' => 'No se pudo eliminar el producto del carrito.']);
+            }
+            exit;
 
+        case 'obtener_resumen_carrito':
+            header('Content-Type: application/json');
+
+            $carritoId = $_POST['carrito_id'] ?? null;
+
+            if (!$carritoId || !is_numeric($carritoId)) {
+                echo json_encode(['exito' => false, 'mensaje' => 'ID de carrito inválido.']);
+                exit;
+            }
+
+            $conn = conexion();
+            $resumen = getCartSummary($conn, $carritoId);
+            cerrar_conexion($conn);
+
+            echo json_encode(['exito' => true, 'resumen' => $resumen]);
+            exit;
+            
         default:
-            // Si no se reconoce la acción, redirigir a una página de error
-            header("Location: catalog.php");
+            header("Location: error.php");
             break;
     }
 }

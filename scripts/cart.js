@@ -36,7 +36,11 @@ function addToCart(productoId) {
         });
 }
 
-function removeFromCart(productoId) {
+/**
+ * Función para eliminar un producto del carrito.
+ * @param {number} carritoItemId - ID del carrito_item a eliminar.
+ */
+function removeFromCart(carritoItemId) {
     if (!confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
         return;
     }
@@ -44,18 +48,57 @@ function removeFromCart(productoId) {
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `accion=eliminar_producto_carrito&producto_id=${encodeURIComponent(productoId)}`
+        body: `accion=eliminar_producto_carrito&carrito_item_id=${encodeURIComponent(carritoItemId)}`
     })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Error en la respuesta del servidor.');
+            }
+            return res.json();
+        })
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto eliminado del carrito.');
+                
+                const cartItemElement = document.getElementById(`cart-card-${carritoItemId}`);
+                if (cartItemElement) {
+                    cartItemElement.remove();
+                }
+
+                const carritoId = document.getElementById('cart-summary').dataset.carritoId; // Asegúrate de tener el carritoId en el DOM
+                updateCartSummary(carritoId);
             } else {
-                showPopup(data.mensaje || 'No se pudo eliminar del carrito.');
+                showPopup(data.mensaje || 'No se pudo eliminar el producto del carrito.');
             }
         })
         .catch(err => {
             console.error("Error al eliminar del carrito:", err);
             showPopup('Ocurrió un error inesperado.');
+        });
+}
+
+/**
+ * Función para actualizar el resumen del carrito en tiempo real.
+ * @param {number} carritoId - ID del carrito.
+ */
+function updateCartSummary(carritoId) {
+    fetch('../../verifications/paginaIntermedia.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `accion=obtener_resumen_carrito&carrito_id=${encodeURIComponent(carritoId)}`
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                // Actualizar los valores del resumen en el DOM
+                document.getElementById('total-price').textContent = `$${data.resumen.total.toFixed(2)}`;
+                document.getElementById('discount').textContent = `- $${data.resumen.descuento.toFixed(2)}`;
+                document.getElementById('final-price').textContent = `$${data.resumen.subtotal.toFixed(2)}`;
+            } else {
+                console.error('Error al actualizar el resumen del carrito:', data.mensaje);
+            }
+        })
+        .catch(err => {
+            console.error('Error al obtener el resumen del carrito:', err);
         });
 }

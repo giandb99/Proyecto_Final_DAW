@@ -91,7 +91,7 @@ if ($usuarioLogueado) {
                         </div>
 
                         <!-- Resumen de la compra -->
-                        <div class="cart-summary">
+                        <div class="cart-summary" id="cart-summary" data-carrito-id="<?= $carritoId ?>">
                             <div class="summary-box">
                                 <h2>Resumen</h2>
                                 <p>Precio original: <span id="total-price">$<?= number_format($resumenCarrito['total'], 2) ?></span></p>
