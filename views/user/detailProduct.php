@@ -63,7 +63,7 @@ if (!$producto) {
             <div class="padded-section">
                 <div class="product-detail-container">
                     <?php
-                    // Verificamos si el producto ya está en favoritos del usuario
+                    // Se verifica si el producto ya está en favoritos del usuario
                     $isFav = false;
                     if (isset($_SESSION['usuario']['id'])) {
                         $favoritoId = getActiveFavListId($_SESSION['usuario']['id']);

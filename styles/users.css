@@ -1,3 +1,14 @@
+:root {
+    --bg-main: #1e1e1e;
+    --bg-header: #292929;
+    --text-light: #eaeaea;
+    --primary: #00e0ff;
+    --danger: #ff4c4c;
+    --info: #4fc3f7;
+    --hover-dark: #333;
+    --border: #333;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -14,7 +25,103 @@ html, body {
 
 .main-content {
     flex: 1;
-    padding: 2rem;
+    padding: 2rem 2rem 7rem 2rem;
     overflow-y: auto;
     background-color: black;
+}
+
+.header {
+    color: var(--text-light);
+    margin-bottom: 3rem;
+}
+
+.tabla-usuarios {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--bg-main);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--text-light);
+}
+
+.tabla-usuarios thead {
+    background-color: var(--bg-header);
+}
+
+.tabla-usuarios th,
+.tabla-usuarios td {
+    padding: 14px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tabla-usuarios th {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 15px;
+    text-transform: uppercase;
+}
+
+.tabla-usuarios td {
+    max-width: 250px;
+}
+
+.tabla-usuarios td img {
+    width: 75px;
+    height: auto;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    display: flex;
+    margin: 0 auto;
+}
+
+.tabla-usuarios td:nth-child(6),
+.tabla-usuarios td:nth-child(7) {
+    max-width: 200px;
+    padding: 8px;
+}
+
+.btn-icon-desactivar,
+.btn-icon-activar {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+    font-size: 20px;
+}
+
+.btn-icon-desactivar {
+    color: var(--danger);
+} 
+
+.btn-icon-activar {
+    color: var(--info);
+}
+
+.btn-icon-desactivar:hover,
+.btn-icon-activar:hover {
+    background-color: var(--hover-dark);
+    transform: scale(1.1);
+}
+
+.acciones {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: -1px;
+    align-items: center;
+}
+
+.acciones form {
+    margin: 0;
 }

@@ -21,9 +21,10 @@ cerrar_conexion($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../styles/profileUser.css">
+    <link rel="stylesheet" href="../../styles/profile.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/nav.css">
+    <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -75,8 +76,8 @@ cerrar_conexion($conn);
                         <?php endif; ?>
                     </div>
                     <div class="form-actions">
-                        <button type="button" id="edit-button" class="custom-btn-profile btn-edit">Editar</button>
-                        <button type="submit" id="save-button" class="custom-btn-profile btn-save" disabled>Guardar</button>
+                        <button type="button" id="edit-button" class="custom-btn-profile btn-edit" >Editar</button>
+                        <button type="submit" id="save-button" class="custom-btn-profile btn-save" disabled onclick="updateProfile()">Guardar</button>
                     </div>
                 </form>
             </section>
@@ -97,7 +98,7 @@ cerrar_conexion($conn);
                         <input type="password" id="confirm_password" name="confirm_password" required>
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="custom-btn-profile btn-save">Actualizar Contraseña</button>
+                        <button type="submit" class="custom-btn-profile btn-save" onclick="updatePassword()">Actualizar Contraseña</button>
                     </div>
                 </form>
             </section>
@@ -107,4 +108,5 @@ cerrar_conexion($conn);
 
     <?php include '../elements/footer.php'; ?>
 
-    <script src="../../scripts/profileUser.js"></script>
+    <script src="../../scripts/profile.js"></script>
+    <script src="../../scripts/popup.js"></script>

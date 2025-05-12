@@ -30,7 +30,6 @@ $totalFavoritos = count($productosFavoritos);
     <?php include '../elements/nav.php' ?>
 
     <main class="main-content">
-
         <?php if (!$usuarioLogueado): ?>
             <section class="favorites-container">
                 <div class="login-message">
@@ -83,7 +82,6 @@ $totalFavoritos = count($productosFavoritos);
                 </div>
             </section>
         <?php endif; ?>
-
     </main>
 
     <?php include '../elements/footer.php' ?>

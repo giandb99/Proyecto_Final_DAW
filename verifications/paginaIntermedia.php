@@ -272,6 +272,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             break;
 
+        case 'activar_usuario':
+            header('Content-Type: application/json');
+            $usuarioId = intval($_POST['usuario_id']);
+
+            if (activateUser($usuarioId)) {
+                echo json_encode(['exito' => true, 'mensaje' => 'Usuario activado correctamente.']);
+            } else {
+                echo json_encode(['exito' => false, 'mensaje' => 'No se pudo activar el usuario.']);
+            }
+            exit;
+
+        case 'desactivar_usuario':
+            header('Content-Type: application/json');
+            $usuarioId = intval($_POST['usuario_id']);
+
+            if (deactivateUser($usuarioId)) {
+                echo json_encode(['exito' => true, 'mensaje' => 'Usuario desactivado correctamente.']);
+            } else {
+                echo json_encode(['exito' => false, 'mensaje' => 'No se pudo desactivar el usuario.']);
+            }
+            exit;
+
+        case '';
         case 'modificar_producto':
             $id = $_POST['id'] ?? null;
             $nombre = $_POST['name'] ?? null;
@@ -365,17 +388,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         case 'eliminar_producto':
             header('Content-Type: application/json');
+            $id = intval($_POST['id']);
 
-            $id = $_POST['id'] ?? null;
-
-            if (!validateData('numero', $id)) {
-                echo json_encode(['exito' => false, 'mensaje' => 'ID de producto inválido.']);
-                exit;
-            }
-
-            $productoEliminado = deleteProduct($id);
-
-            if ($productoEliminado) {
+            if (deleteProduct($id)) {
                 echo json_encode(['exito' => true, 'mensaje' => 'Producto eliminado con éxito.']);
             } else {
                 echo json_encode(['exito' => false, 'mensaje' => 'Hubo un error al eliminar el producto.']);

@@ -116,6 +116,25 @@ function login($usuario)
     ];
 }
 
+function getAllUserData()
+{
+    $conn = conexion();
+    $query = $conn->prepare("SELECT * FROM usuario where rol = 'user'");
+    $query->execute();
+    $result = $query->get_result();
+    $usuarios = [];
+
+    if ($result->num_rows > 0) {
+        while ($usuario = $result->fetch_assoc()) {
+            $usuarios[] = $usuario;
+        }
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+    return $usuarios;
+}
+
 /**
  * Función para obtener los datos del usuario por su correo electrónico y rol.
  * @param string $email Correo electrónico del usuario.
@@ -125,7 +144,7 @@ function login($usuario)
 function getUserData($email, $rol = 'user')
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND rol = ?");
+    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND rol = ? AND activo = 1");
     $query->bind_param("ss", $email, $rol);
     $query->execute();
     $result = $query->get_result();
@@ -178,6 +197,38 @@ function updatePassword($conn, $userId, $newHashedPassword)
     $success = $query->execute();
     $query->close();
     return $success;
+}
+
+/**
+ * Función para activar un usuario en la base de datos.
+ * @param int $usuarioId - ID del usuario a activar.
+ * @return bool - Retorna true si se activó correctamente, false en caso contrario.
+ */
+function activateUser($usuarioId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE usuario SET activo = 1 WHERE id = ? AND rol = 'user'");
+    $query->bind_param("i", $usuarioId);
+    $resultado = $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+    return $resultado;
+}
+
+/**
+ * Función para desactivar un usuario en la base de datos.
+ * @param int $usuarioId - ID del usuario a desactivar.
+ * @return bool - Retorna true si se desactivó correctamente, false en caso contrario.
+ */
+function deactivateUser($usuarioId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE usuario SET activo = 0 WHERE id = ? AND rol = 'user'");
+    $query->bind_param("i", $usuarioId);
+    $resultado = $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+    return $resultado;
 }
 
 /* ------------- ADMIN -------------  */
@@ -510,12 +561,14 @@ function getCatalog()
 }
 
 /**
- * Función para obtener todos los productos de la base de datos.
- * @return array Array con todos los productos.
+ * Función para obtener productos con soporte de paginación.
+ * @param int $offset Número de productos a omitir (inicio).
+ * @param int $limit Número máximo de productos a devolver.
+ * @return array Array con los productos.
  */
-function getAllProducts()
-{
+function getAllProducts($offset = 0, $limit = 20, $search = '') {
     $conn = conexion();
+    $search = "%$search%";
     $query = $conn->prepare("
         SELECT 
             producto.id,
@@ -531,11 +584,13 @@ function getAllProducts()
         LEFT JOIN producto_plataforma pp ON producto.id = pp.producto_id
         LEFT JOIN plataforma ON pp.plataforma_id = plataforma.id
         LEFT JOIN producto_stock ps ON producto.id = ps.producto_id
-        WHERE producto.activo = 1
+        WHERE producto.activo = 1 AND producto.nombre LIKE ?
         GROUP BY producto.id
         ORDER BY producto.id ASC
+        LIMIT ?, ?
     ");
 
+    $query->bind_param("sii", $search, $offset, $limit);
     $query->execute();
     $result = $query->get_result();
     $products = [];
@@ -549,6 +604,21 @@ function getAllProducts()
     $query->close();
     cerrar_conexion($conn);
     return $products;
+}
+
+/**
+ * Función para obtener el total de productos activos.
+ * @return int Total de productos activos.
+ */
+function getTotalProducts($search = '') {
+    $conn = conexion();
+    $search = "%$search%";
+    $query = $conn->prepare("SELECT COUNT(*) AS total FROM producto WHERE activo = 1 AND nombre LIKE ?");
+    $query->bind_param("s", $search);
+    $query->execute();
+    $result = $query->get_result()->fetch_assoc();
+    cerrar_conexion($conn);
+    return $result['total'];
 }
 
 /**

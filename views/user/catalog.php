@@ -39,7 +39,7 @@ $productos = getCatalog();
                             <?php
                             $precioFinal = $producto['descuento'] ? $producto['precio'] - ($producto['precio'] * $producto['descuento'] / 100) : $producto['precio'];
 
-                            // Verificamos si el producto ya está en favoritos del usuario
+                            // Se verifica si el producto ya está en favoritos del usuario
                             $isFav = false;
                             if (isset($_SESSION['usuario']['id'])) {
                                 $favoritoId = getActiveFavListId($_SESSION['usuario']['id']);
@@ -90,7 +90,6 @@ $productos = getCatalog();
                                                 <button type="button" class="custom-btn btn-user">
                                                     <span>Ver detalles</span>
                                                 </button>
-
                                             <?php endif; ?>
                                         </div>
                                     </div>

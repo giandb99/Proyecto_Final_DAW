@@ -23,34 +23,54 @@ body {
     transition: background-color var(--transition-medium), color var(--transition-medium);
 }
 
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
 .main-content {
     padding-top: 80px;
     padding-bottom: 100px;
 }
 
-.profile-wrapper {
+.main-content-admin {
+    flex: 1;
+    padding: 2rem 2rem 7rem 2rem;
+    overflow-y: auto;
+    background-color: black;
+}
+
+.profile-wrapper,
+.profile-wrapper-admin {
     min-width: 300px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 2rem;
     padding: 2rem;
-    margin: 3rem auto;
     max-width: 1300px;
     align-items: flex-start;
 }
 
-.profile-container {
+.profile-wrapper{
+    margin: 3rem auto;
+}
+
+.profile-container,
+.profile-container-admin {
     width: 100%;
 }
 
-.change-password-container {
+.change-password-container,
+.change-password-container-admin {
     width: 40%;
 }
 
 .profile-container,
-.change-password-container {
-    max-width: 600px;
+.change-password-container,
+.profile-container-admin,
+.change-password-container-admin {
     background: var(--card-color);
     padding: 2rem;
     border-radius: 12px;
@@ -58,14 +78,28 @@ body {
     transition: box-shadow var(--transition-medium), transform var(--transition-fast);
 }
 
+.profile-container,
+.change-password-container {
+    max-width: 600px;
+}
+
+.profile-container-admin,
+.change-password-container-admin {
+    max-width: 500px;
+}
+
 .profile-container:hover,
-.change-password-container:hover {
+.change-password-container:hover,
+.profile-container-admin,
+.change-password-container-admin {
     transform: scale(1.01);
     box-shadow: 0 0 25px rgba(0, 191, 166, 0.3);
 }
 
 .profile-container h1,
-.change-password-container h2 {
+.change-password-container h2,
+.profile-container-admin h2,
+.change-password-container-admin h2 {
     text-align: center;
     color: var(--text-color);
     margin-bottom: 2rem;
