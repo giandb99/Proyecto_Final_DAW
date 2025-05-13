@@ -43,7 +43,7 @@ $totalPages = ceil($totalProductos / $limit);
                 <h1>Productos disponibles en la plataforma</h1>
                 <form class="search-container" method="GET" action="products.php">
                     <input type="text" id="search-input" name="search" placeholder="Buscar producto..." value="<?= htmlspecialchars($search) ?>">
-                    <button type="submit" id="search-button" class="btn-icon-buscar"><i class="fas fa-search"></i></button>
+                    <button type="submit" id="search-button" class="custom-btn btn-icon-buscar"><span><i class="fas fa-search"></i></button></span>
                 </form>
                 <button type="button" class="custom-btn btn" onclick="window.location.href='addOrModifyProduct.php'"><span>Agregar producto</span></button>
             </div>

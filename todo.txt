@@ -1,5 +1,5 @@
 --- User ---
-# Implementar interfaz perfil usuario
+# Poder subir foto de perfil de usuario
 
 --- Admin ---
 # Modificar interfaz dashboard
