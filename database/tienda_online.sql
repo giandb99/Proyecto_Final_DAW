@@ -66,7 +66,7 @@ CREATE TABLE pedido (
     usuario_id INT,
     precio_total DECIMAL(10,2),
     descuento DECIMAL(10,2) DEFAULT 0.00,
-    estado_pedido_id INT,
+    estado ENUM('pendiente', 'cancelado', 'entregado') NOT NULL DEFAULT 'pendiente',
     creado_por INT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE,
@@ -159,6 +159,7 @@ CREATE TABLE facturacion (
     metodo_pago ENUM('tarjeta', 'transferencia') NOT NULL,
     numero_tarjeta VARCHAR(20) DEFAULT NULL,
     vencimiento_tarjeta VARCHAR(5) DEFAULT NULL,
+    cvv_tarjeta VARCHAR(4) DEFAULT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -741,3 +742,4 @@ select * from producto_plataforma;
 select * from producto_stock;
 select * from usuario;
 select * from votos;
+select * from facturacion;
