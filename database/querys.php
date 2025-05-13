@@ -566,7 +566,8 @@ function getCatalog()
  * @param int $limit Número máximo de productos a devolver.
  * @return array Array con los productos.
  */
-function getAllProducts($offset = 0, $limit = 20, $search = '') {
+function getAllProducts($offset = 0, $limit = 20, $search = '')
+{
     $conn = conexion();
     $search = "%$search%";
     $query = $conn->prepare("
@@ -610,7 +611,8 @@ function getAllProducts($offset = 0, $limit = 20, $search = '') {
  * Función para obtener el total de productos activos.
  * @return int Total de productos activos.
  */
-function getTotalProducts($search = '') {
+function getTotalProducts($search = '')
+{
     $conn = conexion();
     $search = "%$search%";
     $query = $conn->prepare("SELECT COUNT(*) AS total FROM producto WHERE activo = 1 AND nombre LIKE ?");
@@ -927,6 +929,30 @@ function releaseProductStock($productoId, $plataformaId, $cantidad)
     $query->execute();
     $query->close();
     cerrar_conexion($conn);
+}
+
+function consumeReservedStock($conn, $productoId, $plataformaId, $cantidad)
+{
+    if ($cantidad <= 0) {
+        return false;
+    }
+
+    $query = $conn->prepare("
+        UPDATE producto_stock
+        SET stock_reservado = GREATEST(stock_reservado - ?, 0)
+        WHERE producto_id = ? AND plataforma_id = ?
+    ");
+
+    if (!$query) {
+        return false;
+    }
+
+    $query->bind_param("iii", $cantidad, $productoId, $plataformaId);
+    $query->execute();
+    $exito = $query->affected_rows > 0;
+    $query->close();
+
+    return $exito;
 }
 
 /* ------------- CARRITO -------------  */
@@ -1289,6 +1315,129 @@ function getFavoriteProducts($usuarioId)
     cerrar_conexion($conn);
     return $productos;
 }
+
+/* ------------- CHECKOUT / PEDIDOS -------------  */
+function createOrder($usuarioId)
+{
+    $conn = conexion();
+
+    try {
+        $conn->begin_transaction();
+
+        $carritoId = getActiveCartId($conn, $usuarioId);
+        if (!$carritoId) {
+            throw new Exception("No se encontró un carrito activo.");
+        }
+
+        $items = getCartItems($conn, $carritoId);
+        if (empty($items)) {
+            throw new Exception("El carrito está vacío.");
+        }
+
+        $precioTotal = 0;
+        $descuentoTotal = 0;
+        foreach ($items as $item) {
+            $precioTotal += $item['precio_total_descuento'];
+            $descuentoTotal += ($item['precio'] - $item['precio_descuento']) * $item['cantidad'];
+        }
+
+        $sqlPedido = $conn->prepare("
+            INSERT INTO pedido (usuario_id, precio_total, descuento, creado_por) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $sqlPedido->bind_param("iddii", $usuarioId, $precioTotal, $descuentoTotal, $usuarioId);
+
+        if (!$sqlPedido->execute()) {
+            throw new Exception("Error al insertar el pedido: " . $sqlPedido->error);
+        }
+
+        $pedidoId = $conn->insert_id;
+
+        $pedidoItem = $conn->prepare("
+            INSERT INTO pedido_item (pedido_id, producto_id, cantidad, precio_total) 
+            VALUES (?, ?, ?, ?)
+        ");
+
+        foreach ($items as $item) {
+            $pedidoItem->bind_param(
+                "iiid",
+                $pedidoId,
+                $item['producto_id'],
+                $item['cantidad'],
+                $item['precio_total_descuento']
+            );
+
+            consumeReservedStock($conn, $item['producto_id'], $item['plataforma_id'], $item['cantidad']);
+
+            if (!$pedidoItem->execute()) {
+                throw new Exception("Error al insertar ítem del pedido: " . $pedidoItem->error);
+            }
+        }
+
+        $vaciarCarrito = $conn->prepare("DELETE FROM carrito_item WHERE carrito_id = ?");
+        $vaciarCarrito->bind_param("i", $carritoId);
+
+        if (!$vaciarCarrito->execute()) {
+            throw new Exception("Error al vaciar el carrito: " . $vaciarCarrito->error);
+        }
+
+        $conn->commit();
+        return $pedidoId;
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        error_log("Error en createOrder: " . $e->getMessage());
+        return false;
+    } finally {
+        cerrar_conexion($conn);
+    }
+}
+
+function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, $pais, $metodoPago, $numero_tarjeta = null, $vencimiento_tarjeta = null)
+{
+    try {
+        $ultimos4 = null;
+        if ($metodoPago === 'tarjeta' && !empty($numero_tarjeta)) {
+            $ultimos4 = substr(preg_replace('/\D/', '', $numero_tarjeta), -4);
+        }
+
+        $query = $conn->prepare("
+            INSERT INTO facturacion (
+                usuario_id,
+                pedido_id,
+                nombre_completo,
+                correo,
+                direccion,
+                pais,
+                metodo_pago,
+                numero_tarjeta,
+                vencimiento_tarjeta
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $query->bind_param(
+            "iisssssss",
+            $usuarioId,
+            $pedidoId,
+            $nombre,
+            $correo,
+            $direccion,
+            $pais,
+            $metodoPago,
+            $ultimos4,
+            $vencimiento_tarjeta
+        );
+
+        if ($query->execute()) {
+            return ['success' => true, 'message' => 'Facturación registrada correctamente.'];
+        } else {
+            return ['success' => false, 'message' => 'Error al insertar la facturación: ' . $query->error];
+        }
+    } catch (Exception $e) {
+        return ['success' => false, 'message' => 'Excepción: ' . $e->getMessage()];
+    }
+}
+
+function processPayment() {}
 
 /* ------------- DASHBOARD -------------  */
 

@@ -1,134 +1,166 @@
 :root {
-    --primary-color: #00bfa6;
-    --primary-color-hover: #3e8e41;
+    --primary-color: #05e5e5;
+    --primary-color-hover: #03b4b4;
     --secondary-color: #1a1a1a;
+    --background-color: #121212;
     --text-color: #f2f2f2;
     --border-color: #444;
-    --background-color: #121212;
     --highlight-color: #ff4500;
 }
 
+* {
+    box-sizing: border-box;
+}
+
+html,
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--background-color);
+    color: var(--text-color);
     margin: 0;
     padding: 0;
-    color: var(--text-color);
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .main-content {
-    padding-top: 80px;
-    padding-bottom: 100px;
+    width: 100%;
+    height: auto;
     overflow-y: auto;
+    padding-top: 100px;
+    padding-bottom: 100px;
+}
+
+.checkout-info{
+    background-color: var(--secondary-color);
+    width: 50%;
+    padding: 2rem;
 }
 
 .checkout-container {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
     padding: 2rem;
+    gap: 5rem;
+    display: flex;
     border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    width: 100%;
+    max-width: 1400px;
+    align-items: flex-start;
     margin: 2rem auto;
-    max-width: 650px;
+    justify-content: flex-end;
 }
 
 .checkout-title {
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin: 0;
     text-align: center;
-    font-size: 2rem;
     color: var(--primary-color);
-    margin-bottom: 1.5rem;
 }
 
 .checkout-form h2,
 .checkout-form h4,
 .checkout-form h5 {
-    font-size: 1.5rem;
-    color: var(--text-color);
+    font-size: 1.4rem;
     margin-bottom: 1rem;
+    color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 0.5rem;
 }
 
+.checkout-section {
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.row,
+.card-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
 .form-label {
-    font-weight: 600;
+    display: block;
+    font-weight: 500;
     margin-bottom: 0.5rem;
     color: var(--text-color);
 }
 
 .form-control {
-    padding: 0.8rem;
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 6px;
+    background-color: #222;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    font-size: 1rem;
     color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-check {
+    margin: 1rem 0;
+}
+
+.form-check-label {
+    margin-left: 0.5rem;
+    font-weight: 400;
+}
+
+.order-summary {
+    text-align: left;
+    padding: 2rem;
     background-color: var(--secondary-color);
 }
 
-.order-summary,
-.checkout-summary,
-.checkout-section {
-    margin-top: 2rem;
+.order-summary h2 {
+    font-size: 2rem;
+    margin: 0;
 }
 
 .order-list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 2rem 0;
 }
 
 .order-list li {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
     border-bottom: 1px solid var(--border-color);
 }
 
 .order-total {
     display: flex;
     justify-content: space-between;
+    font-size: 1.3rem;
     font-weight: bold;
-    font-size: 1.2rem;
-    margin-top: 1rem;
     color: var(--primary-color);
 }
 
 .checkout-summary {
+    margin-top: 2rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
 .checkout-total {
     font-size: 1.5rem;
     font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-.btn-success {
-    background-color: var(--primary-color);
-    color: #fff;
-    padding: 0.8rem 1.5rem;
-    font-size: 1.2rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn-success:hover {
-    background-color: var(--primary-color-hover);
-}
-
-.row {
-    --bs-gutter-x: 1.5rem;
-    --bs-gutter-y: 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    margin-top: calc(-1 * var(--bs-gutter-y));
-    margin-right: calc(-.5 * var(--bs-gutter-x));
-    margin-left: calc(-.5 * var(--bs-gutter-x));
-    justify-items: stretch;
-    justify-content: space-between;
-}
-
-.col-md-4{
-    width: 50%;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
 }

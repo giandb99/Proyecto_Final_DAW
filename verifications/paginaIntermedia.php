@@ -294,7 +294,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             exit;
 
-        case '';
         case 'modificar_producto':
             $id = $_POST['id'] ?? null;
             $nombre = $_POST['name'] ?? null;
@@ -539,6 +538,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 echo json_encode(['exito' => false, 'mensaje' => 'No se pudo vaciar el carrito.']);
             }
+            exit;
+
+        case 'procesar_pago':
+            header('Content-Type: application/json');
+
+            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            if (!$usuarioId) {
+                echo json_encode(['estado' => 'error', 'mensaje' => 'Usuario no autenticado.']);
+                exit;
+            }
+            
+            $metodoPago = $_POST['metodo_pago'] ?? null;
+            $nombreCompleto = $_POST['nombre'] ?? null;
+            $correo = $_POST['correo'] ?? null;
+            $direccion = $_POST['direccion'] ?? null;
+            $ciudad = $_POST['ciudad'] ?? null;
+            $provincia = $_POST['provincia'] ?? null;
+            $codigoPostal = $_POST['codigo_postal'] ?? null;
+            $pais = $_POST['pais'] ?? null;
+            $numeroTarjeta = $_POST['numero_tarjeta'] ?? null;
+            $nombreTarjeta = $_POST['nombre_tarjeta'] ?? null;
+            $vencimiento = $_POST['vencimiento'] ?? null;
+            $errores = [];
+
+            $validaciones = [
+                validateData('string', $nombreCompleto, 'nombre completo'),
+                validateData('email', $correo, 'correo electrónico'),
+                validateData('string', $direccion, 'dirección'),
+                validateData('string', $ciudad, 'ciudad'),
+                validateData('string', $provincia, 'provincia'),
+                validateData('string', $codigoPostal, 'código postal'),
+                validateData('string', $pais, 'país'),
+                validateData('string', $metodoPago, 'método de pago')
+            ];
+
+            if ($metodoPago === 'tarjeta') {
+                $validaciones[] = validateData('tarjeta_numero', $numeroTarjeta, 'número de tarjeta');
+                $validaciones[] = validateData('tarjeta_nombre', $nombreTarjeta, 'nombre en la tarjeta');
+                $validaciones[] = validateData('tarjeta_expiracion', $vencimiento, 'fecha de vencimiento');
+            }
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
+            }
+
+            if (!empty($errores)) {
+                echo json_encode(['estado' => 'error', 'errores' => $errores]);
+                exit;
+            }
+
+            $pedidoId = createOrder($usuarioId);
+            if (!$pedidoId) {
+                echo json_encode(['estado' => 'error', 'mensaje' => 'No se pudo crear el pedido.']);
+                exit;
+            }
+
+            $resultadoFacturacion = addBilling(
+                $conn,
+                $usuarioId,
+                $pedidoId,
+                $nombreCompleto,
+                $correo,
+                $direccion,
+                $pais,
+                $metodoPago,
+                $numeroTarjeta,
+                $vencimiento
+            );
+
+            if (!$resultadoFacturacion['success']) {
+                echo json_encode(['estado' => 'error', 'mensaje' => $resultadoFacturacion['message']]);
+                exit;
+            }
+
+            echo json_encode(['estado' => 'ok', 'mensaje' => 'Pago procesado y facturación registrada.']);
             exit;
 
         default:

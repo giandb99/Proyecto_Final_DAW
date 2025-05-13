@@ -65,6 +65,7 @@ CREATE TABLE pedido (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT,
     precio_total DECIMAL(10,2),
+    descuento DECIMAL(10,2) DEFAULT 0.00,
     estado_pedido_id INT,
     creado_por INT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -145,6 +146,22 @@ CREATE TABLE votos (
     valoracion INT DEFAULT 0 CHECK (valoracion BETWEEN 1 AND 5),
     CONSTRAINT fk_votos_usu FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_votos_pro FOREIGN KEY (producto_id) REFERENCES producto(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE facturacion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    pedido_id INT NOT NULL,
+    nombre_completo VARCHAR(100) NOT NULL,
+    correo VARCHAR(100) NOT NULL,
+    direccion VARCHAR(255) NOT NULL,
+    pais VARCHAR(100) NOT NULL,
+    metodo_pago ENUM('tarjeta', 'transferencia') NOT NULL,
+    numero_tarjeta VARCHAR(20) DEFAULT NULL,
+    vencimiento_tarjeta VARCHAR(5) DEFAULT NULL,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 ######################## INSERCIONES ########################

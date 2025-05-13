@@ -7,9 +7,8 @@
  * @return bool true si el dato es válido, false en caso contrario.
  * @throws Exception Si el tipo de dato no es válido.
  */
-function validateData($tipo, $valor, $campoNombre = '') {
-    
-    // Verifica si el tipo de dato es válido
+function validateData($tipo, $valor, $campoNombre = '')
+{
     switch ($tipo) {
         case 'string':
             if (empty($valor)) {
@@ -46,11 +45,45 @@ function validateData($tipo, $valor, $campoNombre = '') {
                 return "La contraseña debe contener al menos una letra y un número.";
             }
             return true;
+
+        case 'tarjeta_numero':
+            $numero = preg_replace('/\D/', '', $valor);
+            if (strlen($numero) < 13 || strlen($numero) > 19) {
+                return "El número de tarjeta debe tener entre 13 y 19 dígitos.";
+            } else if (!luhnCheck($numero)) {
+                return "El número de tarjeta no es válido.";
+            }
+            return true;
+
+        case 'tarjeta_nombre':
+            if (empty($valor)) {
+                return "El nombre del titular no puede estar vacío.";
+            } else if (!preg_match('/^[A-ZÁÉÍÓÚÑ ]{2,}$/i', $valor)) {
+                return "El nombre del titular contiene caracteres inválidos.";
+            }
+            return true;
+
+        case 'tarjeta_expiracion':
+            if (!preg_match('/^(0[1-9]|1[0-2])[\/\-]\d{2}$/', $valor)) {
+                return "La fecha de expiración debe estar en formato MM/YY.";
+            } else {
+                list($mes, $anio) = preg_split('/[\/\-]/', $valor);
+                $anio = (int)('20' . $anio);
+                $mes = (int)$mes;
+
+                $fechaActual = new DateTime();
+                $fechaExpiracion = DateTime::createFromFormat('Y-m', "$anio-$mes")->modify('last day of this month');
+
+                if ($fechaExpiracion < $fechaActual) {
+                    return "La tarjeta ya está vencida.";
+                }
+            }
+            return true;
+
         default:
             return "Tipo de validación desconocido.";
     }
 }
-
 
 /**
  * Función para validar imágenes.
@@ -60,7 +93,8 @@ function validateData($tipo, $valor, $campoNombre = '') {
  * @param int $tamanioMaximo Tamaño máximo permitido en bytes (opcional).
  * @return mixed Retorna `true` si la imagen es válida o un mensaje de error en caso contrario.
  */
-function validateImage($imagen) {
+function validateImage($imagen)
+{
     // Verifica si se ha subido un archivo correctamente
     if (!isset($imagen) || $imagen['error'] !== 0) {
         return "Error al subir la imagen.";
@@ -80,4 +114,28 @@ function validateImage($imagen) {
     }
 
     return true;
+}
+
+/**
+ * Verifica un número de tarjeta con el algoritmo de Luhn.
+ *
+ * @param string $numero Número de tarjeta (solo dígitos).
+ * @return bool true si es válido, false si no.
+ */
+function luhnCheck($numero)
+{
+    $suma = 0;
+    $par = false;
+    for ($i = strlen($numero) - 1; $i >= 0; $i--) {
+        $digito = (int)$numero[$i];
+        if ($par) {
+            $digito *= 2;
+            if ($digito > 9) {
+                $digito -= 9;
+            }
+        }
+        $suma += $digito;
+        $par = !$par;
+    }
+    return ($suma % 10) === 0;
 }

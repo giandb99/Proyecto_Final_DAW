@@ -141,7 +141,9 @@
 }
 
 /* BOTONES DEL CARRITO */
-.btn-cart, .btn-checkout, .btn-empty-cart {
+.btn-cart,
+.btn-checkout,
+.btn-empty-cart {
     line-height: 42px;
     padding: 0;
 }
@@ -178,6 +180,7 @@
     transition: all 0.3s ease;
 }
 
+/* BOTONES DEL PERFIL */
 .custom-btn-profile {
     flex: 1;
     padding: 0.9rem 1.5rem;
@@ -201,4 +204,25 @@
 .btn-save:disabled {
     background-color: #555;
     cursor: not-allowed;
+}
+
+/* BOTÓN DEL CHECKOUT */
+.btn-success {
+    line-height: 42px;
+    padding: 0;
+}
+
+.btn-success {
+    background-color: #00bfa6;
+}
+
+.btn-success:hover {
+    background-color: #02a18d;
+}
+
+.btn-success::before,
+.btn-success::after,
+.btn-success span::before,
+.btn-success span::after {
+    background: #00ffdd;
 }

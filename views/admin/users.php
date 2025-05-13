@@ -67,7 +67,7 @@ $usuarios = getAllUserData();
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7">No hay usuarios registrados.</td>
+                            <td colspan="8">No hay usuarios registrados.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
