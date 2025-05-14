@@ -541,61 +541,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'procesar_pago':
-            header('Content-Type: application/json');
 
             $usuarioId = $_SESSION['usuario']['id'] ?? null;
             if (!$usuarioId) {
-                echo json_encode(['estado' => 'error', 'mensaje' => 'Usuario no autenticado.']);
+                header('Location: ../views/user/error.php?mensaje=Usuario+no+autenticado');
                 exit;
             }
-            
-            $metodoPago = $_POST['metodo_pago'] ?? null;
+
+            // Datos del cliente
             $nombreCompleto = $_POST['nombre'] ?? null;
             $correo = $_POST['correo'] ?? null;
             $direccion = $_POST['direccion'] ?? null;
-            $ciudad = $_POST['ciudad'] ?? null;
-            $provincia = $_POST['provincia'] ?? null;
-            $codigoPostal = $_POST['codigo_postal'] ?? null;
             $pais = $_POST['pais'] ?? null;
+
+            // Datos de la tarjeta
             $numeroTarjeta = $_POST['numero_tarjeta'] ?? null;
             $nombreTarjeta = $_POST['nombre_tarjeta'] ?? null;
             $vencimiento = $_POST['vencimiento'] ?? null;
-            $errores = [];
+            $erroresCliente = [];
+            $erroresTarjeta = [];
 
-            $validaciones = [
+            // Validaciones cliente
+            $clienteChecks = [
                 validateData('string', $nombreCompleto, 'nombre completo'),
                 validateData('email', $correo, 'correo electrónico'),
                 validateData('string', $direccion, 'dirección'),
-                validateData('string', $ciudad, 'ciudad'),
-                validateData('string', $provincia, 'provincia'),
-                validateData('string', $codigoPostal, 'código postal'),
                 validateData('string', $pais, 'país'),
-                validateData('string', $metodoPago, 'método de pago')
             ];
 
-            if ($metodoPago === 'tarjeta') {
-                $validaciones[] = validateData('tarjeta_numero', $numeroTarjeta, 'número de tarjeta');
-                $validaciones[] = validateData('tarjeta_nombre', $nombreTarjeta, 'nombre en la tarjeta');
-                $validaciones[] = validateData('tarjeta_expiracion', $vencimiento, 'fecha de vencimiento');
+            foreach ($clienteChecks as $res) {
+                if ($res !== true) $erroresCliente[] = $res;
             }
 
-            foreach ($validaciones as $resultado) {
-                if ($resultado !== true) {
-                    $errores[] = $resultado;
-                }
+            // Validaciones tarjeta
+            $tarjetaChecks = [
+                validateData('tarjeta_numero', $numeroTarjeta, 'número de tarjeta'),
+                validateData('string', $nombreTarjeta, 'nombre en la tarjeta'),
+                validateData('tarjeta_expiracion', $vencimiento, 'fecha de vencimiento'),
+            ];
+
+            foreach ($tarjetaChecks as $res) {
+                if ($res !== true) $erroresTarjeta[] = $res;
             }
 
-            if (!empty($errores)) {
-                echo json_encode(['estado' => 'error', 'errores' => $errores]);
+            // Si hay errores, devolverlos categorizados
+            if (!empty($erroresCliente) || !empty($erroresTarjeta)) {
+                $_SESSION['errores_cliente'] = $erroresCliente;
+                $_SESSION['errores_tarjeta'] = $erroresTarjeta;
+                header('Location: ../views/user/checkout.php?errores_cliente=' . urlencode(implode(', ', $erroresCliente)) . '&errores_tarjeta=' . urlencode(implode(', ', $erroresTarjeta)));
                 exit;
             }
 
+            // Crear pedido
             $pedidoId = createOrder($usuarioId);
             if (!$pedidoId) {
-                echo json_encode(['estado' => 'error', 'mensaje' => 'No se pudo crear el pedido.']);
+                header('Location: ../views/user/error.php?mensaje=Error+al+crear+el+pedido.');
                 exit;
             }
 
+            // Guardar facturación
             $resultadoFacturacion = addBilling(
                 $conn,
                 $usuarioId,
@@ -604,21 +608,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $correo,
                 $direccion,
                 $pais,
-                $metodoPago,
                 $numeroTarjeta,
                 $vencimiento
             );
 
             if (!$resultadoFacturacion['success']) {
-                echo json_encode(['estado' => 'error', 'mensaje' => $resultadoFacturacion['message']]);
+                // Si no se pudo guardar la facturación, se redirige a la pagina de error 
+                header('Location: ../views/user/error.php?mensaje=' . $resultadoFacturacion['message']);
                 exit;
             }
 
-            echo json_encode(['estado' => 'ok', 'mensaje' => 'Pago procesado y facturación registrada.']);
+            // Si todo fue exitoso, se redirige a la página de pedidos
+            header('Location: ../views/user/orderDetail.php?mensaje=Pago+realizado+con+exito.');
             exit;
 
         default:
-            header("Location: error.php");
+            header("Location: ../views/user/error.php");
             break;
     }
 }

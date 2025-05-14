@@ -48,37 +48,48 @@ if (empty($carritoItems)) {
 
     <main class="main-content">
         <section class="checkout-container">
-            <section class="checkout-info">
-                <h1 class="checkout-title">Pasarela de Pago</h1>
 
-                <form id="checkoutForm" class="checkout-form">
-                    <!-- Información del Cliente -->
-                    <div class="checkout-section">
+            <form class="checkout-form" action="../../verifications/paginaIntermedia.php" method="POST">
+
+                <!-- Campo oculto para la acción del formulario -->
+                <input type="hidden" name="accion" value="procesar_pago">
+
+                <!-- Información del Cliente -->
+                <div class="checkout-section">
+                    <h1 class="checkout-title">Pasarela de Pago</h1>
+                    <div class="cliente-section">
+
                         <h4>Datos del Cliente</h4>
                         <div class="row">
                             <div class="col-12 col-md-6">
                                 <label for="nombre" class="form-label">Nombre completo</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej: Juan Pérez" required>
+                                <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej: Juan Pérez">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="correo" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="correo" name="correo" placeholder="Ej: juan@mail.com" required>
+                                <input type="email" class="form-control" id="correo" name="correo" placeholder="Ej: juan@mail.com">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="direccion" class="form-label">Dirección</label>
-                                <input type="text" class="form-control" id="direccion" name="direccion" placeholder="Ej: Calle Falsa 123" required>
+                                <input type="text" class="form-control" id="direccion" name="direccion" placeholder="Ej: Calle Falsa 123">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="pais" class="form-label">País</label>
-                                <input type="text" class="form-control" id="pais" name="pais" placeholder="Ej: España" required>
+                                <input type="text" class="form-control" id="pais" name="pais" placeholder="Ej: España">
                             </div>
                         </div>
                         <!-- Contenedor para errores de datos del cliente -->
-                        <div id="errores-cliente" class="error-msg-container"></div>
+                        <?php if (isset($_GET['errores_cliente'])): ?>
+                            <div class="error-msg-container">
+                                <?php foreach (explode(", ", $_GET['errores_cliente']) as $error): ?>
+                                    <p class="error-msg"><?= htmlspecialchars($error) ?></p>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Información de la Tarjeta -->
-                    <div class="checkout-section" id="tarjeta-section">
+                    <div class="tarjeta-section" id="tarjeta-section">
                         <h5>Datos de la Tarjeta</h5>
                         <div class="card-details">
                             <div class="col-12">
@@ -99,38 +110,51 @@ if (empty($carritoItems)) {
                             </div>
                         </div>
                         <!-- Contenedor para errores de datos de la tarjeta -->
-                        <div id="errores-tarjeta" class="error-msg-container"></div>
+                        <?php if (isset($_GET['errores_tarjeta'])): ?>
+                            <div class="error-msg-container">
+                                <?php foreach (explode(", ", $_GET['errores_tarjeta']) as $error): ?>
+                                    <p class="error-msg"><?= htmlspecialchars($error) ?></p>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                </form>
-            </section>
+                </div>
 
-            <!-- Resumen del Pedido -->
-            <section class="order-summary">
-                <h2>Resumen del Pedido</h2>
-                <ul class="order-list">
-                    <?php foreach ($carritoItems as $producto): ?>
-                        <li>
-                            <span><?= htmlspecialchars($producto['nombre']) ?> (x<?= $producto['cantidad'] ?>)</span>
-                            <span>$<?= number_format($producto['cantidad'] * $producto['precio_descuento'], 2) ?></span>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-                <div class="order-total">
-                    <span>Total:</span>
-                    <span>$<?= number_format($resumenCarrito['subtotal'], 2) ?></span>
+                <!-- Resumen del Pedido -->
+                <div class="order-summary">
+                    <h2>Resumen del Pedido</h2>
+                    <ul class="order-list">
+                        <?php foreach ($carritoItems as $producto): ?>
+                            <li>
+                                <span><?= htmlspecialchars($producto['nombre']) ?> (x<?= $producto['cantidad'] ?>)</span>
+                                <span>$<?= number_format($producto['cantidad'] * $producto['precio_descuento'], 2) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <div class="order-total">
+                        <span>Total:</span>
+                        <span>$<?= number_format($resumenCarrito['subtotal'], 2) ?></span>
+                    </div>
+                    <div class="checkout-summary">
+                        <button type="submit" class="custom-btn btn-success">
+                            <span>Pagar</span>
+                        </button>
+                    </div>
                 </div>
-                <!-- Confirmación -->
-                <div class="checkout-summary">
-                    <button type="button" class="custom-btn btn-success" form="checkoutForm" onclick="processPayment()">
-                        <span>Pagar</span>
-                    </button>
+            </form>
+
+            <div id="payment-loader" class="payment-loader-overlay" style="display:none;">
+                <div class="payment-loader-content">
+                    <div class="loader"></div>
+                    <p id="payment-loader-msg">Procesando pago...</p>
                 </div>
-            </section>
+            </div>
+
         </section>
     </main>
 
     <!-- FOOTER -->
     <?php include '../elements/footer.php' ?>
 
-    <script src="../../scripts/checkout.js"></script>
     <script src="../../scripts/popup.js"></script>
+    <script src="../../scripts/checkout.js"></script>

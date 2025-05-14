@@ -1,46 +1,21 @@
-function processPayment() {
-    const form = document.getElementById('checkoutForm');
+document.addEventListener('DOMContentLoaded', function () {
+    const loader = document.getElementById('payment-loader');
+    const loaderMsg = document.getElementById('payment-loader-msg');
+    const urlParams = new URLSearchParams(window.location.search);
+    const mensaje = urlParams.get('mensaje');
 
-    // Limpiar mensajes de error previos
-    document.getElementById('errores-cliente').innerHTML = '';
-    document.getElementById('errores-tarjeta').innerHTML = '';
+    if (mensaje) {
+        loader.style.display = 'flex';
+        loaderMsg.textContent = 'Procesando pago...';
 
-    const formData = new FormData(form);
-    formData.append('accion', 'procesar_pago');
-
-    fetch('../../verifications/paginaIntermedia.php', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.estado === 'ok') {
-                // Mostrar mensaje de éxito y redirigir
-                showPopup('¡Pago realizado con éxito!', 'success');
+        setTimeout(() => {
+            loaderMsg.textContent = 'Pago realizado con éxito';
+            setTimeout(() => {
+                loaderMsg.textContent = 'Pedido realizado correctamente';
                 setTimeout(() => {
-                    window.location.href = 'pedidos.php';
-                }, 2500);
-            } else {
-                // Mostrar errores en las secciones correspondientes
-                if (data.errores.cliente) {
-                    document.getElementById('errores-cliente').innerHTML = data.errores.cliente
-                        .map(error => `<p class="error-msg">${error}</p>`)
-                        .join('');
-                }
-                if (data.errores.tarjeta) {
-                    document.getElementById('errores-tarjeta').innerHTML = data.errores.tarjeta
-                        .map(error => `<p class="error-msg">${error}</p>`)
-                        .join('');
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error en el fetch:', error);
-            showPopup('Error de red. Inténtalo más tarde.', 'error');
-        });
-}
+                    window.location.href = 'userOrder.php';
+                }, 2000);
+            }, 2000);
+        }, 3000);
+    }
+});

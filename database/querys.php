@@ -1343,9 +1343,9 @@ function createOrder($usuarioId)
 
         $sqlPedido = $conn->prepare("
             INSERT INTO pedido (usuario_id, precio_total, descuento, creado_por) 
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?)
         ");
-        $sqlPedido->bind_param("iddii", $usuarioId, $precioTotal, $descuentoTotal, $usuarioId);
+        $sqlPedido->bind_param("iddi", $usuarioId, $precioTotal, $descuentoTotal, $usuarioId);
 
         if (!$sqlPedido->execute()) {
             throw new Exception("Error al insertar el pedido: " . $sqlPedido->error);
@@ -1393,11 +1393,11 @@ function createOrder($usuarioId)
     }
 }
 
-function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, $pais, $metodoPago, $numero_tarjeta = null, $vencimiento_tarjeta = null)
+function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, $pais, $numero_tarjeta = null, $vencimiento_tarjeta = null)
 {
     try {
         $ultimos4 = null;
-        if ($metodoPago === 'tarjeta' && !empty($numero_tarjeta)) {
+        if (!empty($numero_tarjeta)) {
             $ultimos4 = substr(preg_replace('/\D/', '', $numero_tarjeta), -4);
         }
 
@@ -1409,20 +1409,18 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, 
                 correo,
                 direccion,
                 pais,
-                metodo_pago,
                 numero_tarjeta,
                 vencimiento_tarjeta
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $query->bind_param(
-            "iisssssss",
+            "iissssss",
             $usuarioId,
             $pedidoId,
             $nombre,
             $correo,
             $direccion,
             $pais,
-            $metodoPago,
             $ultimos4,
             $vencimiento_tarjeta
         );
@@ -1437,7 +1435,76 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, 
     }
 }
 
-function processPayment() {}
+function getOrderById($usuarioId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT * FROM pedido p
+        WHERE p.usuario_id = ?
+        ORDER BY p.creado_en DESC
+    ");
+    $query->bind_param("i", $usuarioId);
+    $query->execute();
+    $result = $query->get_result();
+    $pedidos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $pedidos[] = $row;
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+    return $pedidos;
+}
+
+function getOrderDetails($pedidoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT 
+            p.id AS producto_id,
+            p.nombre AS producto_nombre,
+            pi.cantidad,
+            pi.precio_total
+        FROM pedido_item pi
+        JOIN producto p ON pi.producto_id = p.id
+        WHERE pi.pedido_id = ?
+    ");
+    $query->bind_param("i", $pedidoId);
+    $query->execute();
+    $result = $query->get_result();
+    $productos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $productos[] = $row;
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+    return $productos;
+}
+
+function getAllOrders()
+{
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT p.id, p.precio_total, p.fecha_creacion, u.nombre_completo
+        FROM pedido p
+        JOIN usuario u ON p.usuario_id = u.id
+        ORDER BY p.fecha_creacion DESC
+    ");
+    $query->execute();
+    $result = $query->get_result();
+    $pedidos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $pedidos[] = $row;
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+    return $pedidos;
+}
 
 /* ------------- DASHBOARD -------------  */
 

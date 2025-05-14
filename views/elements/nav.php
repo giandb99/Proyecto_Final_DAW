@@ -4,6 +4,7 @@
         <a href="catalog.php" class="navbar-button" title="Inicio"><i class="fas fa-home"></i></a>
         <a href="cart.php" class="navbar-button" title="Carrito"><i class="fas fa-shopping-cart"></i></a>
         <a href="favs.php" class="navbar-button" title="Favoritos"><i class="fas fa-heart"></i></a>
+        <a href="userOrder.php" class="navbar-button" title="Mis pedidos"><i class="fas fa-clipboard-list"></i></a>
         <!-- Si el usuario inició sesión, mostrar iconos adicionales -->
         <?php if (isset($_SESSION['usuario'])): ?>
             <a href="profile.php" class="navbar-button" title="Perfil"><i class="fas fa-user-cog"></i></a>

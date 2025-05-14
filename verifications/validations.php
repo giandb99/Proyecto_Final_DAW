@@ -48,18 +48,16 @@ function validateData($tipo, $valor, $campoNombre = '')
 
         case 'tarjeta_numero':
             $numero = preg_replace('/\D/', '', $valor);
-            if (strlen($numero) < 13 || strlen($numero) > 19) {
-                return "El número de tarjeta debe tener entre 13 y 19 dígitos.";
-            } else if (!luhnCheck($numero)) {
-                return "El número de tarjeta no es válido.";
+            if (strlen($numero) !== 16) {
+                return "El número de tarjeta debe tener exactamente 16 dígitos.";
             }
             return true;
 
         case 'tarjeta_nombre':
             if (empty($valor)) {
-                return "El nombre del titular no puede estar vacío.";
+                return "El campo '{$campoNombre}' no puede estar vacío.";
             } else if (!preg_match('/^[A-ZÁÉÍÓÚÑ ]{2,}$/i', $valor)) {
-                return "El nombre del titular contiene caracteres inválidos.";
+                return "El campo '{$campoNombre}' contiene caracteres inválidos.";
             }
             return true;
 
@@ -114,28 +112,4 @@ function validateImage($imagen)
     }
 
     return true;
-}
-
-/**
- * Verifica un número de tarjeta con el algoritmo de Luhn.
- *
- * @param string $numero Número de tarjeta (solo dígitos).
- * @return bool true si es válido, false si no.
- */
-function luhnCheck($numero)
-{
-    $suma = 0;
-    $par = false;
-    for ($i = strlen($numero) - 1; $i >= 0; $i--) {
-        $digito = (int)$numero[$i];
-        if ($par) {
-            $digito *= 2;
-            if ($digito > 9) {
-                $digito -= 9;
-            }
-        }
-        $suma += $digito;
-        $par = !$par;
-    }
-    return ($suma % 10) === 0;
 }
