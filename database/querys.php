@@ -6,6 +6,7 @@ require_once 'connection.php';
 
 /**
  * Función para crear un nuevo usuario.
+ * 
  * @param string $name Nombre del usuario.
  * @param string $username Nombre de usuario.
  * @param string $email Correo electrónico del usuario.
@@ -137,6 +138,7 @@ function getAllUserData()
 
 /**
  * Función para obtener los datos del usuario por su correo electrónico y rol.
+ * 
  * @param string $email Correo electrónico del usuario.
  * @param string $rol Rol del usuario (por defecto "user").
  * @return array|bool Retorna un array con los datos del usuario si existe, false en caso contrario.
@@ -251,6 +253,7 @@ function getAdminData($email, $pass)
 
 /**
  * Función para crear un nuevo producto.
+ * 
  * @param string $nombre Nombre del producto.
  * @param array $imagen Imagen del producto.
  * @param string $descripcion Descripción del producto.
@@ -1029,6 +1032,7 @@ function getCartItem($conn, $carritoId, $productoId, $plataformaId)
 
 /**
  * Función para obtener los datos de un carrito_item por su ID.
+ * 
  * @param mysqli $conn Conexión a la base de datos.
  * @param int $carritoItemId ID del carrito_item.
  * @return array|null Retorna un array con los datos del carrito_item o null si no existe.
@@ -1139,6 +1143,7 @@ function removeProductFromCart($conn, $carritoItemId, $userId)
 
 /**
  * Función para vaciar el carrito y devolver el stock reservado al stock disponible.
+ * 
  * @param mysqli $conn Conexión a la base de datos.
  * @param int $userId ID del usuario.
  * @return bool Retorna true si se vació correctamente, false en caso contrario.
@@ -1221,6 +1226,7 @@ function createFavList($usuarioId)
 
 /**
  * Función para obtener el ID de la lista de favoritos de un usuario.
+ * 
  * @param int $usuarioId ID del usuario
  * @return int|null Retorna el ID de la lista de favoritos o null si no existe.
  */
@@ -1239,6 +1245,7 @@ function getActiveFavListId($usuarioId)
 
 /**
  * Funcion que verifica si un producto ya está en la lista de favoritos del usuario
+ * 
  * @param int $favoritoId ID de la lista de favoritos
  * @param int $productoId ID del producto
  * @return bool Retorna true si el producto ya está en favoritos, false en caso contrario
@@ -1258,6 +1265,7 @@ function productIsAlreadyFavorite($favoritoId, $productoId)
 
 /**
  * Función para agregar o eliminar un producto de la lista de favoritos del usuario.
+ * 
  * @param int $usuarioId ID del usuario
  * @param int $productoId ID del producto
  * @return bool Retorna true si se agregó a favoritos, false si se eliminó.
@@ -1354,15 +1362,16 @@ function createOrder($usuarioId)
         $pedidoId = $conn->insert_id;
 
         $pedidoItem = $conn->prepare("
-            INSERT INTO pedido_item (pedido_id, producto_id, cantidad, precio_total) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO pedido_item (pedido_id, producto_id, plataforma_id, cantidad, precio_total) 
+            VALUES (?, ?, ?, ?, ?)
         ");
 
         foreach ($items as $item) {
             $pedidoItem->bind_param(
-                "iiid",
+                "iiiid",
                 $pedidoId,
                 $item['producto_id'],
+                $item['plataforma_id'],
                 $item['cantidad'],
                 $item['precio_total_descuento']
             );
@@ -1383,7 +1392,6 @@ function createOrder($usuarioId)
 
         $conn->commit();
         return $pedidoId;
-
     } catch (Exception $e) {
         $conn->rollback();
         error_log("Error en createOrder: " . $e->getMessage());
@@ -1435,26 +1443,54 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, 
     }
 }
 
-function getOrderById($usuarioId)
+function getOrdersByUserId($usuarioId)
 {
     $conn = conexion();
     $query = $conn->prepare("
-        SELECT * FROM pedido p
+        SELECT 
+            p.id AS pedido_id,
+            p.precio_total,
+            p.creado_en,
+            pi.producto_id,
+            pr.nombre AS producto_nombre,
+            pr.precio AS producto_precio,
+            pr.imagen AS producto_imagen,
+            pl.nombre AS plataforma_nombre,
+            pi.cantidad,
+            pi.precio_total AS precio_total_producto
+        FROM pedido p
+        INNER JOIN pedido_item pi ON p.id = pi.pedido_id
+        INNER JOIN producto pr ON pi.producto_id = pr.id
+        INNER JOIN plataforma pl ON pi.plataforma_id = pl.id
         WHERE p.usuario_id = ?
         ORDER BY p.creado_en DESC
     ");
     $query->bind_param("i", $usuarioId);
     $query->execute();
     $result = $query->get_result();
-    $pedidos = [];
 
+    $pedidos = [];
     while ($row = $result->fetch_assoc()) {
-        $pedidos[] = $row;
+        if (!isset($pedidos[$row['pedido_id']])) {
+            $pedidos[$row['pedido_id']] = [
+                'pedido_id' => $row['pedido_id'],
+                'precio_total' => $row['precio_total'],
+                'creado_en' => $row['creado_en'],
+                'productos' => []
+            ];
+        }
+        $pedidos[$row['pedido_id']]['productos'][] = [
+            'producto_nombre' => $row['producto_nombre'],
+            'producto_imagen' => $row['producto_imagen'],
+            'plataforma_nombre' => $row['plataforma_nombre'],
+            'cantidad' => $row['cantidad'],
+            'precio_total_producto' => $row['precio_total_producto']
+        ];
     }
 
     $query->close();
     cerrar_conexion($conn);
-    return $pedidos;
+    return array_values($pedidos);
 }
 
 function getOrderDetails($pedidoId)
@@ -1462,41 +1498,53 @@ function getOrderDetails($pedidoId)
     $conn = conexion();
     $query = $conn->prepare("
         SELECT 
-            p.id AS producto_id,
+            pi.producto_id,
             p.nombre AS producto_nombre,
+            pl.nombre AS plataforma_nombre,
             pi.cantidad,
             pi.precio_total
         FROM pedido_item pi
         JOIN producto p ON pi.producto_id = p.id
+        JOIN plataforma pl ON pi.plataforma_id = pl.id
         WHERE pi.pedido_id = ?
     ");
     $query->bind_param("i", $pedidoId);
     $query->execute();
     $result = $query->get_result();
-    $productos = [];
 
+    $detalles = [];
     while ($row = $result->fetch_assoc()) {
-        $productos[] = $row;
+        $detalles[] = $row;
     }
 
     $query->close();
     cerrar_conexion($conn);
-    return $productos;
+    return $detalles;
 }
 
 function getAllOrders()
 {
     $conn = conexion();
     $query = $conn->prepare("
-        SELECT p.id, p.precio_total, p.fecha_creacion, u.nombre_completo
+        SELECT 
+            p.id AS pedido_id,
+            p.precio_total,
+            p.creado_en,
+            u.nombre_completo AS usuario_nombre,
+            f.nombre_completo AS facturacion_nombre,
+            f.direccion AS facturacion_direccion,
+            f.pais AS facturacion_pais,
+            f.numero_tarjeta,
+            f.vencimiento_tarjeta
         FROM pedido p
         JOIN usuario u ON p.usuario_id = u.id
-        ORDER BY p.fecha_creacion DESC
+        LEFT JOIN facturacion f ON p.id = f.pedido_id
+        ORDER BY p.creado_en DESC
     ");
     $query->execute();
     $result = $query->get_result();
-    $pedidos = [];
 
+    $pedidos = [];
     while ($row = $result->fetch_assoc()) {
         $pedidos[] = $row;
     }

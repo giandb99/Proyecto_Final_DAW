@@ -79,6 +79,7 @@ CREATE TABLE pedido_item (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pedido_id INT,
     producto_id INT,
+    plataforma_id INT,
     cantidad INT,
     precio_total DECIMAL(10,2),
     FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE ON UPDATE CASCADE,
