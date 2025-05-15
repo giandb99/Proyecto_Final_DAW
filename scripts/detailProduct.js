@@ -5,6 +5,7 @@
  * @param {HTMLElement} stockInfo - Elemento donde se mostrará la información del stock.
  */
 function obtenerStock(productoId, plataformaId, stockInfo) {
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -12,34 +13,56 @@ function obtenerStock(productoId, plataformaId, stockInfo) {
     })
         .then(response => response.json())
         .then(data => {
-            if (data && data.stock !== undefined) {
-                stockInfo.textContent = `Stock disponible: ${data.stock}`;
+            stockInfo.classList.remove('stock-available', 'stock-unavailable');
+            if (data.success) {
+                const stock = data.stock;
+                if (stock > 0) {
+                    stockInfo.textContent = `Stock disponible: ${stock}`;
+                    stockInfo.classList.add('stock-available');
+                    if (addToCartBtn) {
+                        addToCartBtn.disabled = false;
+                        addToCartBtn.classList.remove('btn-disabled');
+                    }
+                } else {
+                    stockInfo.textContent = `Sin stock para esta plataforma`;
+                    stockInfo.classList.add('stock-unavailable');
+                    if (addToCartBtn) {
+                        addToCartBtn.disabled = true;
+                        addToCartBtn.classList.add('btn-disabled');
+                    }
+                }
             } else {
-                stockInfo.textContent = "Stock no disponible.";
+                stockInfo.textContent = "Error al obtener el stock";
+                stockInfo.classList.add('stock-unavailable');
+                if (addToCartBtn) {
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.classList.add('btn-disabled');
+                }
             }
         })
         .catch(error => {
-            console.error('Error al obtener el stock:', error);
-            stockInfo.textContent = "Error al obtener el stock.";
+            console.error("Error al obtener el stock:", error);
+            stockInfo.textContent = "Error de conexión";
+            stockInfo.classList.add('stock-unavailable');
+            if (addToCartBtn) {
+                addToCartBtn.disabled = true;
+                addToCartBtn.classList.add('btn-disabled');
+            }
         });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const plataformaSelect = document.getElementById('plataforma-select');
-    const stockInfo = document.getElementById('stock-info');
-    const productoId = document.getElementById('product-form').dataset.productoId;
+document.addEventListener("DOMContentLoaded", () => {
+    const selectPlataforma = document.getElementById("plataforma-select");
+    const stockInfo = document.getElementById("stock-info");
+    const productoId = document.getElementById("product-form").dataset.productoId;
 
-    // Detectar el cambio en la plataforma seleccionada
-    plataformaSelect.addEventListener('change', function () {
-        const plataformaId = plataformaSelect.value;
-
-        // Llamar a la función que hace la petición AJAX para obtener el stock
+    selectPlataforma.addEventListener("change", () => {
+        const plataformaId = selectPlataforma.value;
         if (plataformaId) {
             obtenerStock(productoId, plataformaId, stockInfo);
-            stockInfo.style.color = "lightgreen";
         } else {
             stockInfo.textContent = "Stock disponible: Seleccione una plataforma";
-            stockInfo.style.color = "red";
+            stockInfo.classList.remove('stock-available', 'stock-unavailable');
         }
     });
 

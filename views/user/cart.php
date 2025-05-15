@@ -82,11 +82,11 @@ if ($usuarioLogueado) {
                                         <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
                                     </div>
                                     <div class="cart-card-details">
-                                        <h3><?= htmlspecialchars($producto['nombre']) ?> - <?= htmlspecialchars($producto['plataforma_nombre']) ?></h3>
-                                        <p class="cart-card-qty" style="color: red;">Cantidad: <?= $producto['cantidad'] ?></p>
+                                        <h3><?= htmlspecialchars($producto['nombre']) ?></h3>
+                                        <p class="cart-card-platform">Plataforma: <?= htmlspecialchars($producto['plataforma_nombre']) ?></p>
                                     </div>
                                     <div class="cart-card-price">
-                                        <h3><?= number_format($producto['precio_descuento'], 2) ?></h3>
+                                        <h3><?= number_format($producto['precio_descuento'], 2) ?>€</h3>
                                         <select class="cart-qty-select" data-cart-item-id="<?= $producto['id'] ?>">
                                             <?php for ($i = 1; $i <= 10; $i++): ?>
                                                 <option value="<?= $i ?>" <?= $producto['cantidad'] == $i ? 'selected' : '' ?>><?= $i ?></option>
@@ -106,15 +106,15 @@ if ($usuarioLogueado) {
                                 <h2>Resumen</h2>
                                 <div class="summary-row">
                                     <span class="summary-label">Precio original:</span>
-                                    <span class="summary-value" id="total-price">$<?= number_format($resumenCarrito['total'], 2) ?></span>
+                                    <span class="summary-value" id="total-price"><?= number_format($resumenCarrito['total'], 2) ?>€</span>
                                 </div>
                                 <div class="summary-row">
                                     <span class="summary-label">Descuento:</span>
-                                    <span class="summary-value" id="discount">- $<?= number_format($resumenCarrito['descuento'], 2) ?></span>
+                                    <span class="summary-value" id="discount">- <?= number_format($resumenCarrito['descuento'], 2) ?>€</span>
                                 </div>
                                 <div class="summary-row summary-total">
                                     <span class="summary-label"><strong>Subtotal:</strong></span>
-                                    <span class="summary-value" id="final-price"><strong>$<?= number_format($resumenCarrito['subtotal'], 2) ?></strong></span>
+                                    <span class="summary-value" id="final-price"><strong><?= number_format($resumenCarrito['subtotal'], 2) ?>€</strong></span>
                                 </div>
                                 <div class="summary-actions">
                                     <button class="custom-btn btn-checkout" onclick="window.location.href='checkout.php'">

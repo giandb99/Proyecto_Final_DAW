@@ -142,18 +142,12 @@ body {
     -webkit-box-orient: vertical;
 }
 
-.cart-card-details p {
+.cart-card-platform {
     margin: 0;
     color: #ccc;
-    font-size: 0.95rem;
 }
 
-.cart-card-details p:first-of-type {
-    font-weight: bold;
-    color: #ff4d4d;
-}
-
-.cart-card .cart-card-details:hover h3 {
+.cart-card-details:hover h3 {
     color: #00ffcc;
     text-decoration: underline;
 }

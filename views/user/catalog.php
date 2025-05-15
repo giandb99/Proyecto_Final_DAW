@@ -67,10 +67,10 @@ $productos = getCatalog();
                                     <div class="foot-container">
                                         <div class="price-container">
                                             <?php if ($producto['descuento']): ?>
-                                                <span class="price">$<?= number_format($precioFinal, 2) ?></span>
-                                                <span class="old-price">$<?= number_format($producto['precio'], 2) ?></span>
+                                                <span class="price"><?= number_format($precioFinal, 2) ?>€</span>
+                                                <span class="old-price"><?= number_format($producto['precio'], 2) ?>€</span>
                                             <?php else: ?>
-                                                <span class="price">$<?= number_format($producto['precio'], 2) ?></span>
+                                                <span class="price"><?= number_format($producto['precio'], 2) ?>€</span>
                                             <?php endif; ?>
                                         </div>
                                         <div class="buttons-container">

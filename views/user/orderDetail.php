@@ -105,7 +105,7 @@ $detalles = $datos['productos'];
                                         <td><?= htmlspecialchars($item['producto_nombre']) ?></td>
                                         <td><?= htmlspecialchars($item['plataforma_nombre']) ?></td>
                                         <td><?= $item['cantidad'] ?></td>
-                                        <td>$<?= number_format($item['precio_total'], 2) ?></td>
+                                        <td><?= number_format($item['precio_total'], 2) ?>€</td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -113,7 +113,7 @@ $detalles = $datos['productos'];
                     </div>
 
                     <div class="factura-total">
-                        <i class="fas fa-coins"></i> <strong>Total pagado: $<?= number_format($pedido['precio_total'], 2) ?></strong>
+                        <i class="fas fa-coins"></i> <strong>Total pagado: <?= number_format($pedido['precio_total'], 2) ?>€</strong>
                     </div>
                 </div>
             </div>

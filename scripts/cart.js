@@ -6,7 +6,7 @@
 function addToCart(productoId) {
     const plataformaSelect = document.getElementById('plataforma-select');
     const stockInfo = document.getElementById('stock-info');
-
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
     const plataformaId = plataformaSelect ? plataformaSelect.value : null;
     const cantidad = 1;
 
@@ -24,7 +24,22 @@ function addToCart(productoId) {
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto agregado al carrito.');
-                stockInfo.textContent = `Stock disponible: ${data.stock_restante || '0'}`;
+                stockInfo.textContent = `Stock disponible: ${data.stock_restante}`;
+                if (data.stock_restante > 0) {
+                    stockInfo.classList.add('stock-available');
+                    if (addToCartBtn) {
+                        addToCartBtn.disabled = false;
+                        addToCartBtn.classList.remove('btn-disabled');
+                    }
+                } else {
+                    stockInfo.classList.remove('stock-available');
+                    stockInfo.classList.add('stock-unavailable');
+                    stockInfo.textContent = `Sin stock para esta plataforma`;
+                    if (addToCartBtn) {
+                        addToCartBtn.disabled = true;
+                        addToCartBtn.classList.add('btn-disabled');
+                    }
+                }
             } else {
                 showPopup(data.mensaje || 'No se pudo agregar al carrito.');
             }

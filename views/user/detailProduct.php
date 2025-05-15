@@ -86,17 +86,17 @@ if (!$producto) {
                         <div class="product-price-container">
                             <?php if ($producto['descuento'] > 0): ?>
                                 <div class="product-price-original">
-                                    $<?= number_format($producto['precio'], 2) ?>
+                                    <?= number_format($producto['precio'], 2) ?>€
                                 </div>
                                 <div class="product-price-final">
-                                    $<?= number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2) ?>
+                                    <?= number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2) ?>€
                                 </div>
                                 <div class="product-badge-discount">
                                     -<?= $producto['descuento'] ?>%
                                 </div>
                             <?php else: ?>
                                 <div class="product-price-final no-discount">
-                                    $<?= number_format($producto['precio'], 2) ?>
+                                    <?= number_format($producto['precio'], 2) ?>€
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -156,12 +156,12 @@ if (!$producto) {
                                     <h3><?= htmlspecialchars($relacionados['nombre']) ?></h3>
                                     <p class="price">
                                         <?php if ($relacionados['descuento']): ?>
-                                            <span class="original-price">$<?= number_format($relacionados['precio'], 2) ?></span>
+                                            <span class="original-price"><?= number_format($relacionados['precio'], 2) ?>€</span>
                                             <span class="discounted-price">
-                                                $<?= number_format($relacionados['precio'] * (1 - $relacionados['descuento'] / 100), 2) ?>
+                                                <?= number_format($relacionados['precio'] * (1 - $relacionados['descuento'] / 100), 2) ?>€
                                             </span>
                                         <?php else: ?>
-                                            <span class="discounted-price">$<?= number_format($relacionados['precio'], 2) ?></span>
+                                            <span class="discounted-price"><?= number_format($relacionados['precio'], 2) ?>€</span>
                                         <?php endif; ?>
                                     </p>
                                 </div>
