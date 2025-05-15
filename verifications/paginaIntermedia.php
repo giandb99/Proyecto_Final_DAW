@@ -445,9 +445,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $usuarioId = $_SESSION['usuario']['id'];
             $productoId = $_POST['producto_id'] ?? null;
             $plataformaId = $_POST['plataforma_id'] ?? null;
-            $cantidad = isset($_POST['cantidad']) ? intval($_POST['cantidad']) : 1;
+            $cantidad = 1;
 
-            if (!$productoId || !$plataformaId || !is_numeric($cantidad) || $cantidad <= 0) {
+            if (!$productoId || !$plataformaId) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Datos inválidos.']);
                 exit;
             }
@@ -473,6 +473,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'stock_restante' => $resultado['stock_restante'] ?? null
             ]);
             break;
+
+        case 'actualizar_cantidad_carrito':
+            header('Content-Type: application/json');
+            if (!isset($_SESSION['usuario']['id'])) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
+                exit;
+            }
+            $usuarioId = $_SESSION['usuario']['id'];
+            $carritoItemId = $_POST['carrito_item_id'] ?? null;
+            $cantidad = intval($_POST['cantidad'] ?? 1);
+
+            if (!$carritoItemId || $cantidad < 1 || $cantidad > 10) {
+                echo json_encode(['exito' => false, 'mensaje' => 'Datos inválidos.']);
+                exit;
+            }
+
+            $conn = conexion();
+            // Obtener el carrito y el item
+            $carritoId = getActiveCartId($conn, $usuarioId);
+            $item = getCartItemById($conn, $carritoItemId);
+
+            if (!$item) {
+                cerrar_conexion($conn);
+                echo json_encode(['exito' => false, 'mensaje' => 'Producto no encontrado en el carrito.']);
+                exit;
+            }
+
+            // Verificar stock disponible
+            $stockDisponible = getAvailableStock($conn, $item['producto_id'], $item['plataforma_id']);
+            $cantidadActual = $item['cantidad'];
+            $diferencia = $cantidad - $cantidadActual;
+
+            if ($diferencia > 0 && $diferencia > $stockDisponible) {
+                cerrar_conexion($conn);
+                echo json_encode(['exito' => false, 'mensaje' => 'Stock insuficiente.']);
+                exit;
+            }
+
+            // Actualizar cantidad y stock
+            $precioUnitario = getDiscountedPrice($conn, $item['producto_id']);
+            if ($diferencia > 0) {
+                // Reservar stock extra
+                reserveProductStock($conn, $item['producto_id'], $item['plataforma_id'], $diferencia);
+            } elseif ($diferencia < 0) {
+                // Liberar stock
+                releaseProductStock($item['producto_id'], $item['plataforma_id'], abs($diferencia));
+            }
+            updateCartItem($conn, $carritoItemId, $cantidad, $precioUnitario);
+
+            cerrar_conexion($conn);
+            echo json_encode([
+                'exito' => true,
+                'mensaje' => 'Cantidad actualizada.',
+                'cantidad' => $cantidad
+            ]);
+            exit;
 
         case 'eliminar_producto_carrito':
             header('Content-Type: application/json');

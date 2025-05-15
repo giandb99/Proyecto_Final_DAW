@@ -114,13 +114,6 @@ if (!$producto) {
                                 <p class="stock-display" id="stock-info">Stock disponible: Seleccione una plataforma</p>
                                 <p>Fecha de lanzamiento: <?= date("d/m/Y", strtotime($producto['fecha_lanzamiento'])) ?></p>
                             </div>
-
-                            <label for="cantidad-select">Cantidad:</label>
-                            <select id="cantidad-select" name="cantidad" required>
-                                <?php for ($i = 1; $i <= 10; $i++): ?>
-                                    <option value="<?= $i ?>"><?= $i ?></option>
-                                <?php endfor; ?>
-                            </select>
                         </form>
 
                         <div class="buttons-container">

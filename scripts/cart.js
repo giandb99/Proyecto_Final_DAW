@@ -5,11 +5,10 @@
  */
 function addToCart(productoId) {
     const plataformaSelect = document.getElementById('plataforma-select');
-    const cantidadSelect = document.getElementById('cantidad-select');
     const stockInfo = document.getElementById('stock-info');
 
     const plataformaId = plataformaSelect ? plataformaSelect.value : null;
-    const cantidad = cantidadSelect ? cantidadSelect.value : 1;
+    const cantidad = 1;
 
     if (!plataformaId) {
         showPopup('Por favor, seleccione una plataforma.');
@@ -151,7 +150,7 @@ function updateCartSummary(carritoId) {
                 // Actualizar los valores del resumen en el DOM
                 document.getElementById('total-price').textContent = `$${data.resumen.total.toFixed(2)}`;
                 document.getElementById('discount').textContent = `- $${data.resumen.descuento.toFixed(2)}`;
-                document.getElementById('final-price').textContent = `$${data.resumen.subtotal.toFixed(2)}`;
+                document.getElementById('final-price').innerHTML = `<strong>$${data.resumen.subtotal.toFixed(2)}</strong>`;
             } else {
                 console.error('Error al actualizar el resumen del carrito:', data.mensaje);
             }
@@ -160,3 +159,48 @@ function updateCartSummary(carritoId) {
             console.error('Error al obtener el resumen del carrito:', err);
         });
 }
+
+function updateCartItemQuantity(carritoItemId, nuevaCantidad) {
+    fetch('../../verifications/paginaIntermedia.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `accion=actualizar_cantidad_carrito&carrito_item_id=${encodeURIComponent(carritoItemId)}&cantidad=${encodeURIComponent(nuevaCantidad)}`
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                showPopup(data.mensaje || 'Cantidad actualizada.');
+                // Actualizar resumen
+                const resumenElement = document.getElementById('cart-summary');
+                if (resumenElement) {
+                    const carritoId = resumenElement.dataset.carritoId;
+                    updateCartSummary(carritoId);
+                }
+                // Actualizar cantidad del producto en la tarjeta
+                const card = document.getElementById(`cart-card-${carritoItemId}`);
+                if (card && data.cantidad !== undefined) {
+                    const cantidad = card.querySelector('.cart-card-qty');
+                    if (cantidad) {
+                        cantidad.textContent = `Cantidad: ${parseInt(data.cantidad, 10)}`;
+                    }
+                }
+            } else {
+                showPopup(data.mensaje || 'No se pudo actualizar la cantidad.');
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        })
+        .catch(err => {
+            console.error('Error al actualizar cantidad:', err);
+            showPopup('Ocurrió un error inesperado.');
+        });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.cart-qty-select').forEach(select => {
+        select.addEventListener('change', function () {
+            const carritoItemId = this.dataset.cartItemId;
+            const nuevaCantidad = parseInt(this.value, 10);
+            updateCartItemQuantity(carritoItemId, nuevaCantidad);
+        });
+    });
+});

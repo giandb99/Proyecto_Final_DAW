@@ -56,7 +56,7 @@ $detalles = $datos['productos'];
 
             <div class="pdf-pedido factura-box">
                 <div class="factura-header">
-                    <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #2</h2>
+                    <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #<?= $pedido['pedido_id'] ?></h2>
                     <a href="#" class="download-pdf-btn" data-pedido="<?= $pedido['pedido_id'] ?>">
                         <i class="fas fa-file-pdf"></i> Descargar PDF
                     </a>

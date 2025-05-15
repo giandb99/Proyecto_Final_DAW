@@ -77,17 +77,24 @@ if ($usuarioLogueado) {
                         <!-- Lista de productos en el carrito -->
                         <div class="cart-cards">
                             <?php foreach ($carritoItems as $producto): ?>
-                                <div class="cart-card" id="cart-card-<?= $producto['id'] ?>" onclick="window.location.href='detailProduct.php?id=<?= $producto['producto_id'] ?>'">
+                                <div class="cart-card" id="cart-card-<?= $producto['id'] ?>">
                                     <div class="cart-card-image">
                                         <img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>">
                                     </div>
                                     <div class="cart-card-details">
                                         <h3><?= htmlspecialchars($producto['nombre']) ?> - <?= htmlspecialchars($producto['plataforma_nombre']) ?></h3>
-                                        <p style="color: red;">Cantidad: <?= $producto['cantidad'] ?></p>
-                                        <p>Precio: $<?= number_format($producto['precio_total_descuento'], 2) ?></p>
+                                        <p class="cart-card-qty" style="color: red;">Cantidad: <?= $producto['cantidad'] ?></p>
+                                    </div>
+                                    <div class="cart-card-price">
+                                        <h3><?= number_format($producto['precio_descuento'], 2) ?></h3>
+                                        <select class="cart-qty-select" data-cart-item-id="<?= $producto['id'] ?>">
+                                            <?php for ($i = 1; $i <= 10; $i++): ?>
+                                                <option value="<?= $i ?>" <?= $producto['cantidad'] == $i ? 'selected' : '' ?>><?= $i ?></option>
+                                                <?php endfor; ?>
+                                            </select>
                                     </div>
                                     <button class="custom-btn btn-user" type="button" onclick="event.stopPropagation(); removeFromCart(<?= $producto['id'] ?>)">
-                                        <span>Eliminar <i class="fas fa-trash"></i></span>
+                                        <span><i class="fas fa-trash"></i></span>
                                     </button>
                                 </div>
                             <?php endforeach; ?>
