@@ -41,83 +41,85 @@ $detalles = $datos['productos'];
 
 <body>
 
-    <?php if (!$pdfMode) include '../elements/nav.php'; ?>
+    <?php include '../elements/nav.php'; ?>
 
     <main class="main-content">
         <section class="order-details-container">
 
             <div class="padded-section">
                 <div class="back-button-container">
-                    <a href="javascript:history.back()" class="back-button">
+                    <a href="../user/userOrder.php" class="back-button">
                         <span><i class="fas fa-arrow-left"></i> Volver</span>
                     </a>
                 </div>
             </div>
 
-            <div class="pdf-pedido factura-box">
-                <div class="factura-header">
-                    <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #<?= $pedido['pedido_id'] ?></h2>
-                    <a href="#" class="download-pdf-btn" data-pedido="<?= $pedido['pedido_id'] ?>">
-                        <i class="fas fa-file-pdf"></i> Descargar PDF
-                    </a>
-                </div>
-                <div class="factura-encabezado">
-                    <div class="factura-columna">
-                        <div><strong><i class="fas fa-user"></i></strong>Cliente: <?= htmlspecialchars($pedido['usuario_nombre']) ?></div>
-                        <div><strong><i class="fas fa-map-marker-alt"></i></strong>Dirección: <?= htmlspecialchars($pedido['facturacion_direccion']) ?></div>
-                        <div><strong><i class="fas fa-flag"></i></strong>País: <?= htmlspecialchars($pedido['facturacion_pais']) ?></div>
-                        <div><strong><i class="fas fa-envelope"></i></strong>Email: <?= htmlspecialchars($pedido['facturacion_correo']) ?></div>
+            <div class="padded-section">
+                <div class="pdf-pedido factura-box">
+                    <div class="factura-header">
+                        <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #<?= $pedido['pedido_id'] ?></h2>
+                        <a href="#" class="download-pdf-btn" data-pedido="<?= $pedido['pedido_id'] ?>">
+                            <i class="fas fa-file-pdf"></i> Descargar PDF
+                        </a>
                     </div>
-                    <div class="factura-columna">
-                        <div>
-                            <strong><i class="fas fa-info-circle"></i>Estado: </strong>
-                            <?php
-                            $estado = strtolower($pedido['estado']);
-                            $clase = "badge-estado";
-                            if ($estado == "pendiente") $clase .= " pendiente";
-                            elseif ($estado == "pagado") $clase .= " pagado";
-                            elseif ($estado == "cancelado") $clase .= " cancelado";
-                            ?>
-                            <span class="<?= $clase ?>"><?= ucfirst($pedido['estado']) ?></span><br>
+                    <div class="factura-encabezado">
+                        <div class="factura-columna">
+                            <div><strong><i class="fas fa-user"></i></strong>Cliente: <?= htmlspecialchars($pedido['usuario_nombre']) ?></div>
+                            <div><strong><i class="fas fa-map-marker-alt"></i></strong>Dirección: <?= htmlspecialchars($pedido['facturacion_direccion']) ?></div>
+                            <div><strong><i class="fas fa-flag"></i></strong>País: <?= htmlspecialchars($pedido['facturacion_pais']) ?></div>
+                            <div><strong><i class="fas fa-envelope"></i></strong>Email: <?= htmlspecialchars($pedido['facturacion_correo']) ?></div>
                         </div>
-                        <div><strong><i class="fas fa-calendar-alt"></i>Fecha: </strong> <?= date("d/m/Y H:i", strtotime($pedido['creado_en'])) ?></div>
-                        <?php if ($pedido['numero_tarjeta']): ?>
-                            <div><strong><i class="fas fa-credit-card"></i>Tarjeta: </strong> **** **** **** <?= htmlspecialchars($pedido['numero_tarjeta']) ?></div>
-                            <div><strong><i class="fas fa-hourglass-half"></i>Vencimiento:</strong> <?= htmlspecialchars($pedido['vencimiento_tarjeta']) ?></div>
-                        <?php endif; ?>
+                        <div class="factura-columna">
+                            <div>
+                                <strong><i class="fas fa-info-circle"></i>Estado: </strong>
+                                <?php
+                                $estado = strtolower($pedido['estado']);
+                                $clase = "badge-estado";
+                                if ($estado == "pendiente") $clase .= " pendiente";
+                                elseif ($estado == "pagado") $clase .= " pagado";
+                                elseif ($estado == "cancelado") $clase .= " cancelado";
+                                ?>
+                                <span class="<?= $clase ?>"><?= ucfirst($pedido['estado']) ?></span><br>
+                            </div>
+                            <div><strong><i class="fas fa-calendar-alt"></i>Fecha: </strong> <?= date("d/m/Y H:i", strtotime($pedido['creado_en'])) ?></div>
+                            <?php if ($pedido['numero_tarjeta']): ?>
+                                <div><strong><i class="fas fa-credit-card"></i>Tarjeta: </strong> **** **** **** <?= htmlspecialchars($pedido['numero_tarjeta']) ?></div>
+                                <div><strong><i class="fas fa-hourglass-half"></i>Vencimiento:</strong> <?= htmlspecialchars($pedido['vencimiento_tarjeta']) ?></div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
 
-                <div class="factura-tabla">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-gamepad"></i> Producto</th>
-                                <th><i class="fas fa-desktop"></i> Plataforma</th>
-                                <th><i class="fas fa-sort-numeric-up"></i> Cantidad</th>
-                                <th><i class="fas fa-dollar-sign"></i> Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($detalles as $item): ?>
+                    <div class="factura-tabla">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td><?= htmlspecialchars($item['producto_nombre']) ?></td>
-                                    <td><?= htmlspecialchars($item['plataforma_nombre']) ?></td>
-                                    <td><?= $item['cantidad'] ?></td>
-                                    <td>$<?= number_format($item['precio_total'], 2) ?></td>
+                                    <th><i class="fas fa-gamepad"></i> Producto</th>
+                                    <th><i class="fas fa-desktop"></i> Plataforma</th>
+                                    <th><i class="fas fa-sort-numeric-up"></i> Cantidad</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Total</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($detalles as $item): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($item['producto_nombre']) ?></td>
+                                        <td><?= htmlspecialchars($item['plataforma_nombre']) ?></td>
+                                        <td><?= $item['cantidad'] ?></td>
+                                        <td>$<?= number_format($item['precio_total'], 2) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <div class="factura-total">
-                    <i class="fas fa-coins"></i> <strong>Total pagado: $<?= number_format($pedido['precio_total'], 2) ?></strong>
+                    <div class="factura-total">
+                        <i class="fas fa-coins"></i> <strong>Total pagado: $<?= number_format($pedido['precio_total'], 2) ?></strong>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <?php if (!$pdfMode) include '../elements/footer.php'; ?>
+    <?php include '../elements/footer.php'; ?>
     <script src="../../scripts/orderDetail.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

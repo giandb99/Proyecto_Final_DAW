@@ -49,7 +49,7 @@ if (empty($carritoItems)) {
     <main class="main-content">
         <section class="checkout-container">
 
-            <form class="checkout-form" action="../../verifications/paginaIntermedia.php" method="POST">
+            <form class="checkout-form" id="checkout-form" action="../../verifications/paginaIntermedia.php" method="POST">
 
                 <!-- Campo oculto para la acción del formulario -->
                 <input type="hidden" name="accion" value="procesar_pago">
@@ -146,6 +146,9 @@ if (empty($carritoItems)) {
             <div id="payment-loader" class="payment-loader-overlay" style="display:none;">
                 <div class="payment-loader-content">
                     <div class="loader"></div>
+                    <div id="payment-success-icon" style="display:none; font-size:3rem; color:#28a745;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
                     <p id="payment-loader-msg">Procesando pago...</p>
                 </div>
             </div>
