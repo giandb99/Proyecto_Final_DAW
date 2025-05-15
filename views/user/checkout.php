@@ -80,7 +80,7 @@ if (empty($carritoItems)) {
                         </div>
                         <!-- Contenedor para errores de datos del cliente -->
                         <?php if (isset($_GET['errores_cliente'])): ?>
-                            <div class="error-msg-container">
+                            <div class="error-msg-container error-msg-checkout">
                                 <?php foreach (explode(", ", $_GET['errores_cliente']) as $error): ?>
                                     <p class="error-msg"><?= htmlspecialchars($error) ?></p>
                                 <?php endforeach; ?>
@@ -111,7 +111,7 @@ if (empty($carritoItems)) {
                         </div>
                         <!-- Contenedor para errores de datos de la tarjeta -->
                         <?php if (isset($_GET['errores_tarjeta'])): ?>
-                            <div class="error-msg-container">
+                            <div class="error-msg-container error-msg-checkout">
                                 <?php foreach (explode(", ", $_GET['errores_tarjeta']) as $error): ?>
                                     <p class="error-msg"><?= htmlspecialchars($error) ?></p>
                                 <?php endforeach; ?>

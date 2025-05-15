@@ -20,6 +20,10 @@
     color: #1e7e34;
 }
 
+.error-msg-checkout {
+    animation: fadeInCheckout 0.5s ease-in-out;
+}
+
 .error-msg,
 .success-msg {
     margin: 0.2rem 0;
@@ -27,6 +31,17 @@
 }
 
 @keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInCheckout {
     from {
         opacity: 0;
         transform: translateY(-10px);
