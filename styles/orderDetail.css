@@ -23,13 +23,50 @@ body {
     padding: 2rem;
 }
 
+.padded-section {
+    padding: 1.5rem 0;
+}
+
+.back-button-container {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.back-button {
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+.back-button i {
+    margin-right: .7rem;
+}
+
+.back-button span:hover {
+    transition: font-size 0.3s ease;
+    color: #caa0ec;
+}
+
 .factura-box {
     background: #181818;
     border-radius: 16px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
     padding: 2rem 2.5rem;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+}
+
+.factura-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.factura-header a {
+    text-decoration: none;
+    color: #00ffff;
 }
 
 .factura-encabezado {

@@ -3,7 +3,6 @@
 require_once '../../database/querys.php';
 session_start();
 
-
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "<p>Pedido no válido.</p>";
     exit;
@@ -42,13 +41,26 @@ $detalles = $datos['productos'];
 
 <body>
 
-    <?php include '../elements/nav.php' ?>
+    <?php if (!$pdfMode) include '../elements/nav.php'; ?>
 
     <main class="main-content">
         <section class="order-details-container">
-            <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #<?= $pedidoId ?></h2>
-            <div class="catalog-items factura-box">
 
+            <div class="padded-section">
+                <div class="back-button-container">
+                    <a href="javascript:history.back()" class="back-button">
+                        <span><i class="fas fa-arrow-left"></i> Volver</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="pdf-pedido factura-box">
+                <div class="factura-header">
+                    <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #2</h2>
+                    <a href="#" class="download-pdf-btn" data-pedido="<?= $pedido['pedido_id'] ?>">
+                        <i class="fas fa-file-pdf"></i> Descargar PDF
+                    </a>
+                </div>
                 <div class="factura-encabezado">
                     <div class="factura-columna">
                         <div><strong><i class="fas fa-user"></i></strong>Cliente: <?= htmlspecialchars($pedido['usuario_nombre']) ?></div>
@@ -106,4 +118,6 @@ $detalles = $datos['productos'];
         </section>
     </main>
 
-    <?php include '../elements/footer.php' ?>
+    <?php if (!$pdfMode) include '../elements/footer.php'; ?>
+    <script src="../../scripts/orderDetail.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

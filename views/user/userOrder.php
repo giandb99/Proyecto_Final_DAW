@@ -62,7 +62,7 @@ $pedidos = $usuarioLogueado ? getOrdersByUserId($_SESSION['usuario']['id']) : []
                                     <div class="order-card" onclick="window.location.href='orderDetail.php?id=<?= $pedido['pedido_id'] ?>'">
                                         <div class="order-products">
                                             <div class="order-status <?= strtolower($pedido['estado']) ?>">
-                                                <?= strtoupper($pedido['estado'])?>
+                                                <?= strtoupper($pedido['estado']) ?>
                                             </div>
                                             <div class="products">
                                                 <?php foreach ($pedido['productos'] as $producto): ?>
@@ -77,14 +77,13 @@ $pedidos = $usuarioLogueado ? getOrdersByUserId($_SESSION['usuario']['id']) : []
                                                 <?php endforeach; ?>
                                             </div>
                                             <div class="order-total">
-                                                <h2>Total</h2> 
+                                                <h2>Total</h2>
                                                 <h2><?= number_format($pedido['precio_total'], 2) ?>€</h2>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="order-info">
                                         <p><strong>Pedido #<?= $pedido['pedido_id'] ?> - Fecha:</strong> <?= date('d/m/Y H:i', strtotime($pedido['creado_en'])) ?></strong></p>
-                                        <p><strong></p>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
