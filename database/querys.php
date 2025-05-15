@@ -1450,6 +1450,7 @@ function getOrdersByUserId($usuarioId)
         SELECT 
             p.id AS pedido_id,
             p.precio_total,
+            p.estado,
             p.creado_en,
             pi.producto_id,
             pr.nombre AS producto_nombre,
@@ -1475,6 +1476,7 @@ function getOrdersByUserId($usuarioId)
             $pedidos[$row['pedido_id']] = [
                 'pedido_id' => $row['pedido_id'],
                 'precio_total' => $row['precio_total'],
+                'estado' => $row['estado'],
                 'creado_en' => $row['creado_en'],
                 'productos' => []
             ];

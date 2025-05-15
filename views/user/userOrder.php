@@ -61,24 +61,30 @@ $pedidos = $usuarioLogueado ? getOrdersByUserId($_SESSION['usuario']['id']) : []
                                 <div class="order-cards">
                                     <div class="order-card" onclick="window.location.href='orderDetail.php?id=<?= $pedido['pedido_id'] ?>'">
                                         <div class="order-products">
-                                            <h3><strong>Productos:</strong></h3>
+                                            <div class="order-status <?= strtolower($pedido['estado']) ?>">
+                                                <?= strtoupper($pedido['estado'])?>
+                                            </div>
                                             <div class="products">
                                                 <?php foreach ($pedido['productos'] as $producto): ?>
-                                                    <li class="order-product-item">
+                                                    <div class="order-product-item">
                                                         <img src="../../<?= htmlspecialchars($producto['producto_imagen']) ?>" alt="<?= htmlspecialchars($producto['producto_nombre']) ?>" class="product-image">
-                                                        <span class="product-name"><?= htmlspecialchars($producto['producto_nombre']) ?></span>
-                                                        <span class="product-platform">(<?= htmlspecialchars($producto['plataforma_nombre']) ?>)</span>
-                                                        <span class="product-qty">x<?= $producto['cantidad'] ?></span>
-                                                        <span class="product-price">$<?= number_format($producto['precio_total_producto'], 2) ?></span>
-                                                    </li>
+                                                        <div class="order-product-details">
+                                                            <span class="product-name"><?= htmlspecialchars($producto['producto_nombre']) ?></span>
+                                                            <span class="product-platform">Plataforma: <?= htmlspecialchars($producto['plataforma_nombre']) ?></span>
+                                                            <span class="product-qty">Cantidad: <?= $producto['cantidad'] ?></span>
+                                                        </div>
+                                                    </div>
                                                 <?php endforeach; ?>
+                                            </div>
+                                            <div class="order-total">
+                                                <h2>Total</h2> 
+                                                <h2><?= number_format($pedido['precio_total'], 2) ?>€</h2>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="order-info">
-                                        <p><strong>Pedido #<?= $pedido['pedido_id'] ?></strong></p>
-                                        <p><strong>Fecha:</strong> <?= date('d/m/Y H:i', strtotime($pedido['creado_en'])) ?></p>
-                                        <p><strong>Total:</strong> $<?= number_format($pedido['precio_total'], 2) ?></p>
+                                        <p><strong>Pedido #<?= $pedido['pedido_id'] ?> - Fecha:</strong> <?= date('d/m/Y H:i', strtotime($pedido['creado_en'])) ?></strong></p>
+                                        <p><strong></p>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

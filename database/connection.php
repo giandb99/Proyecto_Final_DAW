@@ -12,8 +12,8 @@ function conexion() {
     // Configuración de la base de datos
     $servername = "localhost";
     $username = "root";
-    // $password = "";
-    $password = "1234"; // --> en clase usar esta
+    $password = "";
+    // $password = "1234";  --> en clase usar esta
     $dbname = "tienda_online";
 
     // Se crea la conexión a la base de datos
