@@ -154,7 +154,7 @@ CREATE TABLE facturacion (
     usuario_id INT NOT NULL,
     pedido_id INT NOT NULL,
     nombre_completo VARCHAR(100) NOT NULL,
-    correo VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
     direccion VARCHAR(255) NOT NULL,
     pais VARCHAR(100) NOT NULL,
     numero_tarjeta VARCHAR(20) DEFAULT NULL,

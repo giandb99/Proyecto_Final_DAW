@@ -619,7 +619,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             // Si todo fue exitoso, se redirige a la página de pedidos
-            header('Location: ../views/user/orderDetail.php?mensaje=Pago+realizado+con+exito.');
+            header('Location: ../views/user/orderDetail.php?id=' . $pedidoId . '&mensaje=Pago+realizado+con+exito.');
             exit;
 
         default:

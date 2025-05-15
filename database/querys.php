@@ -1401,7 +1401,7 @@ function createOrder($usuarioId)
     }
 }
 
-function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, $pais, $numero_tarjeta = null, $vencimiento_tarjeta = null)
+function addBilling($conn, $usuarioId, $pedidoId, $nombre, $email, $direccion, $pais, $numero_tarjeta = null, $vencimiento_tarjeta = null)
 {
     try {
         $ultimos4 = null;
@@ -1414,7 +1414,7 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, 
                 usuario_id,
                 pedido_id,
                 nombre_completo,
-                correo,
+                email,
                 direccion,
                 pais,
                 numero_tarjeta,
@@ -1426,7 +1426,7 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $correo, $direccion, 
             $usuarioId,
             $pedidoId,
             $nombre,
-            $correo,
+            $email,
             $direccion,
             $pais,
             $ultimos4,
@@ -1495,33 +1495,77 @@ function getOrdersByUserId($usuarioId)
     return array_values($pedidos);
 }
 
-function getOrderDetails($pedidoId)
+function getOrderFullDetails($pedidoId)
 {
     $conn = conexion();
     $query = $conn->prepare("
         SELECT 
+            p.id AS pedido_id,
+            p.precio_total,
+            p.descuento,
+            p.estado,
+            p.creado_en,
+            u.nombre AS usuario_nombre,
+            u.email AS facturacion_correo,
+            f.nombre_completo AS facturacion_nombre,
+            f.direccion AS facturacion_direccion,
+            f.pais AS facturacion_pais,
+            f.numero_tarjeta,
+            f.vencimiento_tarjeta,
             pi.producto_id,
-            p.nombre AS producto_nombre,
+            pr.nombre AS producto_nombre,
             pl.nombre AS plataforma_nombre,
             pi.cantidad,
-            pi.precio_total
-        FROM pedido_item pi
-        JOIN producto p ON pi.producto_id = p.id
+            pi.precio_total AS producto_precio_total
+        FROM pedido p
+        JOIN usuario u ON p.usuario_id = u.id
+        LEFT JOIN facturacion f ON p.id = f.pedido_id
+        JOIN pedido_item pi ON p.id = pi.pedido_id
+        JOIN producto pr ON pi.producto_id = pr.id
         JOIN plataforma pl ON pi.plataforma_id = pl.id
-        WHERE pi.pedido_id = ?
+        WHERE p.id = ?
     ");
     $query->bind_param("i", $pedidoId);
     $query->execute();
     $result = $query->get_result();
 
-    $detalles = [];
+    $pedido = null;
+    $productos = [];
     while ($row = $result->fetch_assoc()) {
-        $detalles[] = $row;
+        if (!$pedido) {
+            // Solo una vez, los datos generales del pedido y facturación
+            $pedido = [
+                'pedido_id' => $row['pedido_id'],
+                'precio_total' => $row['precio_total'],
+                'descuento' => $row['descuento'],
+                'estado' => $row['estado'],
+                'creado_en' => $row['creado_en'],
+                'usuario_nombre' => $row['usuario_nombre'],
+                'facturacion_correo' => $row['facturacion_correo'],
+                'facturacion_nombre' => $row['facturacion_nombre'],
+                'facturacion_direccion' => $row['facturacion_direccion'],
+                'facturacion_pais' => $row['facturacion_pais'],
+                'numero_tarjeta' => $row['numero_tarjeta'],
+                'vencimiento_tarjeta' => $row['vencimiento_tarjeta'],
+            ];
+        }
+        // Agregar cada producto
+        $productos[] = [
+            'producto_id' => $row['producto_id'],
+            'producto_nombre' => $row['producto_nombre'],
+            'plataforma_nombre' => $row['plataforma_nombre'],
+            'cantidad' => $row['cantidad'],
+            'precio_total' => $row['producto_precio_total'],
+        ];
     }
 
     $query->close();
     cerrar_conexion($conn);
-    return $detalles;
+
+    return [
+        'pedido' => $pedido,
+        'productos' => $productos
+    ];
 }
 
 function getAllOrders()
