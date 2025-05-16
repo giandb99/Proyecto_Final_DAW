@@ -14,6 +14,7 @@
     --transition-medium: 0.3s ease;
 }
 
+html,
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-color);
@@ -21,6 +22,11 @@ body {
     margin: 0;
     padding: 0;
     transition: background-color var(--transition-medium), color var(--transition-medium);
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
 }
 
 .container {

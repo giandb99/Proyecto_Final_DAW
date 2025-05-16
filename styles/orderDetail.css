@@ -12,6 +12,12 @@ body {
     min-height: 100vh;
 }
 
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
 .main-content {
     flex: 1;
     display: flex;
@@ -20,6 +26,13 @@ body {
     align-items: center;
     padding-bottom: 100px;
     flex-direction: column;
+}
+
+.main-content-admin {
+    flex: 1;
+    padding: 2rem 2rem 7rem 2rem;
+    overflow-y: auto;
+    background-color: black;
 }
 
 .order-details-container {

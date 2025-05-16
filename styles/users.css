@@ -9,12 +9,14 @@
     --border: #333;
 }
 
-html, body {
+html,
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212;
+    color: white;
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    font-family: 'Segoe UI', sans-serif;
 }
 
 .container {
@@ -31,8 +33,82 @@ html, body {
 }
 
 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-header);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.header h1 {
     color: var(--text-light);
-    margin-bottom: 3rem;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: space-between;
+}
+
+#search-input {
+    width: 300px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: var(--bg-main);
+    color: var(--text-light);
+}
+
+#search-input::placeholder {
+    color: #aaa;
+}
+
+#search-button {
+    background-color: var(--primary);
+    padding: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#search-button:hover {
+    background-color: #00bcd4;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.pagination-btn {
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background-color: var(--bg-main);
+    color: var(--text-light);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-btn:hover {
+    background-color: var(--primary);
+    color: var(--bg-main);
+}
+
+.pagination-btn.active {
+    background-color: var(--primary);
+    color: var(--bg-main);
+    font-weight: bold;
+    pointer-events: none;
 }
 
 .tabla-usuarios {
@@ -102,7 +178,7 @@ html, body {
 
 .btn-icon-desactivar {
     color: var(--danger);
-} 
+}
 
 .btn-icon-activar {
     color: var(--info);

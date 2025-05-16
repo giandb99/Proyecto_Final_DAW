@@ -16,6 +16,7 @@ $pedidos = $usuarioLogueado ? getOrdersByUserId($_SESSION['usuario']['id']) : []
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../styles/userOrder.css">
     <link rel="stylesheet" href="../../styles/nav.css">
+    <link rel="stylesheet" href="../../styles/scroll.css">
     <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
     <link rel="stylesheet" href="../../styles/footer.css">

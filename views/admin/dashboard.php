@@ -1,9 +1,13 @@
 <?php
 
-// Incluimos el archivo que contiene las funciones de consulta a la base de datos
 require_once '../../database/querys.php';
-
 session_start();
+
+// Solo permitir acceso a admin
+if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+    header('Location: ../user/logout.php');
+    exit;
+}
 
 // Se obtienen los datos para los widgets de la página de administración
 $totalProductosActivos = obtenerTotalProductosActivos();
@@ -22,11 +26,13 @@ $totalUsuarios = obtenerTotalUsuarios();
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>FreeDays_Games - Compra online de videojuegos y mucho más</title>
 </head>
 
 <body>
     <div class="container">
+        
         <?php include '../elements/sidebar.php'; ?>
 
         <main class="main-content">

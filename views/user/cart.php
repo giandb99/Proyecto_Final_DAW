@@ -27,6 +27,7 @@ if ($usuarioLogueado) {
     <link rel="stylesheet" href="../../styles/cart.css">
     <link rel="stylesheet" href="../../styles/nav.css">
     <link rel="stylesheet" href="../../styles/buttons.css">
+    <link rel="stylesheet" href="../../styles/scroll.css">
     <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">

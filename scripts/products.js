@@ -29,24 +29,3 @@ function deleteProduct(productId) {
             showPopup('Ocurrió un error inesperado.');
         });
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('search-input');
-    const productRows = document.querySelectorAll('.tabla-productos tbody tr');
-
-    searchInput.addEventListener('input', () => {
-        const searchTerm = searchInput.value.toLowerCase();
-
-        productRows.forEach(row => {
-            const productName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const platform = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
-            const genre = row.querySelector('td:nth-child(7)').textContent.toLowerCase();
-
-            if (productName.includes(searchTerm) || platform.includes(searchTerm) || genre.includes(searchTerm)) {
-                row.style.display = ''; // Mostrar fila
-            } else {
-                row.style.display = 'none'; // Ocultar fila
-            }
-        });
-    });
-});

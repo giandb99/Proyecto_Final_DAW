@@ -3,6 +3,12 @@
 require_once '../../database/querys.php';
 session_start();
 
+// Solo permitir acceso a admin
+if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+    header('Location: ../user/logout.php');
+    exit;
+}
+
 $formData = $_SESSION['form_data'] ?? [];
 $errores = $_SESSION['errores'] ?? [];
 
@@ -44,13 +50,14 @@ $exito = $_GET['exito'] ?? null;
     <link rel="stylesheet" href="../../styles/scroll.css">
     <link rel="stylesheet" href="../../styles/sidebar.css">
     <link rel="stylesheet" href="../../styles/footer.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title><?= $modoEdicion ? 'Modificar Producto' : 'Agregar Producto' ?></title>
 </head>
 
 <body>
     <div class="container">
+        
         <?php include '../elements/sidebar.php'; ?>
 
         <main class="main-content">
@@ -142,21 +149,4 @@ $exito = $_GET['exito'] ?? null;
 
     <?php include '../elements/footer.php' ?>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const plataformasCheckboxes = document.querySelectorAll('.plataforma input[type="checkbox"]');
-
-            plataformasCheckboxes.forEach(checkbox => {
-                const plataformaDiv = checkbox.closest('.plataforma');
-                const stockInput = plataformaDiv.querySelector('.plataforma-stock');
-
-                // Inicializar estado al cargar
-                stockInput.disabled = !checkbox.checked;
-
-                // Listener al hacer clic
-                checkbox.addEventListener('change', function() {
-                    stockInput.disabled = !this.checked;
-                });
-            });
-        });
-    </script>
+    <script src="../../scripts/addOrModifyProduct.js"></script>

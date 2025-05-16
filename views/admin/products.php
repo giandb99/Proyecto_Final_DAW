@@ -3,15 +3,17 @@
 require_once '../../database/querys.php';
 session_start();
 
-// Configuración de la paginación
-$limit = 20; // Número máximo de productos por página
+if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+    header('Location: ../user/logout.php');
+    exit;
+}
+
+$limit = 20;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = max($page, 1);
 $offset = ($page - 1) * $limit;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// Obtener el término de búsqueda
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-
-// Obtener productos y el total de productos
 $productos = getAllProducts($offset, $limit, $search);
 $totalProductos = getTotalProducts($search);
 $totalPages = ceil($totalProductos / $limit);
@@ -31,11 +33,14 @@ $totalPages = ceil($totalProductos / $limit);
     <link rel="stylesheet" href="../../styles/scroll.css">
     <link rel="stylesheet" href="../../styles/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>Productos</title>
 </head>
 
 <body>
     <div class="container">
+
         <?php include '../elements/sidebar.php'; ?>
 
         <main class="main-content">
@@ -48,7 +53,7 @@ $totalPages = ceil($totalProductos / $limit);
                 <button type="button" class="custom-btn btn" onclick="window.location.href='addOrModifyProduct.php'"><span>Agregar producto</span></button>
             </div>
 
-            <table class="tabla-productos">
+            <table class="products-table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -84,31 +89,24 @@ $totalPages = ceil($totalProductos / $limit);
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="10">No hay productos disponibles.</td>
+                            <td colspan="10" style="text-align:center;">No hay productos disponibles.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
 
             <!-- Paginación -->
-            <div class="pagination">
-                <?php if ($page > 1): ?>
-                    <a href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>" class="pagination-btn">Anterior</a>
-                <?php endif; ?>
-
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <a href="?page=<?= $i ?>&search=<?= urlencode($search) ?>" class="pagination-btn <?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
-                <?php endfor; ?>
-
-                <?php if ($page < $totalPages): ?>
-                    <a href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>" class="pagination-btn">Siguiente</a>
-                <?php endif; ?>
-            </div>
+            <?php if ($totalPages > 1 && $search === ''): ?>
+                <div class="pagination">
+                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <a href="?page=<?= $i ?>" class="pagination-btn<?= $i == $page ? ' active' : '' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+                </div>
+            <?php endif; ?>
         </main>
     </div>
 
     <?php include '../elements/footer.php'; ?>
 
-    <script src="../../scripts/sidebar.js"></script>
     <script src="../../scripts/products.js"></script>
     <script src="../../scripts/popup.js"></script>

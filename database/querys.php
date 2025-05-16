@@ -136,6 +136,37 @@ function getAllUserData()
     return $usuarios;
 }
 
+function getAllUserDataPaginated($offset = 0, $limit = 20, $search = '')
+{
+    $conn = conexion();
+    $search = "%$search%";
+    $query = $conn->prepare("SELECT * FROM usuario WHERE rol = 'user' AND email LIKE ? ORDER BY id ASC LIMIT ?, ?");
+    $query->bind_param("sii", $search, $offset, $limit);
+    $query->execute();
+    $result = $query->get_result();
+    $usuarios = [];
+
+    while ($usuario = $result->fetch_assoc()) {
+        $usuarios[] = $usuario;
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+    return $usuarios;
+}
+
+function getTotalUsers($search = '')
+{
+    $conn = conexion();
+    $search = "%$search%";
+    $query = $conn->prepare("SELECT COUNT(*) AS total FROM usuario WHERE rol = 'user' AND email LIKE ?");
+    $query->bind_param("s", $search);
+    $query->execute();
+    $result = $query->get_result()->fetch_assoc();
+    cerrar_conexion($conn);
+    return $result['total'];
+}
+
 /**
  * Función para obtener los datos del usuario por su correo electrónico y rol.
  * 
@@ -1568,25 +1599,57 @@ function getOrderFullDetails($pedidoId)
     ];
 }
 
-function getAllOrders()
-{
+function getAllOrdersPaginated($offset = 0, $limit = 20) {
     $conn = conexion();
     $query = $conn->prepare("
         SELECT 
             p.id AS pedido_id,
             p.precio_total,
+            p.estado,
             p.creado_en,
-            u.nombre_completo AS usuario_nombre,
-            f.nombre_completo AS facturacion_nombre,
-            f.direccion AS facturacion_direccion,
-            f.pais AS facturacion_pais,
-            f.numero_tarjeta,
-            f.vencimiento_tarjeta
+            u.nombre AS usuario_nombre
         FROM pedido p
         JOIN usuario u ON p.usuario_id = u.id
-        LEFT JOIN facturacion f ON p.id = f.pedido_id
+        ORDER BY p.creado_en ASC
+        LIMIT ?, ?
+    ");
+    $query->bind_param("ii", $offset, $limit);
+    $query->execute();
+    $result = $query->get_result();
+
+    $pedidos = [];
+    while ($row = $result->fetch_assoc()) {
+        $pedidos[] = $row;
+    }
+
+    $query->close();
+    cerrar_conexion($conn);
+    return $pedidos;
+}
+
+function getTotalOrders() {
+    $conn = conexion();
+    $result = $conn->query("SELECT COUNT(*) AS total FROM pedido");
+    $row = $result->fetch_assoc();
+    cerrar_conexion($conn);
+    return $row['total'];
+}
+
+function getOrderById($pedidoId) {
+    $conn = conexion();
+    $query = $conn->prepare("
+        SELECT 
+            p.id AS pedido_id,
+            p.precio_total,
+            p.estado,
+            p.creado_en,
+            u.nombre AS usuario_nombre
+        FROM pedido p
+        JOIN usuario u ON p.usuario_id = u.id
+        WHERE p.id = ?
         ORDER BY p.creado_en DESC
     ");
+    $query->bind_param("i", $pedidoId);
     $query->execute();
     $result = $query->get_result();
 
