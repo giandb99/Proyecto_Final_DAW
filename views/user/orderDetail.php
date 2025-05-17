@@ -60,6 +60,10 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
                             <a href="../admin/orders.php" class="back-button">
                                 <span><i class="fas fa-arrow-left"></i> Volver</span>
                             </a>
+                            <div class="admin-buttons" style="display: flex; gap: 10px; flex-direction:column;">
+                                <button class="custom-btn order-status-btn" onclick="actualizarEstadoPedido(<?= $pedido['pedido_id'] ?>, 'entregado')"><span>Marcar como entregado</span></button>
+                                <button class="custom-btn order-status-btn" onclick="actualizarEstadoPedido(<?= $pedido['pedido_id'] ?>, 'cancelado')"><span>Marcar como cancelado</span></button>
+                            </div>
                         <?php else: ?>
                             <a href="../user/userOrder.php" class="back-button">
                                 <span><i class="fas fa-arrow-left"></i> Volver</span>
@@ -72,12 +76,7 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
                     <div class="pdf-pedido factura-box">
                         <div class="factura-header">
                             <h2 class="title"><i class="fas fa-file-invoice"></i> Detalle del Pedido #<?= $pedido['pedido_id'] ?></h2>
-                            <?php if ($isAdmin): ?>
-                                <div class="admin-buttons" style="display: flex; gap: 10px; flex-direction:column;">
-                                    <button class="custom-btn"><span>Marcar como enviado</span></button>
-                                    <button class="custom-btn"><span>Marcar como cancelado</span></button>
-                                </div>
-                            <?php else: ?>
+                            <?php if (!$isAdmin): ?>
                                 <a href="#" class="download-pdf-btn" data-pedido="<?= $pedido['pedido_id'] ?>">
                                     <i class="fas fa-file-pdf"></i> Descargar PDF
                                 </a>
@@ -97,7 +96,7 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
                                     $estado = strtolower($pedido['estado']);
                                     $clase = "badge-estado";
                                     if ($estado == "pendiente") $clase .= " pendiente";
-                                    elseif ($estado == "pagado") $clase .= " pagado";
+                                    elseif ($estado == "entregado") $clase .= " entregado";
                                     elseif ($estado == "cancelado") $clase .= " cancelado";
                                     ?>
                                     <span class="<?= $clase ?>"><?= ucfirst($pedido['estado']) ?></span><br>
@@ -143,5 +142,7 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
     </div>
 
     <?php include '../elements/footer.php'; ?>
+
     <script src="../../scripts/orderDetail.js"></script>
+    <script src="../../scripts/popup.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

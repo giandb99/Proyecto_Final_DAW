@@ -3,11 +3,6 @@
 require_once '../../database/querys.php';
 session_start();
 
-if (!isset($_SESSION['usuario']['id'])) {
-    header('Location: login.php');
-    exit;
-}
-
 $conn = conexion();
 $userId = $_SESSION['usuario']['id'];
 $user = getUserDataById($conn, $userId);
@@ -30,7 +25,7 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
     <link rel="stylesheet" href="../../styles/nav.css">
     <link rel="stylesheet" href="../../styles/popup.css">
     <link rel="stylesheet" href="../../styles/footer.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>Perfil de <?= $isAdmin ? 'Administrador' : 'Usuario' ?></title>
 </head>

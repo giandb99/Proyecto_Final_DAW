@@ -678,6 +678,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: ../views/user/orderDetail.php?id=' . $pedidoId . '&mensaje=Pago+realizado+con+exito.');
             exit;
 
+        case 'actualizar_estado_pedido':
+            header('Content-Type: application/json');
+
+            $pedidoId = intval($_POST['pedido_id']);
+            $estado = $_POST['estado'];
+
+            if ($estado === 'entregado') {
+                $exito = markOrderShipped($pedidoId);
+            } elseif ($estado === 'cancelado') {
+                $exito = markOrderCancelled($pedidoId);
+            } else {
+                $exito = false;
+            }
+
+            echo json_encode([
+                'exito' => $exito,
+                'mensaje' => $exito ? 'Estado actualizado correctamente.' : 'No se pudo actualizar el estado.'
+            ]);
+            exit;
+            
         default:
             header("Location: ../views/user/error.php");
             break;

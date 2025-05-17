@@ -9,7 +9,7 @@ CREATE TABLE usuario (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
     username VARCHAR(50) UNIQUE NOT NULL,
-    imagen_perfil LONGBLOB,
+    imagen_perfil VARCHAR(255) DEFAULT NULL,
     pass VARCHAR(255),
     email VARCHAR(100) UNIQUE NOT NULL,
     telefono VARCHAR(20),

@@ -46,7 +46,7 @@ body {
 
 .back-button-container {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     width: 100%;
     margin-top: 1rem;
 }
@@ -67,6 +67,11 @@ body {
 .back-button span:hover {
     transition: font-size 0.3s ease;
     color: #caa0ec;
+}
+
+.admin-buttons {
+    display: flex;
+    flex-direction: row;
 }
 
 .factura-box {
@@ -164,21 +169,12 @@ body {
     background: #ff9800;
 }
 
-.badge-estado.pagado {
+.badge-estado.entregado {
     background: #4caf50;
+    color: #fff;
 }
 
 .badge-estado.cancelado {
     background: #f44336;
-}
-
-@media (max-width: 700px) {
-    .factura-encabezado {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .factura-box {
-        padding: 1rem;
-    }
+    color: #fff;
 }

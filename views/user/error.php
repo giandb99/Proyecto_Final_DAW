@@ -1,6 +1,5 @@
 <?php
 
-// Recibe el mensaje por GET
 $mensaje = isset($_GET['mensaje']) ? htmlspecialchars($_GET['mensaje']) : 'Ha ocurrido un error inesperado.';
 
 ?>

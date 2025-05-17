@@ -1356,6 +1356,7 @@ function getFavoriteProducts($usuarioId)
 }
 
 /* ------------- CHECKOUT / PEDIDOS -------------  */
+
 function createOrder($usuarioId)
 {
     $conn = conexion();
@@ -1472,6 +1473,26 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $email, $direccion, $
     } catch (Exception $e) {
         return ['success' => false, 'message' => 'Excepción: ' . $e->getMessage()];
     }
+}
+
+function markOrderShipped($pedidoId) {
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE pedido SET estado = 'entregado' WHERE id = ?");
+    $query->bind_param("i", $pedidoId);
+    $resultado = $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+    return $resultado;
+}
+
+function markOrderCancelled($pedidoId) {
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE pedido SET estado = 'cancelado' WHERE id = ?");
+    $query->bind_param("i", $pedidoId);
+    $resultado = $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+    return $resultado;
 }
 
 function getOrdersByUserId($usuarioId)
@@ -1665,7 +1686,6 @@ function getOrderById($pedidoId) {
 
 /* ------------- DASHBOARD -------------  */
 
-//funcion para obtener el total de productos para el dashboard del admin
 function obtenerTotalProductos()
 {
     $conn = conexion();
@@ -1675,10 +1695,9 @@ function obtenerTotalProductos()
     $row = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
-    return $row['total']; // Retorna el total de productos
+    return $row['total'];
 }
 
-//funcion para obtener el total de productos para el dashboard del admin
 function obtenerTotalProductosActivos()
 {
     $conn = conexion();
@@ -1688,10 +1707,9 @@ function obtenerTotalProductosActivos()
     $row = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
-    return $row['total']; // Retorna el total de productos
+    return $row['total'];
 }
 
-// funcion para obtener el total de usuarios registrados para el dashboard del admin
 function obtenerTotalUsuarios()
 {
     $conn = conexion();
@@ -1701,5 +1719,5 @@ function obtenerTotalUsuarios()
     $row = $result->fetch_assoc();
     $query->close();
     cerrar_conexion($conn);
-    return $row['total']; // Retorna el total de usuarios
+    return $row['total'];
 }

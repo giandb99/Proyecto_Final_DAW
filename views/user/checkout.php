@@ -4,12 +4,6 @@ require_once '../../database/querys.php';
 require_once '../../database/connection.php';
 session_start();
 
-// Verificar si el usuario está logueado
-if (!isset($_SESSION['usuario']['id'])) {
-    header('Location: login.php');
-    exit;
-}
-
 // Obtener los datos del carrito
 $conn = conexion();
 $carritoId = getActiveCartId($conn, $_SESSION['usuario']['id']);
@@ -17,11 +11,6 @@ $carritoItems = getCartItems($conn, $carritoId);
 $resumenCarrito = getCartSummary($conn, $carritoId);
 cerrar_conexion($conn);
 
-// Si el carrito está vacío, redirigir al catálogo
-if (empty($carritoItems)) {
-    header('Location: catalog.php');
-    exit;
-}
 ?>
 
 <!DOCTYPE html>

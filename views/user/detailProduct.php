@@ -12,12 +12,10 @@ if (!$id) {
 }
 
 $conn = conexion();
-
 $producto = getProductById($conn, $id);
 $generos = getGenresByProduct($conn, $id);
 $plataformas = getPlatformsByProduct($conn, $id);
 $productos_relacionados = getRelatedProducts($id);
-
 cerrar_conexion($conn);
 
 if (!$producto) {
