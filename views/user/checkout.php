@@ -128,6 +128,9 @@ cerrar_conexion($conn);
                         <button type="submit" class="custom-btn btn-success">
                             <span>Pagar</span>
                         </button>
+                        <button class="custom-btn btn-back" onclick="window.location.href='cart.php'">
+                            <span>Cancelar</span>
+                        </button>
                     </div>
                 </div>
             </form>

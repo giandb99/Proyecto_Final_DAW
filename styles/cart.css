@@ -184,7 +184,7 @@ body {
 
 .cart-qty-select:focus,
 .cart-qty-select:hover {
-    border-color: #00ffcc;
+    border-color: #00ffff;
     box-shadow: 0 0 0 2px #00ffcc33;
 }
 
@@ -215,7 +215,7 @@ body {
 
 .cart-summary strong {
     font-size: 1.2rem;
-    color: #00ffcc;
+    color: #00ffff;
 }
 
 .summary-box {

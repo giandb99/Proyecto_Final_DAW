@@ -149,12 +149,14 @@
     padding: 0;
 }
 
-.btn-checkout {
+.btn-checkout,
+.btn-success {
     background: linear-gradient(to right, #00ffff, #7affff);
     color: #000;
 }
 
-.btn-checkout:hover {
+.btn-checkout:hover,
+.btn-success:hover {
     background: linear-gradient(to left, #00ffff, #7affff);
     transform: scale(1.05);
     transition: all 0.3s ease;
@@ -207,23 +209,6 @@
 .btn-save:disabled {
     background-color: #555;
     cursor: not-allowed;
-}
-
-/* BOTÓN DEL CHECKOUT */
-
-.btn-success {
-    background-color: #00bfa6;
-}
-
-.btn-success:hover {
-    background-color: #02a18d;
-}
-
-.btn-success::before,
-.btn-success::after,
-.btn-success span::before,
-.btn-success span::after {
-    background: #00ffff;
 }
 
 /* BOTON CAMBIAR ESTADO PEDIDO */
