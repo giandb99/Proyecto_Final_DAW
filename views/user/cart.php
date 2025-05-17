@@ -121,7 +121,7 @@ if ($usuarioLogueado) {
                                     <button class="custom-btn btn-checkout" onclick="window.location.href='checkout.php'">
                                         <span>Proceder con el pago</span>
                                     </button>
-                                    <button class="custom-btn btn-cart" onclick="window.location.href='catalog.php'">
+                                    <button class="custom-btn btn-back" onclick="window.location.href='catalog.php'">
                                         <span>Seguir comprando</span>
                                     </button>
                                 </div>

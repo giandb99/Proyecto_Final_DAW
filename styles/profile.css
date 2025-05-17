@@ -50,20 +50,43 @@ body {
     background-color: black;
 }
 
-.profile-wrapper,
 .profile-wrapper-admin {
-    min-width: 300px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 2rem;
     padding: 2rem;
-    max-width: 1300px;
-    align-items: flex-start;
 }
 
 .profile-wrapper {
-    margin: 2rem auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 1400px;
+    gap: 2rem;
+    margin: 2rem auto;
+}
+
+.back-button {
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+.back-button i {
+    margin-right: .7rem;
+}
+
+.back-button span:hover {
+    transition: font-size 0.3s ease;
+    color: #caa0ec;
+}
+
+.forms-container {
+    min-width: 300px;
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
 }
 
 .profile-container,
@@ -94,13 +117,13 @@ body {
 
 .profile-container-admin,
 .change-password-container-admin {
-    max-width: 500px;
+    max-width: 600px;
 }
 
 .profile-container:hover,
 .change-password-container:hover,
-.profile-container-admin,
-.change-password-container-admin {
+.profile-container-admin:hover,
+.change-password-container-admin:hover {
     transform: scale(1.01);
     box-shadow: 0 0 25px rgba(0, 191, 166, 0.3);
 }
@@ -115,16 +138,25 @@ body {
     transition: color var(--transition-medium);
 }
 
-.form-group {
+.profile-header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.5rem;
 }
 
+.form-group {
+    display: flex;
+    margin-bottom: 1.5rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .form-group label {
+    width: 100%;
     display: block;
     font-weight: 500;
-    margin-bottom: 0.5rem;
     color: var(--subtext-color);
     transition: color var(--transition-medium);
 }
@@ -134,6 +166,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
+    width: 100%;
     background-color: var(--input-bg);
     color: var(--text-color);
     transition: border-color var(--transition-fast), background-color var(--transition-medium), color var(--transition-medium), box-shadow var(--transition-fast);
@@ -149,8 +182,30 @@ body {
     background-color: #e9e9e9;
     color: #838383;
     cursor: not-allowed;
+    width: 100%;
     opacity: 0.6;
     transition: opacity var(--transition-fast);
+}
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    cursor: pointer;
+    color: #888;
+    font-size: 1.1em;
+    z-index: 2;
+    user-select: none;
+}
+
+.toggle-password:hover {
+    color: #0077ff;
 }
 
 .profile-img {

@@ -167,10 +167,41 @@ body {
     margin: 0 auto;
 }
 
-.products-table td:nth-child(6),
-.products-table td:nth-child(7) {
+.products-table td:nth-child(5),
+.products-table td:nth-child(6) {
     max-width: 200px;
     padding: 8px;
+}
+
+th:nth-child(1),
+td:nth-child(1) {
+    width: 20%;
+}
+
+th:nth-child(3),
+td:nth-child(3),
+th:nth-child(4),
+td:nth-child(4) {
+    width: 50%;
+}
+
+th:nth-child(2),
+td:nth-child(2),
+th:nth-child(5),
+td:nth-child(5),
+th:nth-child(6),
+td:nth-child(6){
+    width: 100%;
+}
+
+th:nth-child(7),
+td:nth-child(7) {
+    width: 40%;
+}
+
+th:nth-child(8),
+td:nth-child(8) {
+    width: 70%;
 }
 
 .btn-icon-eliminar,
@@ -213,35 +244,4 @@ body {
 
 .acciones form {
     margin: 0;
-}
-
-th:nth-child(1),
-td:nth-child(1) {
-    width: 20%;
-}
-
-th:nth-child(2),
-td:nth-child(2),
-th:nth-child(6),
-td:nth-child(6),
-th:nth-child(7),
-td:nth-child(7) {
-    width: 100%;
-}
-
-th:nth-child(3),
-td:nth-child(3) {
-    width: 80%;
-}
-
-th:nth-child(4),
-td:nth-child(4),
-th:nth-child(5),
-td:nth-child(5) {
-    width: 50%;
-}
-
-th:nth-child(8),
-td:nth-child(8) {
-    width: 70%;
 }

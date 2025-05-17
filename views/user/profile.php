@@ -39,75 +39,100 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
         <?php endif; ?>
 
         <main class="<?= $isAdmin ? 'main-content-admin' : 'main-content' ?>">
-
             <div class="<?= $isAdmin ? 'profile-wrapper-admin' : 'profile-wrapper' ?>">
-                <section class="<?= $isAdmin ? 'profile-container-admin' : 'profile-container' ?>">
-                    <h1><?= $isAdmin ? 'Datos Personales (Admin)' : 'Mi Perfil' ?></h1>
-                    <form id="profile-form" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="nombre">Nombre:</label>
-                            <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($user['nombre']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="username">Usuario:</label>
-                            <input type="text" id="username" name="username" value="<?= htmlspecialchars($user['username']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Correo Electrónico:</label>
-                            <input type="email" id="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="telefono">Teléfono:</label>
-                            <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($user['telefono']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="direccion">Dirección:</label>
-                            <input type="text" id="direccion" name="direccion" value="<?= htmlspecialchars($user['direccion']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="fecha_nac">Fecha de Nacimiento:</label>
-                            <input type="date" id="fecha_nac" name="fecha_nac" value="<?= htmlspecialchars($user['fecha_nac']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="cp">Código Postal:</label>
-                            <input type="text" id="cp" name="cp" value="<?= htmlspecialchars($user['cp']) ?>" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="imagen_perfil">Foto de perfil:</label>
-                            <input type="file" id="imagen_perfil" name="imagen_perfil" accept="image/*" disabled>
+                <?php if (!$isAdmin): ?>
+                    <div class="back-button-container">
+                        <a href="javascript:history.back()" class="back-button">
+                            <span><i class="fas fa-arrow-left"></i> Volver</span>
+                        </a>
+                    </div>
+                <?php endif; ?>
+                <div class="forms-container">
+                    <section class="<?= $isAdmin ? 'profile-container-admin' : 'profile-container' ?>">
+                        <div class="profile-header">
+                            <h1><?= $isAdmin ? 'Datos Personales (Admin)' : 'Mi Perfil' ?></h1>
                             <?php if (!empty($user['imagen_perfil'])): ?>
                                 <img src="../../<?= htmlspecialchars($user['imagen_perfil']) ?>" alt="Foto de perfil" class="profile-img">
                             <?php endif; ?>
                         </div>
-                        <div class="form-actions">
-                            <button type="button" id="edit-button" class="custom-btn-profile btn-edit">Editar</button>
-                            <button type="submit" id="save-button" class="custom-btn-profile btn-save" disabled onclick="updateProfile()">Guardar</button>
-                        </div>
-                    </form>
-                </section>
+                        <form id="profile-form" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="nombre">Nombre:</label>
+                                <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($user['nombre']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Usuario:</label>
+                                <input type="text" id="username" name="username" value="<?= htmlspecialchars($user['username']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Correo Electrónico:</label>
+                                <input type="email" id="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="telefono">Teléfono:</label>
+                                <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($user['telefono']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="direccion">Dirección:</label>
+                                <input type="text" id="direccion" name="direccion" value="<?= htmlspecialchars($user['direccion']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha_nac">Fecha de Nacimiento:</label>
+                                <input type="date" id="fecha_nac" name="fecha_nac" value="<?= htmlspecialchars($user['fecha_nac']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="cp">Código Postal:</label>
+                                <input type="text" id="cp" name="cp" value="<?= htmlspecialchars($user['cp']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="imagen_perfil">Foto de perfil:</label>
+                                <input type="file" id="imagen_perfil" name="imagen_perfil" accept="image/*" disabled>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" id="edit-button" class="custom-btn-profile btn-edit">Editar</button>
+                                <button type="submit" id="save-button" class="custom-btn-profile btn-save" disabled>Guardar</button>
+                            </div>
+                        </form>
+                    </section>
 
-                <section class="<?= $isAdmin ? 'change-password-container-admin' : 'change-password-container' ?>">
-                    <h2>Cambiar Contraseña</h2>
-                    <form id="change-password-form">
-                        <div class="form-group">
-                            <label for="current_password">Contraseña Actual:</label>
-                            <input type="password" id="current_password" name="current_password" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="new_password">Nueva Contraseña:</label>
-                            <input type="password" id="new_password" name="new_password" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirm_password">Confirmar Nueva Contraseña:</label>
-                            <input type="password" id="confirm_password" name="confirm_password" required>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="custom-btn-profile btn-save" onclick="updatePassword()">Actualizar Contraseña</button>
-                        </div>
-                    </form>
-                </section>
+                    <section class="<?= $isAdmin ? 'change-password-container-admin' : 'change-password-container' ?>">
+                        <h2>Cambiar Contraseña</h2>
+                        <form id="change-password-form">
+                            <div class="form-group">
+                                <label for="current_password">Contraseña Actual:</label>
+                                <div class="password-wrapper">
+                                    <input type="password" id="current_password" name="current_password" disabled>
+                                    <span class="toggle-password" data-target="current_password">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_password">Nueva Contraseña:</label>
+                                <div class="password-wrapper">
+                                    <input type="password" id="new_password" name="new_password" disabled>
+                                    <span class="toggle-password" data-target="new_password">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm_password">Confirmar Nueva Contraseña:</label>
+                                <div class="password-wrapper">
+                                    <input type="password" id="confirm_password" name="confirm_password" disabled>
+                                    <span class="toggle-password" data-target="confirm_password">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" id="edit-button-pass" class="custom-btn-profile btn-edit">Editar</button>
+                                <button type="submit" id="save-button-pass" class="custom-btn-profile btn-save" disabled>Actualizar Contraseña</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
             </div>
-
         </main>
     </div>
 

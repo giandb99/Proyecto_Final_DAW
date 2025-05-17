@@ -141,32 +141,33 @@
 }
 
 /* BOTONES DEL CARRITO */
-.btn-cart,
+.btn-back,
 .btn-checkout,
-.btn-empty-cart {
+.btn-empty-cart,
+.btn-success {
     line-height: 42px;
     padding: 0;
 }
 
 .btn-checkout {
-    background: linear-gradient(to right, #00ffcc, #91ffe9);
+    background: linear-gradient(to right, #00ffff, #7affff);
     color: #000;
 }
 
 .btn-checkout:hover {
-    background: linear-gradient(to left, #00ffcc, #91ffe9);
+    background: linear-gradient(to left, #00ffff, #7affff);
     transform: scale(1.05);
     transition: all 0.3s ease;
 }
 
-.btn-cart::before,
-.btn-cart::after,
-.btn-cart span::before,
-.btn-cart span::after {
-    background: #00ffcc;
+.btn-back::before,
+.btn-back::after,
+.btn-back span::before,
+.btn-back span::after {
+    background: #00ffff;
 }
 
-.btn-cart {
+.btn-back {
     color: #fff;
 }
 
@@ -209,10 +210,6 @@
 }
 
 /* BOTÓN DEL CHECKOUT */
-.btn-success {
-    line-height: 42px;
-    padding: 0;
-}
 
 .btn-success {
     background-color: #00bfa6;
@@ -226,13 +223,13 @@
 .btn-success::after,
 .btn-success span::before,
 .btn-success span::after {
-    background: #00ffdd;
+    background: #00ffff;
 }
 
 /* BOTON CAMBIAR ESTADO PEDIDO */
 .order-status-btn {
     padding: 10px 18px;
-    background: linear-gradient(90deg, #00e0ff 0%, #0077ff 100%);
+    background: linear-gradient(90deg, #00ffff 0%, #0077ff 100%);
     box-shadow: 0 2px 8px rgba(0, 224, 255, 0.08);
     transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }

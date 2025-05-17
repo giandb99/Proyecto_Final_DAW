@@ -21,6 +21,31 @@ html, body {
     padding-bottom: 100px;
 }
 
+.back-button-container {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.back-button {
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+.back-button i {
+    margin-right: .7rem;
+}
+
+.back-button span:hover {
+    transition: font-size 0.3s ease;
+    color: #caa0ec;
+}
+
 .product-form {
     display: flex;
     background-color: #1c1c1e;

@@ -107,35 +107,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'actualizar_perfil':
             header('Content-Type: application/json');
 
-            if (!isset($_SESSION['usuario']['id'])) {
+            if (!isset($_SESSION['usuario']) || !isset($_SESSION['usuario']['id'])) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
                 exit;
             }
 
             $userId = $_SESSION['usuario']['id'];
-            $nombre = $_POST['nombre'] ?? '';
-            $username = $_POST['username'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $telefono = $_POST['telefono'] ?? '';
-            $direccion = $_POST['direccion'] ?? '';
-            $fecha_nac = $_POST['fecha_nac'] ?? '';
-            $cp = $_POST['cp'] ?? '';
-            $imagenPerfil = null;
+            $user = $_SESSION['usuario'];
 
-            if (isset($_FILES['imagen_perfil']) && $_FILES['imagen_perfil']['error'] === UPLOAD_ERR_OK) {
-                $rutaRelativa = 'images/profiles/' . basename($_FILES['imagen_perfil']['name']);
-                $rutaAbsoluta = '../../' . $rutaRelativa;
+            $nombre = trim($_POST['nombre'] ?? '');
+            $username = trim($_POST['username'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $telefono = trim($_POST['telefono'] ?? '');
+            $direccion = trim($_POST['direccion'] ?? '');
+            $fecha_nac = trim($_POST['fecha_nac'] ?? '');
+            $cp = trim($_POST['cp'] ?? '');
+            $imagen = $_FILES['imagen_perfil'] ?? null;
+            $errores = [];
 
-                if (move_uploaded_file($_FILES['imagen_perfil']['tmp_name'], $rutaAbsoluta)) {
-                    $imagenPerfil = $rutaRelativa;
-                } else {
-                    echo json_encode(['exito' => false, 'mensaje' => 'Error al subir la imagen.']);
+            // Validaciones
+            $validaciones = [
+                validateData('string', $nombre, 'nombre'),
+                validateData('string', $username, 'nombre de usuario'),
+                validateData('email', $email, 'correo electrónico'),
+                validateData('telefono', $telefono, 'teléfono'),
+                validateData('string', $direccion, 'dirección'),
+                validateData('fecha', $fecha_nac, 'fecha de nacimiento'),
+                validateData('cp', $cp, 'código postal')
+            ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    echo json_encode(['exito' => false, 'mensaje' => $resultado]);
                     exit;
                 }
             }
 
+            // Procesar imagen de perfil
+            $rutaImagenFinal = $user['imagen_perfil'] ?? null;
+
+            if ($imagen && $imagen['error'] === UPLOAD_ERR_OK) {
+                // Validar la imagen
+                $resultadoImagen = validateImage($imagen);
+                if ($resultadoImagen !== true) {
+                    echo json_encode(['exito' => false, 'mensaje' => $resultadoImagen]);
+                    exit;
+                }
+
+                $nombreTemporal = $imagen['tmp_name'];
+                $nombreOriginal = basename($imagen['name']);
+                $extension = pathinfo($nombreOriginal, PATHINFO_EXTENSION);
+
+                // Crear un nombre único para evitar conflictos
+                $nombreArchivo = 'perfil_' . $userId . '_' . time() . '.' . $extension;
+                $directorio = '../images/profiles/';
+                $rutaDestino = $directorio . $nombreArchivo;
+
+                // Asegurar que el directorio exista
+                if (!is_dir($directorio)) {
+                    mkdir($directorio, 0755, true);
+                }
+
+                // Mover el archivo
+                if (move_uploaded_file($nombreTemporal, $rutaDestino)) {
+                    $rutaImagenFinal = 'images/profiles/' . $nombreArchivo;
+                } else {
+                    echo json_encode(['exito' => false, 'mensaje' => 'Error al guardar la imagen.']);
+                    exit;
+                }
+            } else {
+                // Si no se sube una nueva imagen, mantenemos la actual
+                $rutaImagenFinal = $user['imagen_perfil'];
+            }
+
             $conn = conexion();
-            $success = updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagenPerfil);
+            $success = updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $rutaImagenFinal);
             cerrar_conexion($conn);
 
             echo json_encode(['exito' => $success, 'mensaje' => $success ? 'Perfil actualizado correctamente.' : 'Error al actualizar el perfil.']);
@@ -154,6 +200,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $newPassword = $_POST['new_password'] ?? '';
             $confirmPassword = $_POST['confirm_password'] ?? '';
 
+            // Validaciones
+            $validaciones = [
+                validateData('password', $newPassword, 'nueva contraseña')
+            ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    echo json_encode(['exito' => false, 'mensaje' => $resultado]);
+                    exit;
+                }
+            }
+
+            // Verificar que las contraseñas coincidan
             if ($newPassword !== $confirmPassword) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Las contraseñas no coinciden.']);
                 exit;
@@ -304,7 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $plataformas = $_POST['plataformas'] ?? []; // Plataformas seleccionadas (array vacío por defecto)
             $generos = $_POST['generos'] ?? []; // Géneros seleccionados (array vacío por defecto)
             $stock_por_plataforma = $_POST['stock'] ?? []; // Stock por plataforma (array vacío por defecto)
-            $imagenArchivo = $_FILES['image'] ?? null;
+            $imagen = $_FILES['image'] ?? null;
             $errores = [];
 
             // Validación de acceso
@@ -342,14 +401,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             // Validación de imagen
-            if ($imagenArchivo && $imagenArchivo['error'] === UPLOAD_ERR_OK) {
-                $resultadoImagen = validateImage($imagenArchivo);
+            if ($imagen && $imagen['error'] === UPLOAD_ERR_OK) {
+                $resultadoImagen = validateImage($imagen);
                 if ($resultadoImagen !== true) {
                     $errores[] = $resultadoImagen;
                 } else {
-                    $nombreImagen = '_' . basename($imagenArchivo['name']);
+                    $nombreImagen = '_' . basename($imagen['name']);
                     $rutaDestino = '../images/products/' . $nombreImagen;
-                    move_uploaded_file($imagenArchivo['tmp_name'], $rutaDestino);
+                    move_uploaded_file($imagen['tmp_name'], $rutaDestino);
                     $imagen = 'images/products/' . $nombreImagen;
                 }
             } else {
@@ -697,7 +756,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'mensaje' => $exito ? 'Estado actualizado correctamente.' : 'No se pudo actualizar el estado.'
             ]);
             exit;
-            
+
         default:
             header("Location: ../views/user/error.php");
             break;

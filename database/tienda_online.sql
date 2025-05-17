@@ -83,7 +83,7 @@ CREATE TABLE pedido_item (
     cantidad INT,
     precio_total DECIMAL(10,2),
     FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (producto_id) REFERENCES producto(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (producto_id) REFERENCES producto(id) ON UPDATE CASCADE
 );
 
 CREATE TABLE carrito (

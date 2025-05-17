@@ -17,8 +17,38 @@ function validateData($tipo, $valor, $campoNombre = '')
             return true;
 
         case 'fecha':
-            if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $valor)) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor)) {
                 return "La fecha debe estar en formato DD-MM-YYYY.";
+            }
+            return true;
+
+        case 'telefono':
+            if (empty($valor)) {
+                return "El campo '{$campoNombre}' no puede estar vacío.";
+            } else if (!preg_match('/^\d{9}$/', $valor)) {
+                return "El campo '{$campoNombre}' debe contener exactamente 9 dígitos.";
+            }
+            return true;
+
+        case 'cp':
+            if (empty($valor)) {
+                return "El campo '{$campoNombre}' no puede estar vacío.";
+            } else if (!preg_match('/^\d{5}$/', $valor)) {
+                return "El campo '{$campoNombre}' debe contener exactamente 5 dígitos.";
+            }
+            return true;
+
+        case 'fecha_nac':
+            if (empty($valor)) {
+                return "El campo '{$campoNombre}' no puede estar vacío.";
+            } else if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor)) {
+                return "La fecha de nacimiento debe estar en formato YYYY-MM-DD.";
+            } else {
+                $fechaNacimiento = DateTime::createFromFormat('Y-m-d', $valor);
+                $fechaActual = new DateTime();
+                if ($fechaNacimiento > $fechaActual) {
+                    return "La fecha de nacimiento no puede ser futura.";
+                }
             }
             return true;
 

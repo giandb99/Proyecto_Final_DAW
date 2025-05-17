@@ -113,7 +113,7 @@ function login($usuario)
         'fecha_creacion' => $usuario['fecha_creacion'],
         'ultimo_login' => $usuario['ultimo_login'],
         'activo' => $usuario['activo'],
-        'imagen_perfil' => !empty($usuario['imagen_perfil']) ? true : false
+        'imagen_perfil' => !empty($usuario['imagen_perfil']) ? $usuario['imagen_perfil'] : null
     ];
 }
 
@@ -198,17 +198,29 @@ function getUserDataById($conn, $userId)
     return $user;
 }
 
-function updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagenPerfil = null)
+function updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagen_perfil)
 {
     $query = $conn->prepare("
-        UPDATE usuario 
-        SET nombre = ?, username = ?, email = ?, telefono = ?, direccion = ?, fecha_nac = ?, cp = ?, imagen_perfil = IFNULL(?, imagen_perfil)
-        WHERE id = ?
+        UPDATE usuario
+        SET nombre=?, username=?, email=?, telefono=?, direccion=?, fecha_nac=?, cp=?, imagen_perfil=?
+        WHERE id=?
     ");
-    $query->bind_param("sssssssii", $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $imagenPerfil, $userId);
-    $success = $query->execute();
+    $query->bind_param(
+        "ssssssssi",
+        $nombre,
+        $username,
+        $email,
+        $telefono,
+        $direccion,
+        $fecha_nac,
+        $cp,
+        $imagen_perfil,
+        $userId
+    );
+
+    $result = $query->execute();
     $query->close();
-    return $success;
+    return $result;
 }
 
 function getCurrentPassword($conn, $userId)
@@ -515,13 +527,18 @@ function deleteProduct($id)
 {
     $conn = conexion();
 
-    // Eliminamos el producto
-    $query = $conn->prepare("DELETE FROM producto WHERE id = ?");
+    // Desactivar el producto
+    $query = $conn->prepare("UPDATE producto SET activo = 0 WHERE id = ?");
     $query->bind_param("i", $id);
     $resultado = $query->execute();
-
     $query->close();
     cerrar_conexion($conn);
+
+    // Eliminar de carritos (todas las plataformas)
+    deleteProductFromCartAllPlatforms($id);
+
+    // Eliminar de favoritos
+    deleteProductFromFavorites($id);
 
     return $resultado;
 }
@@ -608,9 +625,9 @@ function getAllProducts($offset = 0, $limit = 20, $search = '')
         SELECT 
             producto.id,
             producto.nombre,
-            producto.imagen,
             producto.precio,
             producto.descuento,
+            producto.activo,
             GROUP_CONCAT(DISTINCT genero.nombre) AS genero,
             GROUP_CONCAT(DISTINCT plataforma.nombre) AS plataforma
         FROM producto
@@ -619,7 +636,7 @@ function getAllProducts($offset = 0, $limit = 20, $search = '')
         LEFT JOIN producto_plataforma pp ON producto.id = pp.producto_id
         LEFT JOIN plataforma ON pp.plataforma_id = plataforma.id
         LEFT JOIN producto_stock ps ON producto.id = ps.producto_id
-        WHERE producto.activo = 1 AND producto.nombre LIKE ?
+        WHERE producto.nombre LIKE ?
         GROUP BY producto.id
         ORDER BY producto.id ASC
         LIMIT ?, ?
@@ -1172,6 +1189,16 @@ function removeProductFromCart($conn, $carritoItemId, $userId)
     return $success;
 }
 
+function deleteProductFromCartAllPlatforms($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("DELETE FROM carrito_item WHERE producto_id = ?");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
 /**
  * Función para vaciar el carrito y devolver el stock reservado al stock disponible.
  * 
@@ -1325,6 +1352,16 @@ function addOrRemoveFav($usuarioId, $productoId)
     }
 }
 
+function deleteProductFromFavorites($productoId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("DELETE FROM favorito_item WHERE producto_id = ?");
+    $query->bind_param("i", $productoId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
 function getFavoriteProducts($usuarioId)
 {
     $conn = conexion();
@@ -1475,7 +1512,8 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $email, $direccion, $
     }
 }
 
-function markOrderShipped($pedidoId) {
+function markOrderShipped($pedidoId)
+{
     $conn = conexion();
     $query = $conn->prepare("UPDATE pedido SET estado = 'entregado' WHERE id = ?");
     $query->bind_param("i", $pedidoId);
@@ -1485,7 +1523,8 @@ function markOrderShipped($pedidoId) {
     return $resultado;
 }
 
-function markOrderCancelled($pedidoId) {
+function markOrderCancelled($pedidoId)
+{
     $conn = conexion();
     $query = $conn->prepare("UPDATE pedido SET estado = 'cancelado' WHERE id = ?");
     $query->bind_param("i", $pedidoId);
@@ -1620,7 +1659,8 @@ function getOrderFullDetails($pedidoId)
     ];
 }
 
-function getAllOrdersPaginated($offset = 0, $limit = 20) {
+function getAllOrdersPaginated($offset = 0, $limit = 20)
+{
     $conn = conexion();
     $query = $conn->prepare("
         SELECT 
@@ -1648,7 +1688,8 @@ function getAllOrdersPaginated($offset = 0, $limit = 20) {
     return $pedidos;
 }
 
-function getTotalOrders() {
+function getTotalOrders()
+{
     $conn = conexion();
     $result = $conn->query("SELECT COUNT(*) AS total FROM pedido");
     $row = $result->fetch_assoc();
@@ -1656,7 +1697,8 @@ function getTotalOrders() {
     return $row['total'];
 }
 
-function getOrderById($pedidoId) {
+function getOrderById($pedidoId)
+{
     $conn = conexion();
     $query = $conn->prepare("
         SELECT 

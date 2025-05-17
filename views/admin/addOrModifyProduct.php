@@ -139,7 +139,10 @@ $exito = $_GET['exito'] ?? null;
                     <?php endif; ?>
 
                     <button type="submit" class="custom-btn btn">
-                        <span><?= $modoEdicion ? 'Confirmar cambios' : 'Agregar producto' ?></span>
+                        <span><?= $modoEdicion ? 'Confirmar cambios' : 'Confirmar' ?></span>
+                    </button>
+                    <button type="reset" class="custom-btn btn-cancel" onclick="window.location.href='products.php'">
+                        <span>Cancelar</span>
                     </button>
                 </div>
             </form>

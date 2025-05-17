@@ -57,11 +57,11 @@ $totalPages = ceil($totalProductos / $limit);
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
-                        <th>Imagen</th>
                         <th>Precio</th>
                         <th>Descuento</th>
                         <th>Plataforma</th>
                         <th>Género</th>
+                        <th>Activo</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -71,11 +71,11 @@ $totalPages = ceil($totalProductos / $limit);
                             <tr data-product-id="<?= $producto['id'] ?>">
                                 <td><?= $producto['id'] ?></td>
                                 <td><?= htmlspecialchars($producto['nombre']) ?></td>
-                                <td><img src="../../<?= htmlspecialchars($producto['imagen']) ?>" alt="Imagen" class="tabla-img"></td>
                                 <td><?= number_format($producto['precio'], 2) ?>€</td>
                                 <td><?= $producto['descuento'] ?? '0' ?>%</td>
                                 <td><?= htmlspecialchars($producto['plataforma']) ?> </td>
                                 <td><?= htmlspecialchars($producto['genero']) ?> </td>
+                                <td><?= $producto['activo'] ? 'Sí' : 'No' ?></td>
                                 <td class="acciones">
                                     <button onclick="window.location.href='addOrModifyProduct.php?id=<?= $producto['id'] ?>'" class="btn-icon-modificar" title="Modificar">
                                         <i class="fas fa-pen"></i>
