@@ -37,7 +37,7 @@ CREATE TABLE plataforma (
 CREATE TABLE producto (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    imagen VARCHAR(255) DEFAULT NULL,
+    imagen VARCHAR(255) NOT NULL DEFAULT 'default.jpg',
     descripcion TEXT NOT NULL,
     fecha_lanzamiento DATE NOT NULL,
     precio DECIMAL(10,2) NOT NULL,

@@ -52,6 +52,42 @@ window.onload = function () {
             window.location.href = 'login.php';
         }, 5000);
     }
+
+    if (urlParams.has('exito') && urlParams.get('exito') === 'Producto creado correctamente') {
+        const popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.innerHTML = `
+            <p>Producto agregado correctamente.</p>
+            <button id="close-popup">Cerrar</button>
+        `;
+        document.body.appendChild(popup);
+        document.getElementById('close-popup').onclick = function () {
+            popup.remove();
+            window.location.href = 'products.php';
+        };
+        setTimeout(() => {
+            popup.remove();
+            window.location.href = 'products.php';
+        }, 5000);
+    }
+
+    if (urlParams.has('exito') && urlParams.get('exito') === 'Producto modificado correctamente') {
+        const popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.innerHTML = `
+            <p>Producto modificado correctamente.</p>
+            <button id="close-popup">Cerrar</button>
+        `;
+        document.body.appendChild(popup);
+        document.getElementById('close-popup').onclick = function () {
+            popup.remove();
+            window.location.href = 'products.php';
+        };
+        setTimeout(() => {
+            popup.remove();
+            window.location.href = 'products.php';
+        }, 5000);
+    }
 };
 
 function showPopup(message) {

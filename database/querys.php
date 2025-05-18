@@ -312,28 +312,27 @@ function getAdminData($email, $pass)
  */
 function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $generos, $precio, $descuento, $stock, $plataformas, $creado_por, $actualizado_por)
 {
-    // Generar nombre único para la imagen
-    $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
-    $nombreImagen = 'producto_' . time() . '.' . $extension;
-    
-    // Ruta relativa (para guardar en la BD)
-    $rutaRelativa = 'images/products/' . $nombreImagen;
-    $rutaAbsoluta = '../' . $rutaRelativa;
+    $hayImagen = $imagen && isset($imagen['tmp_name']) && $imagen['error'] === UPLOAD_ERR_OK;
+    $rutaRelativa = 'default.jpg';
 
-    // Verifica si el directorio existe
-    if (!file_exists('../images/products/')) {
-        mkdir('../images/products/', 0777, true);
-    }
+    if ($hayImagen) {
+        $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
+        $nombreImagen = 'producto_' . time() . '.' . $extension;
+        $rutaRelativa = 'images/products/' . $nombreImagen;
+        $rutaAbsoluta = '../' . $rutaRelativa;
 
-    // Mueve la imagen al servidor
-    if (!move_uploaded_file($imagen['tmp_name'], $rutaAbsoluta)) {
-        header("Location: ../views/admin/addOrModifyProduct.php?error=Hubo+un+problema+al+guardar+la+imagen.");
-        exit;
+        if (!file_exists('../images/products/')) {
+            mkdir('../images/products/', 0777, true);
+        }
+
+        if (!move_uploaded_file($imagen['tmp_name'], $rutaAbsoluta)) {
+            $rutaRelativa = 'default.jpg';
+        }
     }
 
     $conn = conexion();
 
-    // Insertar el producto
+    // Insertar el producto (si $rutaRelativa es null, MySQL usará el valor por defecto)
     $query = $conn->prepare("
         INSERT INTO producto 
         (nombre, imagen, descripcion, fecha_lanzamiento, precio, descuento, creado_por, actualizado_por) 
@@ -393,13 +392,14 @@ function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $gene
         $plataformaQuery->close();
         $stockQuery->close();
 
-        header("Location: ../views/admin/products.php?exito=Producto+creado+con+éxito.");
+        $query->close();
+        cerrar_conexion($conn);
+        return $productoId;
     } else {
-        header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+crear+el+producto.");
+        $query->close();
+        cerrar_conexion($conn);
+        return false;
     }
-
-    $query->close();
-    cerrar_conexion($conn);
 }
 
 /**
@@ -484,12 +484,12 @@ function modifyProduct($id, $nombre, $imagen, $descripcion, $fecha_lanzamiento, 
             updateProductStock($nuevoStock, $id, $plataforma_id);
         }
 
-        header("Location: ../views/admin/products.php?exito=Producto+modificado+con+éxito.");
+        cerrar_conexion($conn);
+        return true;
     } else {
-        header("Location: ../views/admin/addOrModifyProduct.php?error=Error+al+modificar+el+producto.");
+        cerrar_conexion($conn);
+        return false;
     }
-
-    cerrar_conexion($conn);
 }
 
 function deleteProductPlatform($productoId, $plataformaId)

@@ -65,6 +65,7 @@ $exito = $_GET['exito'] ?? null;
                     <h2><?= $modoEdicion ? 'Modificar producto' : 'Agregar nuevo producto' ?></h2>
 
                     <input type="hidden" name="accion" value="<?= $modoEdicion ? 'modificar_producto' : 'agregar_producto' ?>">
+                    
                     <?php if ($modoEdicion): ?>
                         <input type="hidden" name="id" value="<?= $producto['id'] ?>">
                     <?php endif; ?>

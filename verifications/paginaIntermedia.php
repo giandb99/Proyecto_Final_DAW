@@ -255,12 +255,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $imagen = $_FILES['image'] ?? null;
             $errores = [];
 
-            // Validaciones de acceso
-            if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
-                header("Location: ../views/user/login.php?error=Acceso+denegado");
-                exit;
-            }
-
             $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null;
 
             // Validación de datos
@@ -270,6 +264,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 validateData('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
                 validateData('numero', $precio, 'precio'),
             ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
+            }
 
             // Validar que se haya seleccionado al menos un género y plataforma
             if (empty($generos)) {
@@ -288,10 +288,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // Validación de imagen
-            $resultadoImagen = validateImage($imagen);
-            if ($resultadoImagen !== true) {
-                $errores[] = $resultadoImagen;
+            // Validación de imagen solo si se sube una
+            if ($imagen && $imagen['error'] === UPLOAD_ERR_OK) {
+                $resultadoImagen = validateImage($imagen);
+                if ($resultadoImagen !== true) {
+                    $errores[] = $resultadoImagen;
+                }
             }
 
             // Si hay errores, redirigir al formulario
@@ -317,23 +319,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $admin_id
             );
 
-            // Aquí deberías crear la lógica que asocie el producto con los géneros, plataformas y stock
             if ($productoCreado) {
-                // Crear relaciones con géneros
-                foreach ($generos as $generoId) {
-                    // Suponiendo que hay una función para agregar géneros
-                    addProductGenre($productoCreado['id'], $generoId);
-                }
-
-                // Crear relaciones con plataformas y stock
-                foreach ($plataformas as $plataformaId) {
-                    $stock = $stock_por_plataforma[$plataformaId] ?? 0;
-                    // Suponiendo que hay una función para agregar plataformas y stock
-                    addProductPlatform($productoCreado['id'], $plataformaId, $stock);
-                }
-
                 // Redirigir a la página de éxito o de lista de productos
-                header("Location: ../views/admin/products.php?success=Producto+agregado+correctamente");
+                header("Location: ../views/admin/products.php?exito=Producto+creado+correctamente");
                 exit;
             }
 
@@ -368,17 +356,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $fecha_lanzamiento = $_POST['release_date'] ?? null;
             $precio = $_POST['price'] ?? null;
             $descuento = $_POST['discount'] ?? null;
-            $plataformas = $_POST['plataformas'] ?? []; // Plataformas seleccionadas (array vacío por defecto)
-            $generos = $_POST['generos'] ?? []; // Géneros seleccionados (array vacío por defecto)
-            $stock_por_plataforma = $_POST['stock'] ?? []; // Stock por plataforma (array vacío por defecto)
+            $plataformas = $_POST['plataformas'] ?? [];
+            $generos = $_POST['generos'] ?? [];
+            $stock_por_plataforma = $_POST['stock'] ?? [];
             $imagen = $_FILES['image'] ?? null;
             $errores = [];
-
-            // Validación de acceso
-            if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
-                header("Location: ../views/user/login.php?error=Acceso+denegado");
-                exit;
-            }
 
             // Obtener el nombre del usuario que está actualizando
             $actualizado_por = $_SESSION['usuario']['id'];  // Asumiendo que el nombre está en la sesión del usuario
@@ -390,6 +372,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 validateData('fecha', $fecha_lanzamiento, 'fecha de lanzamiento'),
                 validateData('numero', $precio, 'precio'),
             ];
+
+            foreach ($validaciones as $resultado) {
+                if ($resultado !== true) {
+                    $errores[] = $resultado;
+                }
+            }
 
             // Validar que se haya seleccionado al menos un género y plataforma
             if (empty($generos)) {
@@ -459,8 +447,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Redirigir a la página de productos con mensaje de éxito
             header("Location: ../views/admin/products.php?exito=Producto+modificado+correctamente");
             exit;
-
-            break;
 
         case 'eliminar_producto':
             header('Content-Type: application/json');
