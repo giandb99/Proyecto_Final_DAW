@@ -527,23 +527,28 @@ function deleteProductFromCart($productoId, $plataformaId)
  * @param int $id ID del producto a eliminar.
  * @return bool Retorna true si se eliminó correctamente, false en caso contrario.
  */
-function deleteProduct($id)
+function deactivateProduct($id)
 {
     $conn = conexion();
-
-    // Desactivar el producto
     $query = $conn->prepare("UPDATE producto SET activo = 0 WHERE id = ?");
     $query->bind_param("i", $id);
     $resultado = $query->execute();
     $query->close();
     cerrar_conexion($conn);
 
-    // Eliminar de carritos (todas las plataformas)
     deleteProductFromCartAllPlatforms($id);
-
-    // Eliminar de favoritos
     deleteProductFromFavorites($id);
+    return $resultado;
+}
 
+function activateProduct($id)
+{
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE producto SET activo = 1 WHERE id = ?");
+    $query->bind_param("i", $id);
+    $resultado = $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
     return $resultado;
 }
 

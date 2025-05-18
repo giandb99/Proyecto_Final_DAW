@@ -448,14 +448,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header("Location: ../views/admin/products.php?exito=Producto+modificado+correctamente");
             exit;
 
-        case 'eliminar_producto':
+        case 'desactivar_producto':
             header('Content-Type: application/json');
             $id = intval($_POST['id']);
 
-            if (deleteProduct($id)) {
+            if (deactivateProduct($id)) {
                 echo json_encode(['exito' => true, 'mensaje' => 'Producto eliminado con éxito.']);
             } else {
                 echo json_encode(['exito' => false, 'mensaje' => 'Hubo un error al eliminar el producto.']);
+            }
+            exit;
+
+        case 'activar_producto':
+            header('Content-Type: application/json');
+            $id = intval($_POST['id']);
+
+            if (activateProduct($id)) {
+                echo json_encode(['exito' => true, 'mensaje' => 'Producto activado con éxito.']);
+            } else {
+                echo json_encode(['exito' => false, 'mensaje' => 'Hubo un error al activar el producto.']);
             }
             exit;
 

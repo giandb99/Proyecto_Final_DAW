@@ -80,9 +80,15 @@ $totalPages = ceil($totalProductos / $limit);
                                     <button onclick="window.location.href='addOrModifyProduct.php?id=<?= $producto['id'] ?>'" class="btn-icon-modificar" title="Modificar">
                                         <i class="fas fa-pen"></i>
                                     </button>
-                                    <button type="submit" class="btn-icon-eliminar" onclick="deleteProduct(<?= $producto['id'] ?>)" title="Eliminar">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
+                                    <?php if ($producto['activo']): ?>
+                                        <button type="submit" class="btn-icon-eliminar" onclick="deleteProduct(<?= $producto['id'] ?>)" title="Eliminar">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="button" class="btn-icon-activar" onclick="activateProduct(<?= $producto['id'] ?>)" title="Activar">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -107,5 +113,5 @@ $totalPages = ceil($totalProductos / $limit);
 
     <?php include '../elements/footer.php'; ?>
 
-    <script src="../../scripts/products.js"></script>
     <script src="../../scripts/popup.js"></script>
+    <script src="../../scripts/products.js"></script>
