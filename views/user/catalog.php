@@ -4,7 +4,9 @@ require_once '../../database/querys.php';
 session_start();
 
 $usuarioLogueado = isset($_SESSION['usuario']['id']);
-$productos = getCatalog();
+
+$nombre = isset($_GET['nombre']) ? trim($_GET['nombre']) : '';
+$productos = getCatalog($nombre);
 
 ?>
 
@@ -32,8 +34,32 @@ $productos = getCatalog();
     <main class="main-content">
         <section class="container">
             <div class="catalog-container">
+
+                <section class="search-bar">
+                    <form id="filter-form">
+                        <input type="hidden" name="nombre" id="filter-nombre-hidden" value="<?= isset($_GET['nombre']) ? htmlspecialchars($_GET['nombre']) : '' ?>">
+                        <select name="genero" id="genero-select">
+                            <option value="">Todos los géneros</option>
+                            <?php foreach (getAllGenres() as $g): ?>
+                                <option value="<?= $g['id'] ?>"><?= $g['nombre'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select name="plataforma" id="plataforma-select">
+                            <option value="">Todas las plataformas</option>
+                            <?php foreach (getAllPlatforms() as $p): ?>
+                                <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="number" class="price-input" name="precioMin" placeholder="Precio mínimo" min="0" />
+                        <input type="number" class="price-input" name="precioMax" placeholder="Precio máximo" min="0" />
+                        <button type="button" id="clear-filters-btn" class="custom-btn">
+                            <span>Limpiar filtros</span>
+                        </button>
+                    </form>
+                </section>
+
                 <h2 class="catalog-title">Juegos Populares</h2>
-                <div class="catalog-items">
+                <div class="catalog-items" id="catalog-items">
                     <?php if (!empty($productos)): ?>
                         <?php foreach ($productos as $producto): ?>
                             <?php
@@ -56,10 +82,6 @@ $productos = getCatalog();
                                 <div class="product-info">
                                     <div class="title-container">
                                         <h3 class="game-title"><?= htmlspecialchars($producto['nombre']) ?></h3>
-                                        <div class="rating">
-                                            <span class="star">⭐</span>
-                                            <span><?= number_format($producto['valoracion_promedio'], 1) ?></span>
-                                        </div>
                                     </div>
                                     <div class="description-container">
                                         <p class="description"><?= htmlspecialchars($producto['descripcion']) ?></p>
@@ -108,3 +130,4 @@ $productos = getCatalog();
 
     <script src="../../scripts/favs.js"></script>
     <script src="../../scripts/popup.js"></script>
+    <script src="../../scripts/catalog.js"></script>

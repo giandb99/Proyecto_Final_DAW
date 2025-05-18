@@ -594,7 +594,7 @@ function addProductPlatform($productId, $platformId, $stock)
  * Función para obtener todos los productos activos de la base de datos.
  * @return array Array con los productos activos.
  */
-function getCatalog()
+function getCatalog($nombre = '')
 {
     $conn = conexion();
     $query = $conn->prepare("
@@ -617,7 +617,7 @@ function getCatalog()
 
     $query->close();
     cerrar_conexion($conn);
-    return $productos; // Se devuelve el array de productos
+    return getFilteredProducts($nombre);
 }
 
 /**
@@ -1733,6 +1733,83 @@ function getOrderById($pedidoId)
     $query->close();
     cerrar_conexion($conn);
     return $pedidos;
+}
+
+
+/* FILTROS DE BUSQUEDA CATÁLOGO */
+
+function getFilteredProducts($nombre = '', $generoId = null, $plataformaId = null, $precioMin = null, $precioMax = null)
+{
+    $conn = conexion();
+
+    $query = "
+        SELECT p.*, (p.precio - (p.precio * IFNULL(p.descuento, 0) / 100)) AS precio_final
+        FROM producto p
+        LEFT JOIN producto_genero pg ON pg.producto_id = p.id
+        LEFT JOIN producto_plataforma pp ON pp.producto_id = p.id
+        LEFT JOIN producto_stock ps ON ps.producto_id = p.id
+    ";
+
+    $conditions = [];
+    $types = '';
+    $params = [];
+
+    // Solo productos activos
+    $conditions[] = "p.activo = 1";
+
+    if (!empty($nombre)) {
+        $conditions[] = "p.nombre LIKE ?";
+        $types .= 's';
+        $params[] = "%$nombre%";
+    }
+
+    if ($generoId !== null) {
+        $conditions[] = "pg.genero_id = ?";
+        $types .= 'i';
+        $params[] = $generoId;
+    }
+
+    if ($plataformaId !== null) {
+        $conditions[] = "pp.plataforma_id = ?";
+        $types .= 'i';
+        $params[] = $plataformaId;
+    }
+
+    if ($precioMin !== null) {
+        $conditions[] = "(p.precio - (p.precio * IFNULL(p.descuento, 0) / 100)) >= ?";
+        $types .= 'd';
+        $params[] = $precioMin;
+    }
+
+    if ($precioMax !== null) {
+        $conditions[] = "(p.precio - (p.precio * IFNULL(p.descuento, 0) / 100)) <= ?";
+        $types .= 'd';
+        $params[] = $precioMax;
+    }
+
+    if (!empty($conditions)) {
+        $query .= " WHERE " . implode(" AND ", $conditions);
+    }
+
+    $query .= " GROUP BY p.id";
+
+    $stmt = $conn->prepare($query);
+
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $productos = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $productos[] = $row;
+    }
+
+    $stmt->close();
+    cerrar_conexion($conn);
+    return $productos;
 }
 
 /* ------------- DASHBOARD -------------  */

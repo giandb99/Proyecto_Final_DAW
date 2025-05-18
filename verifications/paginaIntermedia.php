@@ -778,6 +778,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
             exit;
 
+        case 'buscar_productos':
+            header('Content-Type: application/json');
+
+            $nombre = trim($_POST['nombre'] ?? '');
+            $genero = is_numeric($_POST['genero'] ?? '') ? (int)$_POST['genero'] : null;
+            $plataforma = is_numeric($_POST['plataforma'] ?? '') ? (int)$_POST['plataforma'] : null;
+            $precioMin = is_numeric($_POST['precioMin'] ?? '') ? (float)$_POST['precioMin'] : null;
+            $precioMax = is_numeric($_POST['precioMax'] ?? '') ? (float)$_POST['precioMax'] : null;
+
+            $productos = getFilteredProducts($nombre, $genero, $plataforma, $precioMin, $precioMax);
+            echo json_encode($productos);
+            exit;
+
         default:
             header("Location: ../views/user/error.php");
             break;

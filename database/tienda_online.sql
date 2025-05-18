@@ -140,15 +140,6 @@ CREATE TABLE producto_plataforma (
     FOREIGN KEY (plataforma_id) REFERENCES plataforma(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE votos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    producto_id INT NOT NULL,
-    usuario_id INT NOT NULL,
-    valoracion INT DEFAULT 0 CHECK (valoracion BETWEEN 1 AND 5),
-    CONSTRAINT fk_votos_usu FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_votos_pro FOREIGN KEY (producto_id) REFERENCES producto(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
 CREATE TABLE facturacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
