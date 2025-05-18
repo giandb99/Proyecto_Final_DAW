@@ -82,15 +82,34 @@ filterForm.addEventListener('input', () => {
         });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const filterForm = document.getElementById('filter-form');
     const clearBtn = document.getElementById('clear-filters-btn');
 
-    if (filterForm && clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            filterForm.reset();
+    function hayFiltrosActivos() {
+        return (
+            filterForm.genero.value ||
+            filterForm.plataforma.value ||
+            filterForm.precioMin.value ||
+            filterForm.precioMax.value
+        );
+    }
 
-            // Dispara el evento input para recargar el catálogo sin filtros
+    function toggleClearBtn() {
+        clearBtn.style.display = hayFiltrosActivos() ? 'inline' : 'none';
+    }
+
+    if (filterForm && clearBtn) {
+        toggleClearBtn();
+        filterForm.addEventListener('input', toggleClearBtn);
+
+        clearBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            filterForm.genero.value = '';
+            filterForm.plataforma.value = '';
+            filterForm.precioMin.value = '';
+            filterForm.precioMax.value = '';
+            toggleClearBtn();
             const event = new Event('input', { bubbles: true });
             filterForm.dispatchEvent(event);
         });

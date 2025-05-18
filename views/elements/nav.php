@@ -10,12 +10,15 @@ $nombreBuscado = isset($_GET['nombre']) ? htmlspecialchars($_GET['nombre']) : ''
     </div>
 
     <div class="navbar-right">
-        <form id="navbar-search-form" onsubmit="return false;" class="<?= $nombreBuscado ? 'show' : '' ?>">
-            <span id="navbar-clear-btn" class="navbar-clear-btn" style="display: <?= $nombreBuscado ? 'inline' : 'none' ?>;">
-                <i class="fas fa-times"></i>
-            </span>
-            <input type="text" name="nombre" id="navbar-search-input" placeholder="Buscar..." autocomplete="off" value="<?= $nombreBuscado ?>" />
-        </form>
+        <div class="navbar-search-container">
+            <form id="navbar-search-form" onsubmit="return false;" class="<?= $nombreBuscado ? 'show' : '' ?>">
+                <span id="navbar-clear-btn" class="navbar-clear-btn" style="display: <?= $nombreBuscado ? 'inline' : 'none' ?>;">
+                    <i class="fas fa-times"></i>
+                </span>
+                <input type="text" name="nombre" id="navbar-search-input" placeholder="Buscar..." autocomplete="off" value="<?= $nombreBuscado ?>" />
+            </form>
+        </div>
+
         <a href="#" id="search-toggle" class="navbar-button" title="Buscar"><i class="fas fa-search"></i></a>
         <a href="cart.php" class="navbar-button" title="Carrito"><i class="fas fa-shopping-cart"></i></a>
         <a href="favs.php" class="navbar-button" title="Favoritos"><i class="fas fa-heart"></i></a>

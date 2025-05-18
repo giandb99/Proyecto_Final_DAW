@@ -52,9 +52,9 @@ $productos = getCatalog($nombre);
                         </select>
                         <input type="number" class="price-input" name="precioMin" placeholder="Precio mínimo" min="0" />
                         <input type="number" class="price-input" name="precioMax" placeholder="Precio máximo" min="0" />
-                        <button type="button" id="clear-filters-btn" class="custom-btn">
-                            <span>Limpiar filtros</span>
-                        </button>
+                        <a href="#" id="clear-filters-btn" class="clear-filters-link" style="display:none;">
+                            Limpiar filtros
+                        </a>
                     </form>
                 </section>
 
