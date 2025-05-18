@@ -312,8 +312,12 @@ function getAdminData($email, $pass)
  */
 function createProduct($nombre, $imagen, $descripcion, $fecha_lanzamiento, $generos, $precio, $descuento, $stock, $plataformas, $creado_por, $actualizado_por)
 {
+    // Generar nombre único para la imagen
+    $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
+    $nombreImagen = 'producto_' . time() . '.' . $extension;
+    
     // Ruta relativa (para guardar en la BD)
-    $rutaRelativa = 'images/products/' . basename($imagen['name']);
+    $rutaRelativa = 'images/products/' . $nombreImagen;
     $rutaAbsoluta = '../' . $rutaRelativa;
 
     // Verifica si el directorio existe

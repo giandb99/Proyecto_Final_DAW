@@ -154,6 +154,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit;
                 }
 
+                // Eliminar TODAS las imágenes de perfil anteriores del usuario
+                $pattern = '../images/profiles/perfil_' . $userId . '_*.*';
+                foreach (glob($pattern) as $oldFile) {
+                    if (file_exists($oldFile)) {
+                        unlink($oldFile);
+                    }
+                }
+
                 $nombreTemporal = $imagen['tmp_name'];
                 $nombreOriginal = basename($imagen['name']);
                 $extension = pathinfo($nombreOriginal, PATHINFO_EXTENSION);
@@ -406,7 +414,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($resultadoImagen !== true) {
                     $errores[] = $resultadoImagen;
                 } else {
-                    $nombreImagen = '_' . basename($imagen['name']);
+                    // Eliminar TODAS las imágenes anteriores del producto (cualquier extensión)
+                    $pattern = '../images/products/' . $id . '_*.*';
+                    foreach (glob($pattern) as $oldFile) {
+                        if (file_exists($oldFile)) {
+                            unlink($oldFile);
+                        }
+                    }
+
+                    // Guardar la nueva imagen con nombre único
+                    $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
+                    $nombreImagen = $id . '_' . time() . '.' . $extension;
                     $rutaDestino = '../images/products/' . $nombreImagen;
                     move_uploaded_file($imagen['tmp_name'], $rutaDestino);
                     $imagen = 'images/products/' . $nombreImagen;
