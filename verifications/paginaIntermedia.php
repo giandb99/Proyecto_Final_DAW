@@ -656,23 +656,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'procesar_pago':
+            header('Content-Type: application/json');
 
             $usuarioId = $_SESSION['usuario']['id'] ?? null;
             if (!$usuarioId) {
-                header('Location: ../views/user/error.php?mensaje=Usuario+no+autenticado');
+                echo json_encode(['exito' => false, 'mensaje' => 'Usuario no autenticado.']);
                 exit;
             }
 
             // Datos del cliente
-            $nombreCompleto = $_POST['nombre'] ?? null;
-            $correo = $_POST['correo'] ?? null;
-            $direccion = $_POST['direccion'] ?? null;
-            $pais = $_POST['pais'] ?? null;
+            $nombreCompleto = isset($_POST['nombre']) ? trim($_POST['nombre']) : null;
+            $correo = isset($_POST['correo']) ? trim($_POST['correo']) : null;
+            $direccion = isset($_POST['direccion']) ? trim($_POST['direccion']) : null;
+            $pais = isset($_POST['pais']) ? trim($_POST['pais']) : null;
 
             // Datos de la tarjeta
-            $numeroTarjeta = $_POST['numero_tarjeta'] ?? null;
-            $nombreTarjeta = $_POST['nombre_tarjeta'] ?? null;
-            $vencimiento = $_POST['vencimiento'] ?? null;
+            $numeroTarjeta = isset($_POST['numero_tarjeta']) ? trim($_POST['numero_tarjeta']) : null;
+            $nombreTarjeta = isset($_POST['nombre_tarjeta']) ? trim($_POST['nombre_tarjeta']) : null;
+            $vencimiento = isset($_POST['vencimiento']) ? trim($_POST['vencimiento']) : null;
+
             $erroresCliente = [];
             $erroresTarjeta = [];
 
@@ -701,16 +703,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Si hay errores, devolverlos categorizados
             if (!empty($erroresCliente) || !empty($erroresTarjeta)) {
-                $_SESSION['errores_cliente'] = $erroresCliente;
-                $_SESSION['errores_tarjeta'] = $erroresTarjeta;
-                header('Location: ../views/user/checkout.php?errores_cliente=' . urlencode(implode(', ', $erroresCliente)) . '&errores_tarjeta=' . urlencode(implode(', ', $erroresTarjeta)));
+                echo json_encode([
+                    'exito' => false,
+                    'errores_cliente' => $erroresCliente,
+                    'errores_tarjeta' => $erroresTarjeta
+                ]);
                 exit;
             }
 
             // Crear pedido
             $pedidoId = createOrder($usuarioId);
             if (!$pedidoId) {
-                header('Location: ../views/user/error.php?mensaje=Error+al+crear+el+pedido.');
+                echo json_encode(['exito' => false, 'mensaje' => 'Error al crear el pedido.']);
                 exit;
             }
 
@@ -728,13 +732,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             );
 
             if (!$resultadoFacturacion['success']) {
-                // Si no se pudo guardar la facturación, se redirige a la pagina de error 
-                header('Location: ../views/user/error.php?mensaje=' . $resultadoFacturacion['message']);
+                echo json_encode(['exito' => false, 'mensaje' => $resultadoFacturacion['message']]);
                 exit;
             }
 
             // Si todo fue exitoso, se redirige a la página de pedidos
-            header('Location: ../views/user/orderDetail.php?id=' . $pedidoId . '&mensaje=Pago+realizado+con+exito.');
+            echo json_encode([
+                'exito' => true,
+                'redirect_url' => "../user/orderDetail.php?id=$pedidoId&mensaje=Pago+realizado+con+exito."
+            ]);
             exit;
 
         case 'actualizar_estado_pedido':

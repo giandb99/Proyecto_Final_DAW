@@ -38,11 +38,7 @@ cerrar_conexion($conn);
     <main class="main-content">
         <section class="checkout-container">
 
-            <form class="checkout-form" id="checkout-form" action="../../verifications/paginaIntermedia.php" method="POST">
-
-                <!-- Campo oculto para la acción del formulario -->
-                <input type="hidden" name="accion" value="procesar_pago">
-
+            <form class="checkout-form" id="checkout-form">
                 <!-- Información del Cliente -->
                 <div class="checkout-section">
                     <h1 class="checkout-title">Pasarela de Pago</h1>
@@ -68,13 +64,7 @@ cerrar_conexion($conn);
                             </div>
                         </div>
                         <!-- Contenedor para errores de datos del cliente -->
-                        <?php if (isset($_GET['errores_cliente'])): ?>
-                            <div class="error-msg-container error-msg-checkout">
-                                <?php foreach (explode(", ", $_GET['errores_cliente']) as $error): ?>
-                                    <p class="error-msg"><?= htmlspecialchars($error) ?></p>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
+                        <div class="error-msg-container error-msg-checkout" id="errores-cliente"></div>
                     </div>
 
                     <!-- Información de la Tarjeta -->
@@ -99,13 +89,7 @@ cerrar_conexion($conn);
                             </div>
                         </div>
                         <!-- Contenedor para errores de datos de la tarjeta -->
-                        <?php if (isset($_GET['errores_tarjeta'])): ?>
-                            <div class="error-msg-container error-msg-checkout">
-                                <?php foreach (explode(", ", $_GET['errores_tarjeta']) as $error): ?>
-                                    <p class="error-msg"><?= htmlspecialchars($error) ?></p>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
+                        <div class="error-msg-container error-msg-checkout" id="errores-tarjeta"></div>
                     </div>
                 </div>
 
@@ -128,7 +112,7 @@ cerrar_conexion($conn);
                         <button type="submit" class="custom-btn btn-success">
                             <span>Pagar</span>
                         </button>
-                        <button class="custom-btn btn-back" onclick="window.location.href='cart.php'">
+                        <button type="button" class="custom-btn btn-back" onclick="window.location.href='cart.php'">
                             <span>Cancelar</span>
                         </button>
                     </div>

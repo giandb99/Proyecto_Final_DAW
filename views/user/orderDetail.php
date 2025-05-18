@@ -143,6 +143,6 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
 
     <?php include '../elements/footer.php'; ?>
 
-    <script src="../../scripts/orderDetail.js"></script>
-    <script src="../../scripts/popup.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="../../scripts/popup.js"></script>
+    <script src="../../scripts/orderDetail.js"></script>

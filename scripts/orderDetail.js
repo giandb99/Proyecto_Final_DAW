@@ -1,9 +1,9 @@
-window.onload = function () {
+document.addEventListener('DOMContentLoaded', function () {
     const downloadBtn = document.querySelector('.download-pdf-btn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', function (e) {
             e.preventDefault();
-            
+
             const pedidoId = this.getAttribute('data-pedido');
             const content = document.querySelector('.pdf-pedido');
             if (content) {
@@ -23,7 +23,7 @@ window.onload = function () {
             }
         });
     }
-};
+});
 
 function actualizarEstadoPedido(pedidoId, nuevoEstado) {
     fetch('../../verifications/paginaIntermedia.php', {
