@@ -84,7 +84,8 @@ $totalFavoritos = count($productosFavoritos);
         <?php endif; ?>
     </main>
 
-    <?php include '../elements/footer.php' ?>
-
+    <script src="../../scripts/nav.js"></script>
     <script src="../../scripts/favs.js"></script>
     <script src="../../scripts/popup.js"></script>
+    
+    <?php include '../elements/footer.php' ?>

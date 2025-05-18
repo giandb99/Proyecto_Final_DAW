@@ -150,6 +150,6 @@ $exito = $_GET['exito'] ?? null;
         </main>
     </div>
 
-    <?php include '../elements/footer.php' ?>
-
     <script src="../../scripts/addOrModifyProduct.js"></script>
+    
+    <?php include '../elements/footer.php' ?>

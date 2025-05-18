@@ -65,13 +65,12 @@ function createUser($name, $username, $email, $pass)
  */
 function verifyUser($conn, $username, $email)
 {
-    // Verificar si el username o el email ya existen
     $query = $conn->prepare("SELECT username, email FROM usuario WHERE username = ? OR email = ?");
     $query->bind_param("ss", $username, $email);
     $query->execute();
     $result = $query->get_result();
-
     $errores = [];
+
     while ($usuario = $result->fetch_assoc()) {
         if ($usuario['username'] === $username) {
             $errores[] = 'El nombre de usuario ya está registrado.';
@@ -278,7 +277,6 @@ function deactivateUser($usuarioId)
 
 /* ------------- ADMIN -------------  */
 
-// Función para obtener los datos del administrador
 function getAdminData($email, $pass)
 {
     $conn = conexion();
@@ -502,16 +500,6 @@ function deleteProductPlatform($productoId, $plataformaId)
     cerrar_conexion($conn);
 }
 
-function deleteProductStock($productoId, $plataformaId)
-{
-    $conn = conexion();
-    $query = $conn->prepare("DELETE FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
-    $query->bind_param("ii", $productoId, $plataformaId);
-    $query->execute();
-    $query->close();
-    cerrar_conexion($conn);
-}
-
 function deleteProductFromCart($productoId, $plataformaId)
 {
     $conn = conexion();
@@ -552,16 +540,6 @@ function activateProduct($id)
     return $resultado;
 }
 
-function updateProductStock($stock, $productoId, $plataformaId)
-{
-    $conn = conexion();
-    $query = $conn->prepare("UPDATE producto_stock SET stock_disponible = ? WHERE producto_id = ? AND plataforma_id = ?");
-    $query->bind_param("iii", $stock, $productoId, $plataformaId);
-    $query->execute();
-    $query->close();
-    cerrar_conexion($conn);
-}
-
 function addProductGenre($productId, $genreId)
 {
     $conn = conexion();
@@ -598,9 +576,7 @@ function getCatalog($nombre = '')
 {
     $conn = conexion();
     $query = $conn->prepare("
-        SELECT p.*, COALESCE(AVG(v.valoracion), 0) AS valoracion_promedio
-        FROM producto p
-        LEFT JOIN votos v ON p.id = v.producto_id
+        SELECT p.* FROM producto p
         WHERE p.activo = 1
         GROUP BY p.id
     ");
@@ -834,7 +810,6 @@ function getRelatedProducts($producto_id, $limit = 10)
 
     if (empty($generos)) return [];
 
-    // Buscamos otros productos que compartan alguno de esos géneros
     $placeholders = implode(',', array_fill(0, count($generos), '?'));
     $types = str_repeat('i', count($generos) + 1);
     $params = array_merge($generos, [$producto_id]);
@@ -891,6 +866,26 @@ function getDiscountedPrice($conn, $productoId)
 }
 
 /* ------------- STOCK -------------  */
+
+function updateProductStock($stock, $productoId, $plataformaId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("UPDATE producto_stock SET stock_disponible = ? WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("iii", $stock, $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
+
+function deleteProductStock($productoId, $plataformaId)
+{
+    $conn = conexion();
+    $query = $conn->prepare("DELETE FROM producto_stock WHERE producto_id = ? AND plataforma_id = ?");
+    $query->bind_param("ii", $productoId, $plataformaId);
+    $query->execute();
+    $query->close();
+    cerrar_conexion($conn);
+}
 
 /**
  * Función para obtener el ID de la combinación producto-plataforma.
@@ -974,7 +969,6 @@ function reserveProductStock($conn, $productoId, $plataformaId, $cantidad)
     return $exito;
 }
 
-// funcion que libera el stock reservado de un producto si se elimina del carrito
 function releaseProductStock($productoId, $plataformaId, $cantidad)
 {
     $conn = conexion();
@@ -1017,7 +1011,6 @@ function consumeReservedStock($conn, $productoId, $plataformaId, $cantidad)
 
 /* ------------- CARRITO -------------  */
 
-// funcion para crear el carrito del usuario
 function createCart($usuarioId)
 {
     $conn = conexion();
@@ -1280,7 +1273,6 @@ function getCartSummary($conn, $carritoId)
 
 /* ------------- FAVORITOS -------------  */
 
-// funcion para crear la lista de favoritos
 function createFavList($usuarioId)
 {
     $conn = conexion();
@@ -1524,7 +1516,7 @@ function addBilling($conn, $usuarioId, $pedidoId, $nombre, $email, $direccion, $
 function markOrderShipped($pedidoId)
 {
     $conn = conexion();
-    $query = $conn->prepare("UPDATE pedido SET estado = 'entregado' WHERE id = ?");
+    $query = $conn->prepare("UPDATE pedido SET estado = 'entregado', fecha_envio = NOW() WHERE id = ?");
     $query->bind_param("i", $pedidoId);
     $resultado = $query->execute();
     $query->close();
@@ -1735,8 +1727,7 @@ function getOrderById($pedidoId)
     return $pedidos;
 }
 
-
-/* FILTROS DE BUSQUEDA CATÁLOGO */
+/* ------------- FILTROS DE BUSQUEDA ------------- */
 
 function getFilteredProducts($nombre = '', $generoId = null, $plataformaId = null, $precioMin = null, $precioMax = null)
 {
@@ -1814,38 +1805,174 @@ function getFilteredProducts($nombre = '', $generoId = null, $plataformaId = nul
 
 /* ------------- DASHBOARD -------------  */
 
-function obtenerTotalProductos()
+/**
+ * Ejecuta un COUNT o SUM sobre una tabla con filtros opcionales.
+ * 
+ * @param string $tabla
+ * @param string $campo
+ * @param string $tipo 'count' o 'sum'
+ * @param string $where SQL opcional (ej: "activo = 1 AND rol = 'user'")
+ * @return int|float
+ */
+function obtenerTotalGenerico($tabla, $campo = 'id', $tipo = 'count', $where = '')
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT COUNT(*) AS total FROM producto");
-    $query->execute();
-    $result = $query->get_result();
+    $sql = ($tipo === 'sum')
+        ? "SELECT SUM($campo) AS total FROM $tabla"
+        : "SELECT COUNT($campo) AS total FROM $tabla";
+    if ($where) $sql .= " WHERE $where";
+    $result = $conn->query($sql);
     $row = $result->fetch_assoc();
-    $query->close();
     cerrar_conexion($conn);
-    return $row['total'];
+    return $row['total'] ?? 0;
 }
 
-function obtenerTotalProductosActivos()
+/**
+ * Suma un campo en una tabla para los últimos X días.
+ * 
+ * @param string $tabla
+ * @param string $campo
+ * @param int $dias
+ * @param string $fechaCampo
+ * @return float
+ */
+function obtenerSumaUltimosDias($tabla, $campo, $dias, $fechaCampo = 'fecha')
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT COUNT(*) AS total FROM producto WHERE activo = 1");
-    $query->execute();
-    $result = $query->get_result();
+    $sql = "SELECT SUM($campo) AS total FROM $tabla WHERE $fechaCampo >= DATE_SUB(CURDATE(), INTERVAL $dias DAY)";
+    $result = $conn->query($sql);
     $row = $result->fetch_assoc();
-    $query->close();
     cerrar_conexion($conn);
-    return $row['total'];
+    return $row['total'] ?? 0;
 }
 
-function obtenerTotalUsuarios()
+/**
+ * Obtiene la suma de un campo agrupado por mes.
+ * 
+ * @param string $tabla Nombre de la tabla
+ * @param string $campo Nombre del campo a sumar (ej: 'precio_total')
+ * @param string $fechaCampo Nombre del campo de fecha (ej: 'fecha')
+ * @param int|null $dias Intervalo en días hacia atrás (opcional, null = todo)
+ * @return array 
+ */
+function obtenerSumaPorMes($tabla, $campo, $fechaCampo = 'fecha', $dias = null)
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT COUNT(*) AS total FROM usuario WHERE rol = 'user'");
-    $query->execute();
-    $result = $query->get_result();
-    $row = $result->fetch_assoc();
-    $query->close();
+    $sql = "
+        SELECT 
+            MONTH($fechaCampo) AS mes,
+            SUM($campo) AS total
+        FROM $tabla
+    ";
+    if ($dias !== null) {
+        $sql .= " WHERE $fechaCampo >= DATE_SUB(CURDATE(), INTERVAL $dias DAY)";
+    }
+    $sql .= " GROUP BY mes ORDER BY mes";
+
+    $result = $conn->query($sql);
+    $meses = [];
+    $valores = [];
+    $total = 0;
+
+    // Array de meses en español
+    $meses_es = [
+        1 => 'Enero',
+        2 => 'Febrero',
+        3 => 'Marzo',
+        4 => 'Abril',
+        5 => 'Mayo',
+        6 => 'Junio',
+        7 => 'Julio',
+        8 => 'Agosto',
+        9 => 'Septiembre',
+        10 => 'Octubre',
+        11 => 'Noviembre',
+        12 => 'Diciembre'
+    ];
+
+    while ($row = $result->fetch_assoc()) {
+        $mesNombre = $meses_es[(int)$row['mes']] ?? $row['mes'];
+        $meses[] = $mesNombre;
+        $valores[] = (float)$row['total'];
+        $total += $row['total'];
+    }
+
     cerrar_conexion($conn);
-    return $row['total'];
+    return [
+        'meses' => $meses,
+        'valores' => $valores,
+        'total' => $total
+    ];
+}
+
+function obtenerUsuariosNuevosPorMes($fechaCampo = 'creado_en') {
+    $conn = conexion();
+    $sql = "SELECT MONTH($fechaCampo) AS mes, COUNT(*) AS cantidad FROM usuario WHERE rol = 'user' GROUP BY mes ORDER BY mes";
+    $result = $conn->query($sql);
+    $meses = [];
+    $cantidades = [];
+    $meses_es = [1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'];
+    while ($row = $result->fetch_assoc()) {
+        $meses[] = $meses_es[(int)$row['mes']];
+        $cantidades[] = (int)$row['cantidad'];
+    }
+    cerrar_conexion($conn);
+    return ['meses' => $meses, 'cantidades' => $cantidades];
+}
+
+function obtenerTopProductosVendidos($limite = 5) {
+    $conn = conexion();
+    $sql = "SELECT p.nombre, SUM(pi.cantidad) AS total_vendidos
+            FROM pedido_item pi
+            JOIN producto p ON pi.producto_id = p.id
+            GROUP BY pi.producto_id
+            ORDER BY total_vendidos DESC
+            LIMIT $limite";
+    $result = $conn->query($sql);
+    $nombres = [];
+    $cantidades = [];
+    while ($row = $result->fetch_assoc()) {
+        $nombres[] = $row['nombre'];
+        $cantidades[] = (int)$row['total_vendidos'];
+    }
+    cerrar_conexion($conn);
+    return ['nombres' => $nombres, 'cantidades' => $cantidades];
+}
+
+function obtenerTopPlataformasVendidas($limite = 5) {
+    $conn = conexion();
+    $sql = "SELECT pl.nombre, SUM(pi.cantidad) AS total_vendidos
+            FROM pedido_item pi
+            JOIN plataforma pl ON pi.plataforma_id = pl.id
+            GROUP BY pi.plataforma_id
+            ORDER BY total_vendidos DESC
+            LIMIT $limite";
+    $result = $conn->query($sql);
+    $nombres = [];
+    $cantidades = [];
+    while ($row = $result->fetch_assoc()) {
+        $nombres[] = $row['nombre'];
+        $cantidades[] = (int)$row['total_vendidos'];
+    }
+    cerrar_conexion($conn);
+    return ['nombres' => $nombres, 'cantidades' => $cantidades];
+}
+
+function obtenerTopUsuariosCompradores($limite = 5) {
+    $conn = conexion();
+    $sql = "SELECT u.nombre, COUNT(p.id) AS total_compras
+            FROM pedido p
+            JOIN usuario u ON p.usuario_id = u.id
+            GROUP BY p.usuario_id
+            ORDER BY total_compras DESC
+            LIMIT $limite";
+    $result = $conn->query($sql);
+    $nombres = [];
+    $cantidades = [];
+    while ($row = $result->fetch_assoc()) {
+        $nombres[] = $row['nombre'];
+        $cantidades[] = (int)$row['total_compras'];
+    }
+    cerrar_conexion($conn);
+    return ['nombres' => $nombres, 'cantidades' => $cantidades];
 }

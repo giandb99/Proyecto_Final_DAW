@@ -79,12 +79,6 @@ body {
     box-shadow: 0 2px 8px 0 rgba(147, 51, 234, 0.07);
 }
 
-.price-input {
-    min-width: 90px;
-    max-width: 130px;
-    text-align: justify;
-}
-
 #filter-form select:focus,
 .price-input:focus {
     border-color: #c084fc;
@@ -102,7 +96,6 @@ body {
     font-weight: bold;
     text-decoration: underline;
     cursor: pointer;
-    margin-left: 1rem;
     font-size: 1rem;
     transition: color 0.2s;
 }

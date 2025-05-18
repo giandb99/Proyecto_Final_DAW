@@ -791,6 +791,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode($productos);
             exit;
 
+        case 'obtener_estadisticas':
+            $respuesta = [
+                'usuarios' => [
+                    'nuevos'  => obtenerUsuariosNuevosPorMes('fecha_creacion'),
+                    'total'    => obtenerTotalGenerico('usuario', 'id', 'count', "rol = 'user'") ?? 0,
+                    'activos'  => obtenerTotalGenerico('usuario', 'id', 'count', "rol = 'user' AND activo = 1") ?? 0,
+                    'inactivos' => obtenerTotalGenerico('usuario', 'id', 'count', "rol = 'user' AND activo = 0") ?? 0,
+                    'top'     => obtenerTopUsuariosCompradores(5),
+                ],
+                'productos' => [
+                    'total'    => obtenerTotalGenerico('producto', 'id', 'count') ?? 0,
+                    'activos'  => obtenerTotalGenerico('producto', 'id', 'count', "activo = 1") ?? 0,
+                    'inactivos' => obtenerTotalGenerico('producto', 'id', 'count', "activo = 0") ?? 0,
+                    'top'     => obtenerTopProductosVendidos(5),
+                ],
+                'pedidos' => [
+                    'total'      => obtenerTotalGenerico('pedido', 'id', 'count') ?? 0,
+                    'pendientes' => obtenerTotalGenerico('pedido', 'id', 'count', "estado = 'pendiente'") ?? 0,
+                    'entregados' => obtenerTotalGenerico('pedido', 'id', 'count', "estado = 'entregado'") ?? 0,
+                    'cancelados' => obtenerTotalGenerico('pedido', 'id', 'count', "estado = 'cancelado'") ?? 0,
+                ],
+                'ganancias' => [
+                    'total'                  => obtenerTotalGenerico('pedido', 'precio_total', 'sum') ?? 0,
+                    'ganancias_semanales'    => obtenerSumaUltimosDias('pedido', 'precio_total', 7, 'creado_en') ?? 0,
+                    'ganancias_mensuales'    => obtenerSumaUltimosDias('pedido', 'precio_total', 30, 'creado_en') ?? 0,
+                    'ganancias_ultimos_3_meses' => obtenerSumaUltimosDias('pedido', 'precio_total', 90, 'creado_en') ?? 0,
+                    'ganancias_anuales'      => obtenerSumaUltimosDias('pedido', 'precio_total', 365, 'creado_en') ?? 0,
+                    'mensual'                => obtenerSumaPorMes('pedido', 'precio_total', 'creado_en') ?? 0,
+                ],
+                'top_plataformas' => obtenerTopPlataformasVendidas(5)
+            ];
+            echo json_encode($respuesta);
+            exit;
         default:
             header("Location: ../views/user/error.php");
             break;

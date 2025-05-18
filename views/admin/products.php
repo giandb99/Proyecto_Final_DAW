@@ -111,7 +111,7 @@ $totalPages = ceil($totalProductos / $limit);
         </main>
     </div>
 
-    <?php include '../elements/footer.php'; ?>
-
     <script src="../../scripts/popup.js"></script>
     <script src="../../scripts/products.js"></script>
+
+    <?php include '../elements/footer.php'; ?>

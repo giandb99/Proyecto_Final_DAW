@@ -132,8 +132,9 @@ cerrar_conexion($conn);
         </section>
     </main>
 
-    <!-- FOOTER -->
-    <?php include '../elements/footer.php' ?>
-
+    <script src="../../scripts/nav.js"></script>
     <script src="../../scripts/popup.js"></script>
     <script src="../../scripts/checkout.js"></script>
+
+    <!-- FOOTER -->
+    <?php include '../elements/footer.php' ?>

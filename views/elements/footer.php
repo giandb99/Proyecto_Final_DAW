@@ -19,16 +19,7 @@
             </div>
         </div>
     </footer>
-
-    <!-- <script> 
-        // Cambiar tema
-        const themeToggle = document.getElementById('theme-toggle');
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-theme');
-            themeToggle.classList.toggle('active');
-        });        
-    </script> -->
-
+    
 </body>
 
 </html>

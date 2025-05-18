@@ -37,34 +37,138 @@ body {
     margin: 0;
 }
 
-.cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+.dashboard-summary {
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 
-.info-card {
-    background-color: gray;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
+.summary-item {
+    background: #23272f;
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    min-width: 260px;
+    flex: 1 1 220px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
 }
 
-.info-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.info-card h3 {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #111827;
-    margin-bottom: 0.5rem;
-}
-
-.info-card p {
-    font-size: 1.1rem;
+.summary-item .icon {
+    font-size: 2.5rem;
+    margin-right: 1.2rem;
     color: #00bcd4;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 8px rgba(0,188,212,0.15));
+}
+
+.summary-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #bdbdbd;
+    margin-bottom: 0.2rem;
+    letter-spacing: 1px;
+}
+
+.summary-value {
+    font-size: 2.1rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0.3rem;
+}
+
+.summary-detail {
+    font-size: 0.98rem;
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.summary-detail span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 0.5rem;
+    padding: 0.15rem 0.7rem;
+    font-weight: 500;
+}
+
+.summary-detail .active { background: #e0f7fa; color: #0097a7; }
+.summary-detail .inactive { background: #ffebee; color: #c62828; }
+.summary-detail .pending { background: #fffde7; color: #fbc02d; }
+.summary-detail .delivered { background: #e8f5e9; color: #388e3c; }
+.summary-detail .cancelled { background: #fbe9e7; color: #d84315; }
+.summary-detail .week { background: #e3f2fd; color: #1976d2; }
+.summary-detail .month { background: #f3e5f5; color: #8e24aa; }
+.summary-detail .year { background: #f1f8e9; color: #689f38; }
+
+.summary-item.earnings .icon { color: #ffd600; }
+.summary-item.orders .icon { color: #ff7043; }
+.summary-item.products .icon { color: #7e57c2; }
+.summary-item.users .icon { color: #26a69a; }
+
+.summary-item:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.dashboard-carousel {
+    margin-top: 2rem;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    align-items: center;
+}
+
+.carousel-slide {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.carousel-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.carousel-controls button {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 0 5px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.carousel-controls button:hover {
+    background-color: #666;
+}
+
+.carousel-slide canvas {
+    max-width: 800px;
+    max-height: 500px;
+    width: 100%;
+    height: 500px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin: 0 auto;
 }

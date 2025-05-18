@@ -95,6 +95,7 @@ $pedidos = $usuarioLogueado ? getOrdersByUserId($_SESSION['usuario']['id']) : []
         <?php endif; ?>
     </main>
 
-    <?php include '../elements/footer.php' ?>
-
+    <script src="../../scripts/nav.js"></script>
     <script src="../../scripts/popup.js"></script>
+    
+    <?php include '../elements/footer.php' ?>

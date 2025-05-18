@@ -136,7 +136,8 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
         </main>
     </div>
 
-    <?php include '../elements/footer.php'; ?>
-
+    <script src="../../scripts/nav.js"></script>
     <script src="../../scripts/profile.js"></script>
     <script src="../../scripts/popup.js"></script>
+
+    <?php include '../elements/footer.php'; ?>

@@ -134,8 +134,9 @@ if ($usuarioLogueado) {
 
     </main>
 
-    <!-- FOOTER -->
-    <?php include '../elements/footer.php' ?>
-
+    <script src="../../scripts/nav.js"></script>
     <script src="../../scripts/cart.js"></script>
     <script src="../../scripts/popup.js"></script>
+
+    <!-- FOOTER -->
+    <?php include '../elements/footer.php' ?>
