@@ -157,17 +157,17 @@ CREATE TABLE facturacion (
 
 ######################## INSERCIONES ########################
 
-INSERT INTO usuario (nombre, username, pass, email, telefono, direccion, fecha_nac, cp, rol, fecha_creacion, ultimo_login, activo) VALUES
-('Admin', 'admin123', 'adminpass', 'admin@email.com', '123456789', 'Calle Falsa 123', '1990-01-01', '28001', 'admin', '2023-01-10 09:00:00', '2025-05-10 12:00:00', 1),
-('Juan Pérez', 'juanp', '1234', 'juan@demo.com', '222222222', 'Calle 2', '1992-02-02', '2000', 'user', '2024-03-15 10:00:00', '2025-05-15 08:00:00', 1),
-('Ana López', 'anal', '1234', 'ana@demo.com', '333333333', 'Calle 3', '1993-03-03', '3000', 'user', '2024-01-20 11:00:00', '2025-04-20 09:00:00', 1),
-('Carlos Ruiz', 'carlr', '1234', 'carlos@demo.com', '444444444', 'Calle 4', '1994-04-04', '4000', 'user', '2023-12-05 12:00:00', '2025-03-10 10:00:00', 0),
-('Lucía Gómez', 'luciag', '1234', 'lucia@demo.com', '555555555', 'Calle 5', '1995-05-05', '5000', 'user', '2024-04-01 13:00:00', '2025-05-01 11:00:00', 1),
-('Pedro Torres', 'pedrot', '1234', 'pedro@demo.com', '666666666', 'Calle 6', '1996-06-06', '6000', 'user', '2023-11-10 14:00:00', '2024-12-10 12:00:00', 0),
-('María Díaz', 'mariad', '1234', 'maria@demo.com', '777777777', 'Calle 7', '1997-07-07', '7000', 'user', '2024-02-18 15:00:00', '2025-02-18 13:00:00', 1),
-('Sofía Romero', 'sofiar', '1234', 'sofia@demo.com', '888888888', 'Calle 8', '1998-08-08', '8000', 'user', '2023-10-25 16:00:00', '2024-11-25 14:00:00', 1),
-('Diego Castro', 'diegoc', '1234', 'diego@demo.com', '999999999', 'Calle 9', '1999-09-09', '9000', 'user', '2024-05-10 17:00:00', '2025-05-10 15:00:00', 1),
-('Valentina Vera', 'valev', '1234', 'valentina@demo.com', '101010101', 'Calle 10', '2000-10-10', '10000', 'user', '2023-09-30 18:00:00', '2024-10-30 16:00:00', 0);
+INSERT INTO usuario (nombre, username, pass, email, rol, fecha_creacion) VALUES
+('Admin', 'admin123', 'adminpass', 'admin@email.com', 'admin', '2025-01-02 09:00:00'),
+('Juan Pérez', 'juanpe', '1234', 'juan@demo.com', 'user', '2024-03-15 10:00:00'),
+('Ana López', 'analop', '1234', 'ana@demo.com', 'user', '2024-01-20 11:00:00'),
+('Carlos Ruiz', 'carlru', '1234', 'carlos@demo.com', 'user', '2025-05-05 12:00:00'),
+('Lucía Gómez', 'luciag', '1234', 'lucia@demo.com', 'user', '2025-04-01 13:00:00'),
+('Pedro Torres', 'pedrot', '1234', 'pedro@demo.com', 'user', '2025-04-10 14:00:00'),
+('María Díaz', 'mariadi', '1234', 'maria@demo.com', 'user', '2025-02-18 15:00:00'),
+('Sofía Romero', 'sofiar', '1234', 'sofia@demo.com', 'user', '2025-03-25 16:00:00'),
+('Diego Castro', 'diegoca', '1234', 'diego@demo.com', 'user', '2024-05-10 17:00:00'),
+('Valentina Vera', 'valeve', '1234', 'valentina@demo.com', 'user', '2025-04-30 18:00:00');
 
 INSERT INTO genero (nombre) VALUES
 ('Acción'), ('Arcade'), ('Aventura'), ('Beat''em all'), ('Carreras'), ('Cloud Gaming'), ('Cooperación'), ('Cooperativo local'), 
