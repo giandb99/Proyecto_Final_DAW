@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit();
                 }
             } else {
-                $admin = getAdminData($email, $password);
+                $admin = getAdminData($email, 'admin');
 
                 if ($admin) {
                     login($admin);
@@ -106,11 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         case 'actualizar_perfil':
             header('Content-Type: application/json');
-
-            if (!isset($_SESSION['usuario']) || !isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
-                exit;
-            }
 
             $userId = $_SESSION['usuario']['id'];
             $user = $_SESSION['usuario'];
@@ -198,11 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'cambiar_contraseña':
             header('Content-Type: application/json');
 
-            if (!isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
-                exit;
-            }
-
             $userId = $_SESSION['usuario']['id'];
             $currentPassword = $_POST['current_password'] ?? '';
             $newPassword = $_POST['new_password'] ?? '';
@@ -229,8 +219,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $conn = conexion();
             $hashedPassword = getCurrentPassword($conn, $userId);
 
-            if (!$hashedPassword || !password_verify($currentPassword, $hashedPassword)) {
+            // Detectar si la contraseña está en texto plano (no es hash)
+            $isPlain = (strpos($hashedPassword, '$2y$') !== 0);
+
+            // Si es admin y la contraseña es texto plano, comparar directo
+            if ($_SESSION['usuario']['rol'] === 'admin' && $isPlain) {
+                $isPasswordCorrect = ($currentPassword === $hashedPassword);
+                $isSameAsNew = ($newPassword === $hashedPassword);
+            } else {
+                $isPasswordCorrect = password_verify($currentPassword, $hashedPassword);
+                $isSameAsNew = password_verify($newPassword, $hashedPassword);
+            }
+
+            if (!$hashedPassword || !$isPasswordCorrect) {
                 echo json_encode(['exito' => false, 'mensaje' => 'La contraseña actual es incorrecta.']);
+                cerrar_conexion($conn);
+                exit;
+            }
+
+            // Validar que la nueva contraseña no sea igual a la actual
+            if ($isSameAsNew) {
+                echo json_encode(['exito' => false, 'mensaje' => 'La nueva contraseña no puede ser igual a la actual.']);
                 cerrar_conexion($conn);
                 exit;
             }
@@ -453,9 +462,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = intval($_POST['id']);
 
             if (deactivateProduct($id)) {
-                echo json_encode(['exito' => true, 'mensaje' => 'Producto eliminado con éxito.']);
+                echo json_encode(['exito' => true, 'mensaje' => 'Producto desactivado con éxito.']);
             } else {
-                echo json_encode(['exito' => false, 'mensaje' => 'Hubo un error al eliminar el producto.']);
+                echo json_encode(['exito' => false, 'mensaje' => 'Hubo un error al desactivar el producto.']);
             }
             exit;
 

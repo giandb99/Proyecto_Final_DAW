@@ -81,7 +81,7 @@ $totalPages = ceil($totalProductos / $limit);
                                         <i class="fas fa-pen"></i>
                                     </button>
                                     <?php if ($producto['activo']): ?>
-                                        <button type="submit" class="btn-icon-eliminar" onclick="deleteProduct(<?= $producto['id'] ?>)" title="Eliminar">
+                                        <button type="submit" class="btn-icon-eliminar" onclick="deleteProduct(<?= $producto['id'] ?>)" title="Desactivar">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     <?php else: ?>

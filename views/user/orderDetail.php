@@ -60,7 +60,7 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
                             <a href="../admin/orders.php" class="back-button">
                                 <span><i class="fas fa-arrow-left"></i> Volver</span>
                             </a>
-                            <div class="admin-buttons" style="display: flex; gap: 10px; flex-direction:column;">
+                            <div class="admin-buttons">
                                 <button class="custom-btn order-status-btn" onclick="actualizarEstadoPedido(<?= $pedido['pedido_id'] ?>, 'entregado')"><span>Marcar como entregado</span></button>
                                 <button class="custom-btn order-status-btn" onclick="actualizarEstadoPedido(<?= $pedido['pedido_id'] ?>, 'cancelado')"><span>Marcar como cancelado</span></button>
                             </div>

@@ -10,6 +10,7 @@ function updateProfile(formData, inputs, saveButton, editButton) {
                 inputs.forEach(input => input.disabled = true);
                 saveButton.disabled = true;
                 editButton.disabled = false;
+                editButton.textContent = 'Editar';
             } else {
                 showPopup(data.mensaje || 'Error al actualizar los datos.');
             }
@@ -26,9 +27,13 @@ function updatePassword(formData, passwordInputs, savePassButton, editPassButton
         .then(data => {
             if (data.exito) {
                 showPopup('Contraseña actualizada correctamente.');
-                passwordInputs.forEach(input => input.disabled = true);
+                passwordInputs.forEach(input => {
+                    input.disabled = true
+                    input.value = '';
+                });
                 savePassButton.disabled = true;
                 editPassButton.disabled = false;
+                editPassButton.textContent = 'Editar';
             } else {
                 showPopup(data.mensaje || 'Error al actualizar la contraseña.');
             }
@@ -67,7 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
             savePassButton.disabled = false;
             editPassButton.textContent = 'Cancelar';
         } else {
-            passwordInputs.forEach(input => input.disabled = true);
+            passwordInputs.forEach(input => {
+                input.disabled = true;
+                input.value = '';
+            });
             savePassButton.disabled = true;
             editPassButton.textContent = 'Editar';
         }

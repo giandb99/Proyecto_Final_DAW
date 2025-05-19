@@ -73,7 +73,20 @@ if ($search !== '' && is_numeric($search)) {
                                 <td>#<?= htmlspecialchars($pedido['pedido_id']) ?></td>
                                 <td><?= htmlspecialchars($pedido['usuario_nombre'] ?? '-') ?></td>
                                 <td><?= number_format($pedido['precio_total'], 2) ?>€</td>
-                                <td><?= strtoupper($pedido['estado']) ?></td>
+                                <td class="<?php
+                                            $estado = strtolower($pedido['estado']);
+                                            if ($estado === 'cancelado') {
+                                                echo 'estado-cancelado';
+                                            } elseif ($estado === 'entregado') {
+                                                echo 'estado-entregado';
+                                            } elseif ($estado === 'pendiente') {
+                                                echo 'estado-pendiente';
+                                            } else {
+                                                echo 'estado-otro';
+                                            }
+                                            ?>">
+                                    <?= strtoupper($pedido['estado']) ?>
+                                </td>
                                 <td><?= date('d/m/Y H:i', strtotime($pedido['creado_en'])) ?></td>
                                 <td>
                                     <a href="../user/orderDetail.php?id=<?= $pedido['pedido_id'] ?>" class="btn-detail" title="Ver detalles">
@@ -89,7 +102,7 @@ if ($search !== '' && is_numeric($search)) {
                     <?php endif; ?>
                 </tbody>
             </table>
-            
+
             <!-- Paginación -->
             <?php if ($totalPages > 1 && $search === ''): ?>
                 <div class="pagination">

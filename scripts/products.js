@@ -16,7 +16,7 @@ function deleteProduct(productId) {
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto desactivado con éxito.');
-                setTimeout(() => location.reload(), 3000);
+                setTimeout(() => location.reload(), 2000);
             } else {
                 showPopup(data.mensaje || 'No se pudo desactivar el producto.');
             }
@@ -41,7 +41,7 @@ function activateProduct(productId) {
         .then(data => {
             showPopup(data.mensaje || 'Producto activado.');
             if (data.exito) {
-                setTimeout(() => location.reload(), 3000);
+                setTimeout(() => location.reload(), 2000);
             }
         })
         .catch(error => {

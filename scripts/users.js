@@ -12,16 +12,11 @@ function deactivateUser(userId) {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `accion=desactivar_usuario&usuario_id=${encodeURIComponent(userId)}`
     })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('Error en la respuesta del servidor.');
-            }
-            return res.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Usuario desactivado correctamente.');
-                location.reload();
+                setTimeout(() => location.reload(), 2000);
             } else {
                 showPopup(data.mensaje || 'No se pudo desactivar el usuario.');
             }
@@ -42,16 +37,11 @@ function activateUser(userId) {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `accion=activar_usuario&usuario_id=${encodeURIComponent(userId)}`
     })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('Error en la respuesta del servidor.');
-            }
-            return res.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Usuario activado correctamente.');
-                location.reload();
+                setTimeout(() => location.reload(), 2000);
             } else {
                 showPopup(data.mensaje || 'No se pudo activar el usuario.');
             }

@@ -224,7 +224,7 @@ function updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono
 
 function getCurrentPassword($conn, $userId)
 {
-    $hashedPassword = null;
+    $hashedPassword = '';
     $query = $conn->prepare("SELECT pass FROM usuario WHERE id = ?");
     $query->bind_param("i", $userId);
     $query->execute();
@@ -277,11 +277,11 @@ function deactivateUser($usuarioId)
 
 /* ------------- ADMIN -------------  */
 
-function getAdminData($email, $pass)
+function getAdminData($email, $rol = 'admin')
 {
     $conn = conexion();
-    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND pass = ? AND rol = 'admin'");
-    $query->bind_param("ss", $email, $pass);
+    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND rol = ? AND activo = 1");
+    $query->bind_param("ss", $email, $rol);
     $query->execute();
     $result = $query->get_result();
     $datos = $result->fetch_assoc();

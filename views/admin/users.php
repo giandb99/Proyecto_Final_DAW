@@ -76,13 +76,15 @@ $totalPages = ceil($totalUsuarios / $limit);
                                 <td><?= htmlspecialchars($usuario['ultimo_login']) ?></td>
                                 <td><?= $usuario['activo'] ? 'Sí' : 'No' ?></td>
                                 <td class="acciones">
-                                    <button class="btn-icon-activar" title="Activar Usuario" onclick="activateUser(<?= $usuario['id'] ?>)">
-                                        <i class="fas fa-user-check"></i>
-                                    </button>
-                                    <button class="btn-icon-desactivar" title="Desactivar Usuario" onclick="deactivateUser(<?= $usuario['id'] ?>)">
-                                        <i class="fas fa-user-slash"></i>
-                                    </button>
-                                </td>
+                                    <?php if ($usuario['activo']): ?>
+                                        <button class="btn-icon-desactivar" title="Desactivar Usuario" onclick="deactivateUser(<?= $usuario['id'] ?>)">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn-icon-activar" title="Activar Usuario" onclick="activateUser(<?= $usuario['id'] ?>)">
+                                            <i class="fas fa-user-check"></i>
+                                        </button>
+                                    <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -106,5 +108,5 @@ $totalPages = ceil($totalUsuarios / $limit);
 
     <script src="../../scripts/users.js"></script>
     <script src="../../scripts/popup.js"></script>
-    
+
     <?php include '../elements/footer.php' ?>
