@@ -10,11 +10,13 @@ function addToCart(productoId) {
     const plataformaId = plataformaSelect ? plataformaSelect.value : null;
     const cantidad = 1;
 
+    // Verifico que se haya seleccionado una plataforma
     if (!plataformaId) {
         showPopup('Por favor, seleccione una plataforma.');
         return;
     }
 
+    // Envío la solicitud para agregar el producto al carrito
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -24,14 +26,17 @@ function addToCart(productoId) {
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto agregado al carrito.');
+                // Actualizo el stock disponible en la interfaz
                 stockInfo.textContent = `Stock disponible: ${data.stock_restante}`;
                 if (data.stock_restante > 0) {
+                    // Si hay stock, muestro el estado y habilito el botón
                     stockInfo.classList.add('stock-available');
                     if (addToCartBtn) {
                         addToCartBtn.disabled = false;
                         addToCartBtn.classList.remove('btn-disabled');
                     }
                 } else {
+                    // Si no hay stock, muestro el estado y deshabilito el botón
                     stockInfo.classList.remove('stock-available');
                     stockInfo.classList.add('stock-unavailable');
                     stockInfo.textContent = `Sin stock para esta plataforma`;
@@ -45,6 +50,7 @@ function addToCart(productoId) {
             }
         })
         .catch(err => {
+            // Si ocurre un error en la petición, lo muestro
             console.error("Error al agregar al carrito:", err);
             showPopup('Ocurrió un error inesperado.');
         });
@@ -55,32 +61,32 @@ function addToCart(productoId) {
  * @param {number} carritoItemId - ID del carrito_item a eliminar.
  */
 function removeFromCart(carritoItemId) {
+    // Confirmo con el usuario antes de eliminar
     if (!confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
         return;
     }
 
+    // Envío la solicitud para eliminar el producto del carrito
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `accion=eliminar_producto_carrito&carrito_item_id=${encodeURIComponent(carritoItemId)}`
     })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('Error en la respuesta del servidor.');
-            }
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Producto eliminado del carrito.');
 
+                // Elimino el elemento del DOM
                 const cartItemElement = document.getElementById(`cart-card-${carritoItemId}`);
                 if (cartItemElement) {
                     cartItemElement.remove();
                 }
 
+                // Verifico si quedan productos en el carrito
                 const hayProductos = document.querySelectorAll('.cart-card').length > 0;
 
+                // Si no hay productos, muestro el mensaje de carrito vacío
                 if (!hayProductos) {
                     const cartContainer = document.querySelector('.cart-container');
                     cartContainer.innerHTML = `
@@ -94,6 +100,7 @@ function removeFromCart(carritoItemId) {
                     cartContainer.style.flexDirection = 'row';
                 }
 
+                // Si hay productos, actualizo el resumen del carrito
                 const resumenElement = document.getElementById('cart-summary');
                 if (resumenElement && hayProductos) {
                     const carritoId = resumenElement.dataset.carritoId;
@@ -104,16 +111,22 @@ function removeFromCart(carritoItemId) {
             }
         })
         .catch(err => {
+            // Si ocurre un error en la petición, lo muestro
             console.error("Error al eliminar del carrito:", err);
             showPopup('Ocurrió un error inesperado.');
         });
 }
 
+/**
+ * Función para vaciar todo el carrito.
+ */
 function emptyCart() {
+    // Confirmo con el usuario antes de vaciar el carrito
     if (!confirm('¿Estás seguro de que deseas vaciar el carrito?')) {
         return;
     }
 
+    // Envío la solicitud para vaciar el carrito
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -124,6 +137,7 @@ function emptyCart() {
             if (data.exito) {
                 showPopup(data.mensaje || 'El carrito ha sido vaciado.');
 
+                // Muestro el mensaje de carrito vacío en la interfaz
                 const cartContent = document.querySelector('.cart-container');
                 if (cartContent) {
                     cartContent.innerHTML = `
@@ -136,6 +150,7 @@ function emptyCart() {
                     </div>`;
                 }
 
+                // Elimino el resumen del carrito si existe
                 const summaryBox = document.querySelector('.summary-box');
                 if (summaryBox) summaryBox.remove();
 
@@ -144,6 +159,7 @@ function emptyCart() {
             }
         })
         .catch(err => {
+            // Si ocurre un error en la petición, lo muestro
             console.error('Error al vaciar el carrito:', err);
             showPopup('Ocurrió un error inesperado.');
         });
@@ -154,6 +170,7 @@ function emptyCart() {
  * @param {number} carritoId - ID del carrito.
  */
 function updateCartSummary(carritoId) {
+    // Envío la solicitud para obtener el resumen actualizado
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -162,7 +179,7 @@ function updateCartSummary(carritoId) {
         .then(res => res.json())
         .then(data => {
             if (data.exito) {
-                // Actualizar los valores del resumen en el DOM
+                // Actualizo los valores del resumen en el DOM
                 document.getElementById('total-price').textContent = `$${data.resumen.total.toFixed(2)}`;
                 document.getElementById('discount').textContent = `- $${data.resumen.descuento.toFixed(2)}`;
                 document.getElementById('final-price').innerHTML = `<strong>$${data.resumen.subtotal.toFixed(2)}</strong>`;
@@ -171,11 +188,19 @@ function updateCartSummary(carritoId) {
             }
         })
         .catch(err => {
+            // Si ocurre un error en la petición, lo muestro
             console.error('Error al obtener el resumen del carrito:', err);
+            showPopup('Ocurrió un error inesperado.');
         });
 }
 
+/**
+ * Función para actualizar la cantidad de un producto en el carrito.
+ * @param {number} carritoItemId - ID del ítem en el carrito.
+ * @param {number} nuevaCantidad - Nueva cantidad seleccionada.
+ */
 function updateCartItemQuantity(carritoItemId, nuevaCantidad) {
+    // Envío la solicitud para actualizar la cantidad
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -185,13 +210,13 @@ function updateCartItemQuantity(carritoItemId, nuevaCantidad) {
         .then(data => {
             if (data.exito) {
                 showPopup(data.mensaje || 'Cantidad actualizada.');
-                // Actualizar resumen
+                // Actualizo el resumen del carrito
                 const resumenElement = document.getElementById('cart-summary');
                 if (resumenElement) {
                     const carritoId = resumenElement.dataset.carritoId;
                     updateCartSummary(carritoId);
                 }
-                // Actualizar cantidad del producto en la tarjeta
+                // Actualizo la cantidad en la tarjeta del producto
                 const card = document.getElementById(`cart-card-${carritoItemId}`);
                 if (card && data.cantidad !== undefined) {
                     const cantidad = card.querySelector('.cart-card-qty');
@@ -200,18 +225,23 @@ function updateCartItemQuantity(carritoItemId, nuevaCantidad) {
                     }
                 }
             } else {
+                // Si no se pudo actualizar, muestro el mensaje y recargo la página
                 showPopup(data.mensaje || 'No se pudo actualizar la cantidad.');
                 setTimeout(() => window.location.reload(), 1500);
             }
         })
         .catch(err => {
+            // Si ocurre un error en la petición, lo muestro
             console.error('Error al actualizar cantidad:', err);
             showPopup('Ocurrió un error inesperado.');
         });
 }
 
+// Al cargar la página, agrego listeners a los select de cantidad para actualizar el carrito en tiempo real
 document.addEventListener('DOMContentLoaded', () => {
+    // Busco todos los selectores de cantidad en el carrito
     document.querySelectorAll('.cart-qty-select').forEach(select => {
+        // Cuando el usuario cambia la cantidad, llamo a la función para actualizar
         select.addEventListener('change', function () {
             const carritoItemId = this.dataset.cartItemId;
             const nuevaCantidad = parseInt(this.value, 10);

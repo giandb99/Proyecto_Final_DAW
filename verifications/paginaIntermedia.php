@@ -1,85 +1,89 @@
 <?php
 
-session_start();
+session_start(); // Inicio la sesión para manejar datos de usuario/logueo
+
+// Incluyo los archivos necesarios para la conexión a la base de datos,
+// las funciones de consulta y las validaciones
 require_once '../database/connection.php';
 require_once '../database/querys.php';
 require_once 'validations.php';
 
-// Verificar si la solicitud es POST para procesar acciones específicas
+// Verifico si la solicitud es POST antes de procesar cualquier acción
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $accion = $_POST['accion'] ?? null; // Obtener la acción enviada por el formulario
+    $accion = $_POST['accion'] ?? null; // Obtengo la acción enviada desde el formulario o AJAX
 
-    // Procesar la acción según su valor
+    // Procesar la acción recibida
     switch ($accion) {
         case 'registrar_usuario':
-            // Obtener los datos del usuario
+            // Obtengo los datos del usuario desde el formulario
             $username = $_POST['username'] ?? null;
-            $name = $_POST['username'] ?? null;
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
             $confirmPassword = $_POST['confirm_password'] ?? null;
             $errores = [];
 
-            // Validaciones
+            // Valido los datos básicos del usuario
             $validaciones = [
                 validateData('string', $username, 'nombre de usuario'),
                 validateData('email', $email, 'correo electrónico'),
                 validateData('password', $password, 'contraseña')
             ];
 
+            // Si alguna validación falla, agrego el mensaje de error al array
             foreach ($validaciones as $resultado) {
                 if ($resultado !== true) {
                     $errores[] = $resultado;
                 }
             }
 
-            // Verificar que las contraseñas coincidan
+            // Verifico que las contraseñas coincidan
             if ($password !== $confirmPassword) {
                 $errores[] = "Las contraseñas no coinciden.";
             }
 
-            // Redirigir si hay errores
+            // Si hay errores, redirijo al registro con los mensajes
             if (!empty($errores)) {
                 header("Location: ../views/user/register.php?errores=" . urlencode(implode(", ", $errores)));
                 exit;
             }
 
-            // Crear el usuario
-            $usuarioCreado = createUser($name, $username, $email, $password);
+            // Si todo está bien, creo el usuario en la base de datos
+            $usuarioCreado = createUser($username, $username, $email, $password);
             exit;
 
         case 'iniciar_sesion':
-            // Se capturan los datos del formulario
+            // Obtengo los datos del formulario de login
             $email = $_POST['email'] ?? null;
             $password = $_POST['password'] ?? null;
-            $checkbox = isset($_POST['admin']); // Verificar si el checkbox de admin está marcado
+            $checkbox = isset($_POST['admin']); // Si está marcado, es admin
             $errores = [];
 
-            // Validaciones
+            // Valido el email
             $validaciones = [
                 validateData('email', $email, 'correo electrónico')
             ];
 
+            // Si alguna validación falla, agrego el mensaje de error al array
             foreach ($validaciones as $resultado) {
                 if ($resultado !== true) {
                     $errores[] = $resultado;
                 }
             }
 
-            // Si hay errores de validación, redirigir
+            // Si hay errores de validación, redirijo al login
             if (!empty($errores)) {
                 header("Location: ../views/user/login.php?errores=" . urlencode(implode(", ", $errores)));
                 exit;
             }
 
             if (!$checkbox) {
-                // Si no es admin, buscar al usuario con rol "user"
+                // Si no es admin, busco el usuario con rol "user"
                 $user = getUserData($email, 'user');
 
                 if ($user) {
-                    // Verificar las contraseñas
+                    // Verifico la contraseña con hash
                     if (password_verify($password, $user['pass'])) {
-                        login($user);
+                        login($user); // Guardo datos en sesión
                         header("Location: ../views/user/catalog.php?Inicio+exitoso");
                         exit();
                     } else {
@@ -91,10 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit();
                 }
             } else {
+                // Si es admin, busco el usuario con rol admin
                 $admin = getAdminData($email, 'admin');
 
                 if ($admin) {
-                    login($admin);
+                    login($admin); // Guardo datos en sesión
                     header("Location: ../views/admin/dashboard.php?Inicio+exitoso");
                     exit();
                 } else {
@@ -105,11 +110,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'actualizar_perfil':
-            header('Content-Type: application/json');
+            header('Content-Type: application/json'); // La respuesta será JSON para AJAX
 
-            $userId = $_SESSION['usuario']['id'];
-            $user = $_SESSION['usuario'];
+            $userId = $_SESSION['usuario']['id']; // ID del usuario logueado (de la sesión)
+            $user = $_SESSION['usuario'];         // Datos actuales del usuario
 
+            // Obtengo los datos enviados desde el formulario de perfil (con trim para limpiar espacios)
             $nombre = trim($_POST['nombre'] ?? '');
             $username = trim($_POST['username'] ?? '');
             $email = trim($_POST['email'] ?? '');
@@ -117,10 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $direccion = trim($_POST['direccion'] ?? '');
             $fecha_nac = trim($_POST['fecha_nac'] ?? '');
             $cp = trim($_POST['cp'] ?? '');
-            $imagen = $_FILES['imagen_perfil'] ?? null;
+            $imagen = $_FILES['imagen_perfil'] ?? null; // Imagen de perfil (si se subió)
             $errores = [];
 
-            // Validaciones
+            // Validaciones de todos los campos del perfil (usa funciones personalizadas)
             $validaciones = [
                 validateData('string', $nombre, 'nombre'),
                 validateData('string', $username, 'nombre de usuario'),
@@ -131,6 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 validateData('cp', $cp, 'código postal')
             ];
 
+            // Si alguna validación falla, devuelvo el error y corto la ejecución
             foreach ($validaciones as $resultado) {
                 if ($resultado !== true) {
                     echo json_encode(['exito' => false, 'mensaje' => $resultado]);
@@ -138,71 +145,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // Procesar imagen de perfil
-            $rutaImagenFinal = $user['imagen_perfil'] ?? null;
+            // Procesar imagen de perfil (si se subió una nueva)
+            $rutaImagenFinal = $user['imagen_perfil'] ?? null; // Por defecto, la actual
 
             if ($imagen && $imagen['error'] === UPLOAD_ERR_OK) {
-                // Validar la imagen
+                // Valido la imagen (tipo, tamaño, etc.)
                 $resultadoImagen = validateImage($imagen);
                 if ($resultadoImagen !== true) {
                     echo json_encode(['exito' => false, 'mensaje' => $resultadoImagen]);
                     exit;
                 }
 
-                // Eliminar TODAS las imágenes de perfil anteriores del usuario
+                // Elimino todas las imágenes anteriores del usuario (por si cambia la foto)
                 $pattern = '../images/profiles/perfil_' . $userId . '_*.*';
                 foreach (glob($pattern) as $oldFile) {
                     if (file_exists($oldFile)) {
-                        unlink($oldFile);
+                        unlink($oldFile); // Borro cada archivo anterior
                     }
                 }
 
-                $nombreTemporal = $imagen['tmp_name'];
-                $nombreOriginal = basename($imagen['name']);
-                $extension = pathinfo($nombreOriginal, PATHINFO_EXTENSION);
+                $nombreTemporal = $imagen['tmp_name']; // Archivo temporal subido
+                $nombreOriginal = basename($imagen['name']); // Nombre original del archivo
+                $extension = pathinfo($nombreOriginal, PATHINFO_EXTENSION); // Extensión del archivo
 
-                // Crear un nombre único para evitar conflictos
+                // Creo un nombre único para la imagen (evita conflictos)
                 $nombreArchivo = 'perfil_' . $userId . '_' . time() . '.' . $extension;
                 $directorio = '../images/profiles/';
                 $rutaDestino = $directorio . $nombreArchivo;
 
-                // Asegurar que el directorio exista
+                // Si el directorio no existe, lo creo
                 if (!is_dir($directorio)) {
                     mkdir($directorio, 0755, true);
                 }
 
-                // Mover el archivo
+                // Muevo la imagen subida a la carpeta final
                 if (move_uploaded_file($nombreTemporal, $rutaDestino)) {
-                    $rutaImagenFinal = 'images/profiles/' . $nombreArchivo;
+                    $rutaImagenFinal = 'images/profiles/' . $nombreArchivo; // Ruta relativa para guardar en BD
                 } else {
                     echo json_encode(['exito' => false, 'mensaje' => 'Error al guardar la imagen.']);
                     exit;
                 }
             } else {
-                // Si no se sube una nueva imagen, mantenemos la actual
+                // Si no hay imagen nueva, mantengo la actual
                 $rutaImagenFinal = $user['imagen_perfil'];
             }
 
+            // Actualizo el perfil en la base de datos
             $conn = conexion();
             $success = updateUserProfile($conn, $userId, $nombre, $username, $email, $telefono, $direccion, $fecha_nac, $cp, $rutaImagenFinal);
             cerrar_conexion($conn);
 
+            // Devuelvo el resultado como JSON (éxito o error)
             echo json_encode(['exito' => $success, 'mensaje' => $success ? 'Perfil actualizado correctamente.' : 'Error al actualizar el perfil.']);
             exit;
 
         case 'cambiar_contraseña':
-            header('Content-Type: application/json');
+            header('Content-Type: application/json'); // La respuesta será JSON para AJAX
 
-            $userId = $_SESSION['usuario']['id'];
-            $currentPassword = $_POST['current_password'] ?? '';
-            $newPassword = $_POST['new_password'] ?? '';
-            $confirmPassword = $_POST['confirm_password'] ?? '';
+            $userId = $_SESSION['usuario']['id']; // ID del usuario logueado
+            $currentPassword = $_POST['current_password'] ?? ''; // Contraseña actual ingresada por el usuario
+            $newPassword = $_POST['new_password'] ?? '';         // Nueva contraseña
+            $confirmPassword = $_POST['confirm_password'] ?? ''; // Confirmación de la nueva contraseña
 
-            // Validaciones
+            // Validación de la nueva contraseña (usa función personalizada)
             $validaciones = [
                 validateData('password', $newPassword, 'nueva contraseña')
             ];
 
+            // Si alguna validación falla, devuelvo el error y corto la ejecución
             foreach ($validaciones as $resultado) {
                 if ($resultado !== true) {
                     echo json_encode(['exito' => false, 'mensaje' => $resultado]);
@@ -217,42 +227,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             $conn = conexion();
-            $hashedPassword = getCurrentPassword($conn, $userId);
+            $hashedPassword = getCurrentPassword($conn, $userId); // Traigo la contraseña actual (en hash o texto plano)
 
             // Detectar si la contraseña está en texto plano (no es hash)
             $isPlain = (strpos($hashedPassword, '$2y$') !== 0);
 
             // Si es admin y la contraseña es texto plano, comparar directo
             if ($_SESSION['usuario']['rol'] === 'admin' && $isPlain) {
-                $isPasswordCorrect = ($currentPassword === $hashedPassword);
-                $isSameAsNew = ($newPassword === $hashedPassword);
+                $isPasswordCorrect = ($currentPassword === $hashedPassword); // Comparo texto plano
+                $isSameAsNew = ($newPassword === $hashedPassword);           // Verifico si la nueva es igual a la actual
             } else {
-                $isPasswordCorrect = password_verify($currentPassword, $hashedPassword);
-                $isSameAsNew = password_verify($newPassword, $hashedPassword);
+                $isPasswordCorrect = password_verify($currentPassword, $hashedPassword); // Comparo usando hash
+                $isSameAsNew = password_verify($newPassword, $hashedPassword);           // Verifico si la nueva es igual a la actual (hash)
             }
 
+            // Si la contraseña actual no es correcta, aviso y corto
             if (!$hashedPassword || !$isPasswordCorrect) {
                 echo json_encode(['exito' => false, 'mensaje' => 'La contraseña actual es incorrecta.']);
                 cerrar_conexion($conn);
                 exit;
             }
 
-            // Validar que la nueva contraseña no sea igual a la actual
+            // Se valida que la nueva contraseña no sea igual a la actual
             if ($isSameAsNew) {
                 echo json_encode(['exito' => false, 'mensaje' => 'La nueva contraseña no puede ser igual a la actual.']);
                 cerrar_conexion($conn);
                 exit;
             }
 
+            // Encripto la nueva contraseña y la guardo en la base de datos
             $newHashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
             $success = updatePassword($conn, $userId, $newHashedPassword);
             cerrar_conexion($conn);
 
+            // Devuelvo el resultado como JSON (éxito o error)
             echo json_encode(['exito' => $success, 'mensaje' => $success ? 'Contraseña actualizada correctamente.' : 'Error al actualizar la contraseña.']);
             exit;
 
         case 'agregar_producto':
-            // Obtener los datos del producto
+            // Se obtiene los datos del producto desde el formulario (POST)
             $nombre = $_POST['name'] ?? null;
             $descripcion = $_POST['description'] ?? null;
             $fecha_lanzamiento = $_POST['release_date'] ?? null;
@@ -264,9 +277,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $imagen = $_FILES['image'] ?? null;
             $errores = [];
 
+            // Solo un admin puede agregar productos, obtengo su ID si corresponde
             $admin_id = ($_SESSION['usuario']['rol'] === 'admin') ? $_SESSION['usuario']['id'] : null;
 
-            // Validación de datos
+            // Validación de datos obligatorios del producto
             $validaciones = [
                 validateData('string', $nombre, 'nombre'),
                 validateData('string', $descripcion, 'descripción'),
@@ -274,22 +288,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 validateData('numero', $precio, 'precio'),
             ];
 
+            // Si alguna validación falla, agrego el mensaje de error al array
             foreach ($validaciones as $resultado) {
                 if ($resultado !== true) {
                     $errores[] = $resultado;
                 }
             }
 
-            // Validar que se haya seleccionado al menos un género y plataforma
+            // Se valida que se haya seleccionado al menos un género y una plataforma
             if (empty($generos)) {
                 $errores[] = "Debes seleccionar al menos un género.";
             }
-
             if (empty($plataformas)) {
                 $errores[] = "Debes seleccionar al menos una plataforma.";
             }
 
-            // Validar el stock por plataforma
+            // Se valida el stock para cada plataforma seleccionada
             foreach ($stock_por_plataforma as $plataformaId => $stock) {
                 $validacionStock = validateData('numero', $stock, "stock para la plataforma ID {$plataformaId}");
                 if ($validacionStock !== true) {
@@ -297,7 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // Validación de imagen solo si se sube una
+            // Se valida la imagen solo si se sube una
             if ($imagen && $imagen['error'] === UPLOAD_ERR_OK) {
                 $resultadoImagen = validateImage($imagen);
                 if ($resultadoImagen !== true) {
@@ -305,31 +319,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // Si hay errores, redirigir al formulario
+            // Si hay errores, guardo los datos y errores en sesión y redirijo al formulario
             if (!empty($errores)) {
-                $_SESSION['form_data'] = $_POST; // Guarda los datos enviados
-                $_SESSION['errores'] = $errores; // Guarda los errores
+                $_SESSION['form_data'] = $_POST; // Guarda los datos enviados para repoblar el form
+                $_SESSION['errores'] = $errores; // Guarda los errores para mostrarlos
                 header("Location: ../views/admin/addOrModifyProduct.php");
                 exit;
             }
 
-            // Crear el producto
+            // Si todo está bien, creo el producto en la base de datos
             $productoCreado = createProduct(
                 $nombre,
                 $imagen,
                 $descripcion,
                 $fecha_lanzamiento,
-                $generos,  // Ahora pasamos el array de géneros
+                $generos,
                 $precio,
                 $descuento,
-                $stock_por_plataforma,  // Pasamos el array de stock por plataforma
-                $plataformas,  // Ahora pasamos el array de plataformas
+                $stock_por_plataforma,
+                $plataformas,
                 $admin_id,
                 $admin_id
             );
 
             if ($productoCreado) {
-                // Redirigir a la página de éxito o de lista de productos
+                // Si se creó correctamente, redirijo a la lista de productos con mensaje de éxito
                 header("Location: ../views/admin/products.php?exito=Producto+creado+correctamente");
                 exit;
             }
@@ -337,9 +351,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'activar_usuario':
-            header('Content-Type: application/json');
-            $usuarioId = intval($_POST['usuario_id']);
+            header('Content-Type: application/json'); // Respuesta en formato JSON para AJAX
+            $usuarioId = intval($_POST['usuario_id']); // Obtengo el ID del usuario a activar
 
+            // Intento activar el usuario en la base de datos
             if (activateUser($usuarioId)) {
                 echo json_encode(['exito' => true, 'mensaje' => 'Usuario activado correctamente.']);
             } else {
@@ -348,9 +363,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'desactivar_usuario':
-            header('Content-Type: application/json');
-            $usuarioId = intval($_POST['usuario_id']);
+            header('Content-Type: application/json'); // Respuesta en formato JSON para AJAX
+            $usuarioId = intval($_POST['usuario_id']); // Obtengo el ID del usuario a desactivar
 
+            // Intento desactivar el usuario en la base de datos
             if (deactivateUser($usuarioId)) {
                 echo json_encode(['exito' => true, 'mensaje' => 'Usuario desactivado correctamente.']);
             } else {
@@ -359,6 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'modificar_producto':
+            // Se obtienen los datos del producto desde el formulario (POST)
             $id = $_POST['id'] ?? null;
             $nombre = $_POST['name'] ?? null;
             $descripcion = $_POST['description'] ?? null;
@@ -371,10 +388,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $imagen = $_FILES['image'] ?? null;
             $errores = [];
 
-            // Obtener el nombre del usuario que está actualizando
-            $actualizado_por = $_SESSION['usuario']['id'];  // Asumiendo que el nombre está en la sesión del usuario
+            // Se obtiene el ID del usuario que está actualizando (admin)
+            $actualizado_por = $_SESSION['usuario']['id'];
 
-            // Validación de datos
+            // Validación de datos obligatorios del producto
             $validaciones = [
                 validateData('string', $nombre, 'nombre'),
                 validateData('string', $descripcion, 'descripción'),
@@ -382,22 +399,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 validateData('numero', $precio, 'precio'),
             ];
 
+            // Si alguna validación falla, agrego el mensaje de error al array
             foreach ($validaciones as $resultado) {
                 if ($resultado !== true) {
                     $errores[] = $resultado;
                 }
             }
 
-            // Validar que se haya seleccionado al menos un género y plataforma
+            // Se valida que se haya seleccionado al menos un género y plataforma
             if (empty($generos)) {
                 $errores[] = "Debes seleccionar al menos un género.";
             }
-
             if (empty($plataformas)) {
                 $errores[] = "Debes seleccionar al menos una plataforma.";
             }
 
-            // Validar el stock por plataforma
+            // Se valida el stock por plataforma
             foreach ($stock_por_plataforma as $plataformaId => $stock) {
                 $validacionStock = validateData('numero', $stock, "stock para la plataforma ID {$plataformaId}");
                 if ($validacionStock !== true) {
@@ -405,13 +422,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // Validación de imagen
+            // Validación de imagen (si se sube una nueva)
             if ($imagen && $imagen['error'] === UPLOAD_ERR_OK) {
                 $resultadoImagen = validateImage($imagen);
                 if ($resultadoImagen !== true) {
                     $errores[] = $resultadoImagen;
                 } else {
-                    // Eliminar TODAS las imágenes anteriores del producto (cualquier extensión)
+                    // Se eliminan TODAS las imágenes anteriores del producto (cualquier extensión)
                     $pattern = '../images/products/' . $id . '_*.*';
                     foreach (glob($pattern) as $oldFile) {
                         if (file_exists($oldFile)) {
@@ -432,35 +449,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $imagen = $productoExistente['imagen'];
             }
 
-            // Si hay errores, redirigir al formulario
+            // Si hay errores, se redirige al formulario con los mensajes
             if (!empty($errores)) {
                 header("Location: ../views/admin/addOrModifyProduct.php?id=" . $id . "&errores=" . urlencode(implode(", ", $errores)));
                 exit;
             }
 
-            // Actualizar el producto
+            // Se actualiza el producto en la base de datos
             modifyProduct(
                 $id,
                 $nombre,
                 $imagen,
                 $descripcion,
                 $fecha_lanzamiento,
-                $generos, // Pasamos el array de géneros
+                $generos,              // Array de géneros
                 $precio,
                 $descuento,
-                $stock_por_plataforma, // Pasamos el array de stock por plataforma
-                $plataformas, // Pasamos el array de plataformas
-                $actualizado_por // El usuario que está realizando la modificación
+                $stock_por_plataforma, // Array de stock por plataforma
+                $plataformas,          // Array de plataformas
+                $actualizado_por       // El usuario que está realizando la modificación
             );
 
-            // Redirigir a la página de productos con mensaje de éxito
+            // se redirige a la página de productos con mensaje de éxito
             header("Location: ../views/admin/products.php?exito=Producto+modificado+correctamente");
             exit;
 
         case 'desactivar_producto':
-            header('Content-Type: application/json');
-            $id = intval($_POST['id']);
+            header('Content-Type: application/json'); // Respuesta en JSON para AJAX
+            $id = intval($_POST['id']); // ID del producto a desactivar
 
+            // Intento desactivar el producto en la base de datos
             if (deactivateProduct($id)) {
                 echo json_encode(['exito' => true, 'mensaje' => 'Producto desactivado con éxito.']);
             } else {
@@ -469,9 +487,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'activar_producto':
-            header('Content-Type: application/json');
-            $id = intval($_POST['id']);
+            header('Content-Type: application/json'); // Respuesta en JSON para AJAX
+            $id = intval($_POST['id']); // ID del producto a activar
 
+            // Intento activar el producto en la base de datos
             if (activateProduct($id)) {
                 echo json_encode(['exito' => true, 'mensaje' => 'Producto activado con éxito.']);
             } else {
@@ -480,56 +499,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'agregar_favorito':
-            header('Content-Type: application/json');
+            header('Content-Type: application/json'); // Respuesta en JSON para AJAX
 
+            // Verifico que el usuario esté logueado
             if (!isset($_SESSION['usuario']['id'])) {
                 echo json_encode(['success' => false, 'error' => 'unauthorized']);
                 exit;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'];
-            $productoId = $_POST['producto_id'] ?? null;
+            $usuarioId = $_SESSION['usuario']['id']; // ID del usuario logueado
+            $productoId = $_POST['producto_id'] ?? null; // ID del producto a agregar/quitar de favoritos
 
+            // Si no se envió el producto, devuelvo error
             if (!$productoId) {
                 echo json_encode(['success' => false, 'error' => 'missing_product_id']);
                 exit;
             }
 
+            // Llama a la función que agrega o quita el favorito (toggle)
             $esFavorito = addOrRemoveFav($usuarioId, $productoId);
             echo json_encode(['success' => true, 'favorito' => $esFavorito]);
             break;
 
         case 'obtener_stock':
-            header('Content-Type: application/json');
+            header('Content-Type: application/json'); // Respuesta en JSON para AJAX
 
-            $productoId = $_POST['producto_id'] ?? null;
-            $plataformaId = $_POST['plataforma_id'] ?? null;
+            $productoId = $_POST['producto_id'] ?? null;    // ID del producto a consultar
+            $plataformaId = $_POST['plataforma_id'] ?? null; // ID de la plataforma a consultar
 
+            // Si falta algún dato, devuelvo error
             if (!$productoId || !$plataformaId) {
                 echo json_encode(['success' => false, 'error' => 'missing_data']);
                 exit;
             }
 
             $conn = conexion();
-            $stock = getAvailableStock($conn, $productoId, $plataformaId);
+            $stock = getAvailableStock($conn, $productoId, $plataformaId); // Consulto el stock disponible
             cerrar_conexion($conn);
 
             echo json_encode(['success' => true, 'stock' => $stock]);
             break;
 
         case 'agregar_producto_carrito':
-            header('Content-Type: application/json');
+            header('Content-Type: application/json'); // Respuesta en JSON para AJAX
 
+            // Verifico que el usuario esté logueado
             if (!isset($_SESSION['usuario']['id'])) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para agregar productos al carrito.']);
                 exit;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'];
-            $productoId = $_POST['producto_id'] ?? null;
-            $plataformaId = $_POST['plataforma_id'] ?? null;
-            $cantidad = 1;
+            $usuarioId = $_SESSION['usuario']['id']; // ID del usuario logueado
+            $productoId = $_POST['producto_id'] ?? null; // ID del producto a agregar
+            $plataformaId = $_POST['plataforma_id'] ?? null; // ID de la plataforma seleccionada
+            $cantidad = 1; // Por defecto, se agrega 1 unidad
 
+            // Si falta algún dato, devuelvo error
             if (!$productoId || !$plataformaId) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Datos inválidos.']);
                 exit;
@@ -537,7 +562,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $conn = conexion();
 
-            // Obtener el precio final del producto
+            // Obtengo el precio final del producto (con descuento si corresponde)
             $precioUnitario = getDiscountedPrice($conn, $productoId);
             if ($precioUnitario === null) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Producto no encontrado o inválido.']);
@@ -545,11 +570,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
-            // Intentar agregar el producto al carrito
+            // Intento agregar el producto al carrito
             $resultado = addProductToCart($conn, $usuarioId, $productoId, $plataformaId, $cantidad, $precioUnitario);
 
             cerrar_conexion($conn);
 
+            // Devuelvo el resultado (éxito, mensaje y stock restante)
             echo json_encode([
                 'exito' => $resultado['exito'],
                 'mensaje' => $resultado['mensaje'],
@@ -559,21 +585,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         case 'actualizar_cantidad_carrito':
             header('Content-Type: application/json');
-            if (!isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión.']);
-                exit;
-            }
-            $usuarioId = $_SESSION['usuario']['id'];
-            $carritoItemId = $_POST['carrito_item_id'] ?? null;
-            $cantidad = intval($_POST['cantidad'] ?? 1);
 
+            $usuarioId = $_SESSION['usuario']['id'];
+            $carritoItemId = $_POST['carrito_item_id'] ?? null; // ID del ítem del carrito a modificar
+            $cantidad = intval($_POST['cantidad'] ?? 1);        // Nueva cantidad deseada
+
+            // Valido que los datos sean correctos
             if (!$carritoItemId || $cantidad < 1 || $cantidad > 10) {
                 echo json_encode(['exito' => false, 'mensaje' => 'Datos inválidos.']);
                 exit;
             }
 
             $conn = conexion();
-            // Obtener el carrito y el item
+            // Obtengo el carrito y el ítem a modificar
             $carritoId = getActiveCartId($conn, $usuarioId);
             $item = getCartItemById($conn, $carritoItemId);
 
@@ -583,24 +607,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
-            // Verificar stock disponible
+            // Verifico el stock disponible para el producto/plataforma
             $stockDisponible = getAvailableStock($conn, $item['producto_id'], $item['plataforma_id']);
             $cantidadActual = $item['cantidad'];
-            $diferencia = $cantidad - $cantidadActual;
+            $diferencia = $cantidad - $cantidadActual; // Diferencia entre la nueva cantidad y la actual
 
+            // Si se quiere aumentar y no hay suficiente stock, aviso
             if ($diferencia > 0 && $diferencia > $stockDisponible) {
                 cerrar_conexion($conn);
                 echo json_encode(['exito' => false, 'mensaje' => 'Stock insuficiente.']);
                 exit;
             }
 
-            // Actualizar cantidad y stock
+            // Actualizo cantidad y stock según corresponda
             $precioUnitario = getDiscountedPrice($conn, $item['producto_id']);
             if ($diferencia > 0) {
-                // Reservar stock extra
+                // Reservo stock extra
                 reserveProductStock($conn, $item['producto_id'], $item['plataforma_id'], $diferencia);
             } elseif ($diferencia < 0) {
-                // Liberar stock
+                // Libero stock si se reduce la cantidad
                 releaseProductStock($item['producto_id'], $item['plataforma_id'], abs($diferencia));
             }
             updateCartItem($conn, $carritoItemId, $cantidad, $precioUnitario);
@@ -616,14 +641,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'eliminar_producto_carrito':
             header('Content-Type: application/json');
 
-            if (!isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para eliminar productos del carrito.']);
-                exit;
-            }
-
             $usuarioId = $_SESSION['usuario']['id'];
             $carritoItemId = $_POST['carrito_item_id'] ?? null;
 
+            // Valido que el ID sea correcto
             if (!$carritoItemId || !is_numeric($carritoItemId)) {
                 echo json_encode(['exito' => false, 'mensaje' => 'ID de producto inválido.']);
                 exit;
@@ -643,15 +664,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'obtener_resumen_carrito':
             header('Content-Type: application/json');
 
-            $carritoId = $_POST['carrito_id'] ?? null;
+            $carritoId = $_POST['carrito_id'] ?? null; // ID del carrito a consultar
 
+            // Valido que el ID sea correcto
             if (!$carritoId || !is_numeric($carritoId)) {
                 echo json_encode(['exito' => false, 'mensaje' => 'ID de carrito inválido.']);
                 exit;
             }
 
             $conn = conexion();
-            $resumen = getCartSummary($conn, $carritoId);
+            $resumen = getCartSummary($conn, $carritoId); // Obtengo el resumen del carrito (productos, totales, etc)
             cerrar_conexion($conn);
 
             echo json_encode(['exito' => true, 'resumen' => $resumen]);
@@ -660,15 +682,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'vaciar_carrito':
             header('Content-Type: application/json');
 
-            if (!isset($_SESSION['usuario']['id'])) {
-                echo json_encode(['exito' => false, 'mensaje' => 'Debes iniciar sesión para vaciar el carrito.']);
-                exit;
-            }
-
-            $usuarioId = $_SESSION['usuario']['id'];
+            $usuarioId = $_SESSION['usuario']['id']; // ID del usuario logueado
             $conn = conexion();
 
-            // Llamar a la función emptyCart
+            // Llamar a la función emptyCart para vaciar el carrito del usuario
             $success = emptyCart($conn, $usuarioId);
             cerrar_conexion($conn);
 
@@ -683,12 +700,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Content-Type: application/json');
 
             $usuarioId = $_SESSION['usuario']['id'] ?? null;
-            if (!$usuarioId) {
-                echo json_encode(['exito' => false, 'mensaje' => 'Usuario no autenticado.']);
-                exit;
-            }
 
-            // Datos del cliente
+            // Obtengo los datos del formulario de pago
             $nombreCompleto = isset($_POST['nombre']) ? trim($_POST['nombre']) : null;
             $correo = isset($_POST['correo']) ? trim($_POST['correo']) : null;
             $direccion = isset($_POST['direccion']) ? trim($_POST['direccion']) : null;
@@ -770,17 +783,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'actualizar_estado_pedido':
             header('Content-Type: application/json');
 
-            $pedidoId = intval($_POST['pedido_id']);
-            $estado = $_POST['estado'];
+            $pedidoId = intval($_POST['pedido_id']); // ID del pedido a actualizar
+            $estado = $_POST['estado']; // Nuevo estado enviado desde el frontend
 
+            // Según el estado recibido, llamo a la función correspondiente
             if ($estado === 'entregado') {
-                $exito = markOrderShipped($pedidoId);
+                $exito = markOrderShipped($pedidoId); // Marca el pedido como entregado
             } elseif ($estado === 'cancelado') {
-                $exito = markOrderCancelled($pedidoId);
+                $exito = markOrderCancelled($pedidoId); // Marca el pedido como cancelado
             } else {
-                $exito = false;
+                $exito = false; // Estado no válido
             }
 
+            // Devuelvo el resultado como JSON
             echo json_encode([
                 'exito' => $exito,
                 'mensaje' => $exito ? 'Estado actualizado correctamente.' : 'No se pudo actualizar el estado.'
@@ -790,17 +805,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'buscar_productos':
             header('Content-Type: application/json');
 
+            // Filtros recibidos desde el frontend (pueden venir vacíos)
             $nombre = trim($_POST['nombre'] ?? '');
             $genero = is_numeric($_POST['genero'] ?? '') ? (int)$_POST['genero'] : null;
             $plataforma = is_numeric($_POST['plataforma'] ?? '') ? (int)$_POST['plataforma'] : null;
             $precioMin = is_numeric($_POST['precioMin'] ?? '') ? (float)$_POST['precioMin'] : null;
             $precioMax = is_numeric($_POST['precioMax'] ?? '') ? (float)$_POST['precioMax'] : null;
 
+            // Llama a la función que filtra productos según los parámetros recibidos
             $productos = getFilteredProducts($nombre, $genero, $plataforma, $precioMin, $precioMax);
             echo json_encode($productos);
             exit;
 
         case 'obtener_estadisticas':
+            // Construyo el array de estadísticas para el dashboard (usuarios, productos, pedidos, ganancias, etc)
             $respuesta = [
                 'usuarios' => [
                     'nuevos'  => obtenerUsuariosNuevosPorMes('fecha_creacion'),
@@ -833,7 +851,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ];
             echo json_encode($respuesta);
             exit;
+
         default:
+            // Si no se reconoce la acción, redirijo a una página de error
             header("Location: ../views/user/error.php");
             break;
     }

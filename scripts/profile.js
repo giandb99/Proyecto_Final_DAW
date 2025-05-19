@@ -1,40 +1,66 @@
+/**
+ * Actualiza los datos personales del usuario.
+ * Envía los datos del formulario al backend y, si la operación es exitosa,
+ * deshabilita los inputs y muestra un mensaje de éxito.
+ * @param {FormData} formData - Datos del formulario a enviar.
+ * @param {NodeList} inputs - Inputs del formulario de perfil.
+ * @param {HTMLElement} saveButton - Botón de guardar cambios.
+ * @param {HTMLElement} editButton - Botón de editar/cancelar.
+ */
 function updateProfile(formData, inputs, saveButton, editButton) {
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         body: formData
     })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.exito) {
                 showPopup('Datos actualizados correctamente.');
+                // Deshabilito todos los campos de entrada después de guardar
                 inputs.forEach(input => input.disabled = true);
+                // Deshabilito el botón de guardar
                 saveButton.disabled = true;
+                // Habilito el botón de editar y cambio el texto a "Editar"
                 editButton.disabled = false;
                 editButton.textContent = 'Editar';
             } else {
+                // Si hubo un error, muestro el mensaje recibido
                 showPopup(data.mensaje || 'Error al actualizar los datos.');
             }
         })
         .catch(error => console.error('Error:', error));
 }
 
+/**
+ * Actualiza la contraseña del usuario.
+ * Envía los datos del formulario al backend y, si la operación es exitosa,
+ * limpia y deshabilita los campos de contraseña y muestra un mensaje de éxito.
+ * @param {FormData} formData - Datos del formulario de cambio de contraseña.
+ * @param {NodeList} passwordInputs - Inputs del formulario de contraseña.
+ * @param {HTMLElement} savePassButton - Botón de guardar contraseña.
+ * @param {HTMLElement} editPassButton - Botón de editar/cancelar contraseña.
+ */
 function updatePassword(formData, passwordInputs, savePassButton, editPassButton) {
     fetch('../../verifications/paginaIntermedia.php', {
         method: 'POST',
         body: formData
     })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.exito) {
                 showPopup('Contraseña actualizada correctamente.');
+                // Limpio y deshabilito los campos de contraseña tras guardar
                 passwordInputs.forEach(input => {
-                    input.disabled = true
-                    input.value = '';
+                    input.disabled = true; // Deshabilito el input
+                    input.value = '';      // Limpio el valor del input
                 });
+                // Deshabilito el botón de guardar contraseña
                 savePassButton.disabled = true;
+                // Habilito el botón de editar y cambio el texto a "Editar"
                 editPassButton.disabled = false;
                 editPassButton.textContent = 'Editar';
             } else {
+                // Si hubo un error, muestro el mensaje recibido
                 showPopup(data.mensaje || 'Error al actualizar la contraseña.');
             }
         })
@@ -42,36 +68,40 @@ function updatePassword(formData, passwordInputs, savePassButton, editPassButton
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Datos personales
-    const editButton = document.getElementById('edit-button');
-    const saveButton = document.getElementById('save-button');
-    const inputs = document.querySelectorAll('#profile-form input');
+    // Elementos para datos personales
+    const editButton = document.getElementById('edit-button'); // Botón para editar/cancelar datos personales
+    const saveButton = document.getElementById('save-button'); // Botón para guardar cambios
+    const inputs = document.querySelectorAll('#profile-form input'); // Inputs del formulario de perfil
 
-    // Contraseña
-    const editPassButton = document.getElementById('edit-button-pass');
-    const savePassButton = document.getElementById('save-button-pass');
-    const passwordInputs = document.querySelectorAll('#change-password-form input');
+    // Elementos para contraseña
+    const editPassButton = document.getElementById('edit-button-pass'); // Botón para editar/cancelar contraseña
+    const savePassButton = document.getElementById('save-button-pass'); // Botón para guardar contraseña
+    const passwordInputs = document.querySelectorAll('#change-password-form input'); // Inputs del formulario de contraseña
 
-    // Datos personales
+    // Lógica para editar/cancelar datos personales
     editButton.addEventListener('click', () => {
         if (editButton.textContent.trim() === 'Editar') {
+            // Si el botón dice "Editar", habilito los campos para edición
             inputs.forEach(input => input.disabled = false);
-            saveButton.disabled = false;
-            editButton.textContent = 'Cancelar';
+            saveButton.disabled = false; // Habilito el botón de guardar
+            editButton.textContent = 'Cancelar'; // Cambio el texto a "Cancelar"
         } else {
+            // Si el botón dice "Cancelar", deshabilito los campos y restauro el texto
             inputs.forEach(input => input.disabled = true);
             saveButton.disabled = true;
             editButton.textContent = 'Editar';
         }
     });
 
-    // Contraseña
+    // Lógica para editar/cancelar contraseña
     editPassButton.addEventListener('click', () => {
         if (editPassButton.textContent.trim() === 'Editar') {
+            // Si el botón dice "Editar", habilito los campos de contraseña
             passwordInputs.forEach(input => input.disabled = false);
-            savePassButton.disabled = false;
-            editPassButton.textContent = 'Cancelar';
+            savePassButton.disabled = false; // Habilito el botón de guardar contraseña
+            editPassButton.textContent = 'Cancelar'; // Cambio el texto a "Cancelar"
         } else {
+            // Si el botón dice "Cancelar", deshabilito y limpio los campos
             passwordInputs.forEach(input => {
                 input.disabled = true;
                 input.value = '';
@@ -81,35 +111,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Envío del formulario de perfil
     document.getElementById('profile-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(e.target);
-        formData.append('accion', 'actualizar_perfil');
-
-        updateProfile(formData, inputs, saveButton, editButton);
+        e.preventDefault(); // Evito el envío tradicional
+        const formData = new FormData(e.target); // Obtengo los datos del formulario
+        formData.append('accion', 'actualizar_perfil'); // Agrego la acción
+        updateProfile(formData, inputs, saveButton, editButton); // Llamo a la función de actualización
     });
 
+    // Envío del formulario de cambio de contraseña
     document.getElementById('change-password-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(e.target);
-        formData.append('accion', 'cambiar_contraseña');
-
-        updatePassword(formData, passwordInputs, savePassButton, editPassButton);
+        e.preventDefault(); // Evito el envío tradicional
+        const formData = new FormData(e.target); // Obtengo los datos del formulario
+        formData.append('accion', 'cambiar_contraseña'); // Agrego la acción
+        updatePassword(formData, passwordInputs, savePassButton, editPassButton); // Llamo a la función de actualización
     });
 });
 
-// Mostrar/ocultar contraseña
+// Mostrar/ocultar contraseña al hacer click en el icono del ojo
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.toggle-password').forEach(btn => {
         btn.addEventListener('click', function () {
-            const input = document.getElementById(this.dataset.target);
+            const input = document.getElementById(this.dataset.target); // Obtengo el input asociado
             if (input.type === "password") {
+                // Si está en modo password, lo cambio a texto y cambio el icono
                 input.type = "text";
                 this.querySelector('i').classList.remove('fa-eye');
                 this.querySelector('i').classList.add('fa-eye-slash');
             } else {
+                // Si está en modo texto, lo cambio a password y cambio el icono
                 input.type = "password";
                 this.querySelector('i').classList.remove('fa-eye-slash');
                 this.querySelector('i').classList.add('fa-eye');

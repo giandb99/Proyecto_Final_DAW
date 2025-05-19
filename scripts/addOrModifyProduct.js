@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const plataformaDiv = checkbox.closest('.plataforma');
         const stockInput = plataformaDiv.querySelector('.plataforma-stock');
 
-        // Inicializar estado al cargar
+        // Inicializo el estado del input de stock según si la plataforma está seleccionada
         stockInput.disabled = !checkbox.checked;
 
-        // Listener al hacer clic
+        // Al cambiar el estado del checkbox, habilito o deshabilito el input de stock
         checkbox.addEventListener('change', function () {
             stockInput.disabled = !this.checked;
         });
