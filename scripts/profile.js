@@ -2,6 +2,7 @@
  * Actualiza los datos personales del usuario.
  * Envía los datos del formulario al backend y, si la operación es exitosa,
  * deshabilita los inputs y muestra un mensaje de éxito.
+ * 
  * @param {FormData} formData - Datos del formulario a enviar.
  * @param {NodeList} inputs - Inputs del formulario de perfil.
  * @param {HTMLElement} saveButton - Botón de guardar cambios.
@@ -35,6 +36,7 @@ function updateProfile(formData, inputs, saveButton, editButton) {
  * Actualiza la contraseña del usuario.
  * Envía los datos del formulario al backend y, si la operación es exitosa,
  * limpia y deshabilita los campos de contraseña y muestra un mensaje de éxito.
+ * 
  * @param {FormData} formData - Datos del formulario de cambio de contraseña.
  * @param {NodeList} passwordInputs - Inputs del formulario de contraseña.
  * @param {HTMLElement} savePassButton - Botón de guardar contraseña.
@@ -66,6 +68,51 @@ function updatePassword(formData, passwordInputs, savePassButton, editPassButton
         })
         .catch(error => console.error('Error:', error));
 }
+
+/**
+ * Esta función desactiva la cuenta del usuario actual.
+ * Envía una solicitud al backend para desactivar la cuenta.
+ * Si la operación es exitosa, muestra un popup y redirige al catálogo tras un breve retraso.
+ * Si falla, muestra el mensaje de error correspondiente.
+ * 
+ * @param {number} userId - ID del usuario a desactivar.
+ */
+function deleteAccount(userId) {
+    // Confirmación antes de proceder
+    if (confirm('¿Estás seguro de que deseas desactivar tu cuenta? Esta acción es reversible contactando al soporte.')) {
+        
+        // Realiza la petición al backend para desactivar la cuenta
+        fetch('../../verifications/paginaIntermedia.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'accion=desactivar_usuario&usuario_id=' + encodeURIComponent(userId)
+        })
+            .then(res => res.json()) // Convierte la respuesta a JSON
+            .then(data => {
+                if (data.exito) {
+                    // Si fue exitoso, muestra el popup de éxito
+                    showPopup('Tu cuenta ha sido desactivada correctamente.');
+                    setTimeout(() => {
+                        window.location.href = 'catalog.php';
+                    }, 2000); // Espera 2 segundos antes de redirigir al catálogo
+                } else {
+                    showPopup(data.mensaje || 'No se pudo desactivar la cuenta.'); // Si hubo un error, muestra el mensaje recibido
+                }
+            })
+            .catch(() => showPopup('Error al intentar desactivar la cuenta.')); // Manejo de error de red
+    }
+}
+
+// Asocia el evento al botón solo si existe
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector('.delete-account-btn');
+    if (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            desactivarCuentaUsuario();
+        });
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     // Elementos para datos personales

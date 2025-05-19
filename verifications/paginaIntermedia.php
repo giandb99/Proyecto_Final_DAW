@@ -81,6 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $user = getUserData($email, 'user');
 
                 if ($user) {
+                    if ($user['activo'] != 1) {
+                        header("Location: ../views/user/login.php?errores=La+cuenta+está+desactivada.+Contacta+al+soporte.");
+                        exit();
+                    }
                     // Verifico la contraseña con hash
                     if (password_verify($password, $user['pass'])) {
                         login($user); // Guardo datos en sesión
@@ -363,15 +367,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
 
         case 'desactivar_usuario':
-            header('Content-Type: application/json'); // Respuesta en formato JSON para AJAX
-            $usuarioId = intval($_POST['usuario_id']); // Obtengo el ID del usuario a desactivar
+            // Indico que la respuesta será en formato JSON para AJAX
+            header('Content-Type: application/json');
 
-            // Intento desactivar el usuario en la base de datos
+            // Obtengo el ID del usuario a desactivar desde el POST
+            $usuarioId = intval($_POST['usuario_id']);
+
+            // Obtengo el ID del usuario actualmente logueado en la sesión
+            $sesionId = $_SESSION['usuario']['id'] ?? null;
+
+            // Intento desactivar el usuario en la base de datos llamando a la función correspondiente
             if (deactivateUser($usuarioId)) {
+                // Si el usuario que se desactiva es el mismo que está logueado, cierro la sesión
+                if ($sesionId == $usuarioId) {
+                    session_destroy(); // Solo cierra sesión si el usuario se desactiva a sí mismo
+                }
+                // Devuelvo una respuesta JSON de éxito
                 echo json_encode(['exito' => true, 'mensaje' => 'Usuario desactivado correctamente.']);
             } else {
+                // Si hubo un error al desactivar, devuelvo una respuesta JSON de error
                 echo json_encode(['exito' => false, 'mensaje' => 'No se pudo desactivar el usuario.']);
             }
+            // Finalizo la ejecución del script para evitar que se siga procesando
             exit;
 
         case 'modificar_producto':

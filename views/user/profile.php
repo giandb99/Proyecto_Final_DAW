@@ -45,6 +45,9 @@ $isAdmin = ($_SESSION['usuario']['rol'] === 'admin');
                         <a href="javascript:history.back()" class="back-button">
                             <span><i class="fas fa-arrow-left"></i> Volver</span>
                         </a>
+                        <a href="#" class="delete-account-btn" onclick="deleteAccount(<?= $userId ?>)">
+                            <span></i class="fas fa-user-slash"> Eliminar Cuenta</span>
+                        </a>
                     </div>
                 <?php endif; ?>
                 <div class="forms-container">

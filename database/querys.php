@@ -154,7 +154,7 @@ function getAllUserData()
 }
 
 /**
- * Esta función obtiene los datos de un usuario activo según su email y rol.
+ * Esta función obtiene los datos de un usuario según su email y rol.
  *
  * @param string $email Correo electrónico del usuario.
  * @param string $rol Rol del usuario (por defecto 'user').
@@ -164,7 +164,7 @@ function getUserData($email, $rol = 'user')
 {
     $conn = conexion();
     // Se prepara la consulta para buscar el usuario activo por email y rol
-    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND rol = ? AND activo = 1");
+    $query = $conn->prepare("SELECT * FROM usuario WHERE email = ? AND rol = ?");
     $query->bind_param("ss", $email, $rol);
     $query->execute();
     $result = $query->get_result();
