@@ -49,15 +49,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 setTimeout(() => {                                    
                                     window.location.href = data.redirect_url; // Redirijo al usuario a la página indicada por el backend
-                                }, 2000);
-                            }, 2000);
-                        }, 2000);
+                                }, 2000); // Redirijo después de 2 segundos
+                            }, 2000); // Muestro el mensaje de éxito después de 2 segundos
+                        }, 2000); // Simulo un tiempo de carga de 2 segundos
                     } else {
 
                         // Si hay errores, los muestro en los contenedores correspondientes
                         const errorClienteDiv = document.getElementById('errores-cliente');
                         const errorTarjetaDiv = document.getElementById('errores-tarjeta');
 
+                        // Limpio mensajes de error anteriores
                         if (errorClienteDiv) errorClienteDiv.innerHTML = '';
                         if (errorTarjetaDiv) errorTarjetaDiv.innerHTML = '';
 

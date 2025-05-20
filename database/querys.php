@@ -124,6 +124,9 @@ function login($usuario)
         'activo' => $usuario['activo'],
         'imagen_perfil' => !empty($usuario['imagen_perfil']) ? $usuario['imagen_perfil'] : null
     ];
+
+    // Guarda el timestamp de la última actividad
+    $_SESSION['last_activity'] = time();
 }
 
 /**

@@ -1,8 +1,9 @@
 <?php
 
+session_start();
 require_once '../../database/querys.php';
 require_once '../../database/connection.php';
-session_start();
+require_once '../../session_timeout.php';
 
 $usuarioLogueado = isset($_SESSION['usuario']['id']);
 $carritoItems = [];

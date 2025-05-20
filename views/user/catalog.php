@@ -1,7 +1,8 @@
 <?php
 
-require_once '../../database/querys.php';
 session_start();
+require_once '../../database/querys.php';
+require_once '../../session_timeout.php';
 
 $usuarioLogueado = isset($_SESSION['usuario']['id']);
 
@@ -52,9 +53,7 @@ $productos = getCatalog($nombre);
                         </select>
                         <input type="number" class="price-input" name="precioMin" placeholder="Precio mínimo" min="0" />
                         <input type="number" class="price-input" name="precioMax" placeholder="Precio máximo" min="0" />
-                        <a href="#" id="clear-filters-btn" class="clear-filters-link" style="display:none;">
-                            Limpiar filtros
-                        </a>
+                        <a href="#" id="clear-filters-btn" class="clear-filters-link" style="display:none;">Limpiar filtros</a>
                     </form>
                 </section>
 

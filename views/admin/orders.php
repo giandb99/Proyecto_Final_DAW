@@ -1,7 +1,8 @@
 <?php
 
-require_once '../../database/querys.php';
 session_start();
+require_once '../../database/querys.php';
+require_once '../../session_timeout.php';
 
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
     header('Location: ../user/logout.php');

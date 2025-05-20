@@ -1,7 +1,8 @@
 <?php
 
-require_once '../../database/querys.php';
 session_start();
+require_once '../../database/querys.php';
+require_once '../../session_timeout.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "<p>Pedido no válido.</p>";

@@ -1,7 +1,8 @@
 <?php
 
-require_once '../../database/querys.php';
 session_start();
+require_once '../../database/querys.php';
+require_once '../../session_timeout.php';
 
 // Solo permitir acceso a admin
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
